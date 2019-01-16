@@ -202,9 +202,8 @@ public class RetentionRulesControllerTest {
   public void updateRuleWithValidFieldsSucceeds() {
     RetentionRuleUpdateRequest rule = new RetentionRuleUpdateRequest();
     rule.setRetentionPeriod(123);
-    rule.setRuleId(1);
 
-    Response response = controller.update(rule, 1);
+    Response response = controller.update(1, rule);
 
     assertEquals(response.getStatus(), 200);
     RetentionRuleUpdateResponse body = (RetentionRuleUpdateResponse) response.getEntity();
@@ -220,24 +219,11 @@ public class RetentionRulesControllerTest {
   public void updateRuleWithInvalidRetentionRuleFails() {
     RetentionRuleUpdateRequest rule = new RetentionRuleUpdateRequest();
     rule.setRetentionPeriod(-1);
-    rule.setRuleId(1);
 
-    Response response = controller.update(rule, 1);
+    Response response = controller.update(1, rule);
 
     assertEquals(response.getStatus(), 400);
     ErrorResponse body = (ErrorResponse) response.getEntity();
     assertTrue(body.getMessage().contains("retentionPeriod"));
-  }
-
-  @Test
-  public void updateRuleWithInvalidRuleIdFails() {
-    RetentionRuleUpdateRequest rule = new RetentionRuleUpdateRequest();
-    rule.setRetentionPeriod(1);
-
-    Response response = controller.update(rule, 1);
-
-    assertEquals(response.getStatus(), 400);
-    ErrorResponse body = (ErrorResponse) response.getEntity();
-    assertTrue(body.getMessage().contains("ruleId"));
   }
 }
