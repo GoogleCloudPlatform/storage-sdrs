@@ -72,7 +72,7 @@ public class RetentionRulesController extends BaseController {
   @Path("/{ruleId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response update(RetentionRuleUpdateRequest request, @PathParam("ruleId") Integer id) {
+  public Response update(@PathParam("ruleId") Integer ruleId, RetentionRuleUpdateRequest request) {
     String requestUuid = generateRequestUuid();
 
     try {
@@ -88,7 +88,7 @@ public class RetentionRulesController extends BaseController {
       response.setDataStorageName("gs://bucket/dataset");
       response.setProjectId("projectId");
       response.setRetentionPeriod(123);
-      response.setRuleId(1);
+      response.setRuleId(ruleId);
       response.setType(RetentionRuleTypes.DATASET);
 
       return Response.status(200).entity(response).build();
@@ -153,10 +153,6 @@ public class RetentionRulesController extends BaseController {
 
   private void validateUpdate(RetentionRuleUpdateRequest request) throws ValidationException {
     ValidationException validation = new ValidationException();
-
-    if (request.getRuleId() == null) {
-      validation.addValidationError("ruleId must be provided");
-    }
 
     applyRetentionPeriodValidation(validation, request.getRetentionPeriod());
 
