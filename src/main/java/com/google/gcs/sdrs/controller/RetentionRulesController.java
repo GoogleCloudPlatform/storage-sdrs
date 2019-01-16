@@ -70,6 +70,38 @@ public class RetentionRulesController extends BaseController {
     }
   }
 
+  /**
+   * CRUD update endpoint
+   */
+  @PUT
+  @Path("/{ruleId}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response update(RetentionRuleUpdateRequest request, @PathParam("ruleId") String id) {
+    String requestUuid = generateRequestUuid();
+
+    try {
+      validateUpdate(request);
+
+      // TODO: Perform business logic
+
+      RetentionRuleUpdateResponse response = new RetentionRuleUpdateResponse();
+      response.setRequestUuid(requestUuid);
+
+      // TODO: map actual values to response
+      response.setDatasetName("dataset");
+      response.setDataStorageName("gs://bucket/dataset");
+      response.setProjectId("projectId");
+      response.setRetentionPeriod(123);
+      response.setRuleId(1);
+      response.setType(RetentionRuleTypes.DATASET);
+
+      return Response.status(200).entity(response).build();
+    } catch (HttpException exception) {
+      return generateExceptionResponse(exception, requestUuid);
+    }
+  }
+
   /** CRUD update endpoint */
   @PUT
   @Path("/{ruleId}")
