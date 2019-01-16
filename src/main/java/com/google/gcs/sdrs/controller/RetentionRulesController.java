@@ -18,12 +18,15 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
+import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateResponse;
+import com.google.gcs.sdrs.enums.RetentionRuleTypes;
+import javax.ws.rs.PUT;
+import javax.ws.rs.PathParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -67,6 +70,38 @@ public class RetentionRulesController extends BaseController {
   }
 
   /**
+   * CRUD update endpoint
+   */
+  @PUT
+  @Path("/{ruleId}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response update(RetentionRuleUpdateRequest request, @PathParam("ruleId") String id) {
+    String requestUuid = generateRequestUuid();
+
+    try {
+      validateUpdate(request);
+
+      // TODO: Perform business logic
+
+      RetentionRuleUpdateResponse response = new RetentionRuleUpdateResponse();
+      response.setRequestUuid(requestUuid);
+
+      // TODO: map actual values to response
+      response.setDatasetName("dataset");
+      response.setDataStorageName("gs://bucket/dataset");
+      response.setProjectId("projectId");
+      response.setRetentionPeriod(123);
+      response.setRuleId(1);
+      response.setType(RetentionRuleTypes.DATASET);
+
+      return Response.status(200).entity(response).build();
+    } catch (HttpException exception) {
+      return generateExceptionResponse(exception, requestUuid);
+    }
+  }
+
+  /**
    * Validates the object for creating a retention rule
    *
    * @param request the create request object
@@ -75,17 +110,7 @@ public class RetentionRulesController extends BaseController {
   private void validateCreate(RetentionRuleCreateRequest request) throws ValidationException {
     ValidationException validation = new ValidationException();
 
-    if (request.getRetentionPeriod() == null) {
-      validation.addValidationError("retentionPeriod must be provided");
-    } else {
-      if (request.getRetentionPeriod() < 0) {
-        validation.addValidationError("retentionPeriod must be at least 0");
-      }
-      if (request.getRetentionPeriod() > RETENTION_MAX_VALUE) {
-        validation.addValidationError(
-            String.format("retentionPeriod exceeds maximum value of %d", RETENTION_MAX_VALUE));
-      }
-    }
+    applyRetentionPeriodValidation(validation, request.getRetentionPeriod());
 
     if (request.getType() == null) {
       validation.addValidationError("type must be provided");
@@ -127,6 +152,34 @@ public class RetentionRulesController extends BaseController {
 
     if (validation.getValidationErrorCount() > 0) {
       throw validation;
+    }
+  }
+
+  private void validateUpdate(RetentionRuleUpdateRequest request) throws ValidationException {
+    ValidationException validation = new ValidationException();
+
+    if (request.getRuleId() == null) {
+      validation.addValidationError("ruleId must be provided");
+    }
+
+    applyRetentionPeriodValidation(validation, request.getRetentionPeriod());
+
+    if (validation.getValidationErrorCount() > 0) {
+      throw validation;
+    }
+  }
+
+  private void applyRetentionPeriodValidation(ValidationException validation, Integer retentionPeriod) {
+    if (retentionPeriod == null) {
+      validation.addValidationError("retentionPeriod must be provided");
+    } else {
+      if (retentionPeriod < 0) {
+        validation.addValidationError("retentionPeriod must be at least 0");
+      }
+      if (retentionPeriod > RETENTION_MAX_VALUE) {
+        validation.addValidationError(
+            String.format("retentionPeriod exceeds maximum value of %d", RETENTION_MAX_VALUE));
+      }
     }
   }
 }
