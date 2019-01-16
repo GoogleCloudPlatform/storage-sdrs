@@ -34,9 +34,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-/**
- * Controller for managing retention rule objects over HTTP
- */
+/** Controller for managing retention rule objects over HTTP */
 @Path("/retentionrules")
 public class RetentionRulesController extends BaseController {
 
@@ -44,9 +42,7 @@ public class RetentionRulesController extends BaseController {
   private static final Integer RETENTION_MAX_VALUE = 200;
   private static final String STORAGE_PREFIX = "gs://";
 
-  /**
-   * CRUD create endpoint
-   */
+  /** CRUD create endpoint */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -69,14 +65,12 @@ public class RetentionRulesController extends BaseController {
     }
   }
 
-  /**
-   * CRUD update endpoint
-   */
+  /** CRUD update endpoint */
   @PUT
   @Path("/{ruleId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response update(RetentionRuleUpdateRequest request, @PathParam("ruleId") String id) {
+  public Response update(RetentionRuleUpdateRequest request, @PathParam("ruleId") Integer id) {
     String requestUuid = generateRequestUuid();
 
     try {
@@ -169,7 +163,8 @@ public class RetentionRulesController extends BaseController {
     }
   }
 
-  private void applyRetentionPeriodValidation(ValidationException validation, Integer retentionPeriod) {
+  private void applyRetentionPeriodValidation(
+      ValidationException validation, Integer retentionPeriod) {
     if (retentionPeriod == null) {
       validation.addValidationError("retentionPeriod must be provided");
     } else {
