@@ -1,0 +1,110 @@
+{#
+Copyright 2016 Google Inc. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+
+{% set INSTANCE_TEMPLATE = env["deployment"] + "-it" %}
+{% set IGM = env["deployment"] + "-igm" %}
+{% set BACK_END = env["deployment"] + "-bes" %}
+{% set HEALTH_CHECK = env["deployment"] + "-hc" %}
+{% set FWARD_RULE = env["deployment"] + "-fr" %}
+
+resources:
+- name: {{ env["deployment"] }}-as
+  type: compute.v1.regionAutoscaler
+  properties:
+    region: {{ properties["region"] }}
+    target: $(ref.{{ IGM }}.selfLink)
+    autoscalingPolicy:
+      maxNumReplicas: {{ properties["maxReplicas"] }}
+      cpuUtilization:
+        utilizationTarget: 0.7
+      coolDownPeriodSec: 90
+- name: {{ IGM }}
+  type: compute.v1.regionInstanceGroupManagers
+  properties:
+    baseInstanceName: {{ env["deployment"] }}-instance
+    instanceTemplate: $(ref.{{ INSTANCE_TEMPLATE }}.selfLink)
+    targetSize: {{ properties["targetSize"] }}
+    region: {{ properties["region"] }}
+- name: {{ INSTANCE_TEMPLATE }}
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      disks:
+      - deviceName: boot
+        type: PERSISTENT
+        boot: true
+        autoDelete: true
+        initializeParams:
+          sourceImage: https://www.googleapis.com/compute/v1/projects/cos-cloud/global/images/{{ properties["containerImage"] }}
+      machineType: {{ properties["machineType"] }}
+      networkInterfaces:
+      - network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+        subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-west1/subnetworks/subnet-a
+        {% if properties["externalIp"] %}
+        accessConfigs:
+        - name: External-IP
+          type: ONE_TO_ONE_NAT
+        {% endif %}
+      metadata:
+        items:
+        - key: google-container-manifest
+          value: |
+            {{ imports[properties["containerManifest"]]|indent(12) }}
+- name: {{ BACK_END }}
+  type: compute.v1.regionBackendService
+  properties:
+    protocol: "TCP"
+    backends: {{ properties["instance-groups"] }}
+    - name: {{ IGM }}-{{ properties["service"] }}
+      group: $(ref.{{ IGM }}.instanceGroup)
+    loadBalancingScheme: INTERNAL
+    region: {{ properties["region"] }}
+    healthChecks: [$(ref.{{ HEALTH_CHECK }}.selfLink)]
+- name: {{ HEALTH_CHECK }}
+  type: compute.v1.healthCheck
+  properties:
+    type: "TCP"
+    tcpHealthCheck: 
+      port: 80
+- name: {{ FWARD_RULE }}
+  type: compute.v1.forwardingRule
+  properties:
+    ports: [80]
+    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-west1/subnetworks/subnet-a
+    region: {{ properties["region"] }}
+    backendService: $(ref.{{ BACK_END }}.selfLink)
+    loadBalancingScheme: INTERNAL
+- name: {{ env["deployment"] }}-allow-health-check-firewall-rule
+  type: compute.v1.firewall
+  properties:
+    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+    sourceRanges: ['130.211.0.0/22','35.191.0.0/16']
+    allowed:
+    - IPProtocol: 'TCP'
+    
+- name: {{ env["deployment"] }}-allow-internal-lb-firewall-rule
+  type: compute.v1.firewall
+  properties:
+    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+    sourceRanges: ['10.10.20.0/22']
+    allowed:
+    - IPProtocol: 'TCP'
+      ports: ['80', '443']
+     
+    
+
+
+       
+  
+    
