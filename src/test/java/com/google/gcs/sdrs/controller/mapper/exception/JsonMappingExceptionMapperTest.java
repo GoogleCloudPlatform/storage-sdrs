@@ -57,6 +57,7 @@ public class JsonMappingExceptionMapperTest {
 
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("Invalid"));
+    assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }
 
   @Test

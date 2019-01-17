@@ -48,6 +48,7 @@ public class InvalidFormatExceptionMapperTest {
     Response response = mapper.toResponse(exception);
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("value"));
+    assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }
 
   @Test
