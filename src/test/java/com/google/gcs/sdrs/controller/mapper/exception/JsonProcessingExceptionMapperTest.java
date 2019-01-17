@@ -48,6 +48,7 @@ public class JsonProcessingExceptionMapperTest {
 
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("Unable"));
+    assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }
 
   @Test

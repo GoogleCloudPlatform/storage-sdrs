@@ -59,6 +59,7 @@ public class UnrecognizedPropertyExceptionMapperTest {
 
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("fieldName"));
+    assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }
 
   @Test
