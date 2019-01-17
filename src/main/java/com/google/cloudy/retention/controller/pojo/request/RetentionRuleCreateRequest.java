@@ -19,15 +19,12 @@
 package com.google.cloudy.retention.controller.pojo.request;
 
 import com.google.cloudy.retention.enums.RetentionRuleTypes;
-
 import java.io.Serializable;
 
 public class RetentionRuleCreateRequest implements Serializable {
-  /**
-	 * 
-	 */
-	private static final long serialVersionUID = -6338592900101329098L;
-private String datasetName;
+
+  private static final long serialVersionUID = -6338592900101329098L;
+  private String datasetName;
   private Integer retentionPeriod;
   private String dataStorageName;
   private String projectId;

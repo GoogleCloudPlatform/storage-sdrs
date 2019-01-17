@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.pso;
+package com.google.cloudy.retention.resource;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -28,7 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.pso.Main;
+import com.google.cloudy.retention.Main;
 
 import static org.junit.Assert.assertEquals;
 

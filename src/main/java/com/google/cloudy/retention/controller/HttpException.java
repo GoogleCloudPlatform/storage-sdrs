@@ -21,12 +21,9 @@ package com.google.cloudy.retention.controller;
 /**
  * Base class for exceptions that are exposed with HTTP error codes
  */
-public abstract class HttpException extends Throwable {
+public abstract class HttpException extends Exception {
 
-  /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-public abstract int getStatusCode();
+  public abstract int getStatusCode();
 }
