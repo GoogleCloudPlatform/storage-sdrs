@@ -22,7 +22,12 @@ import java.io.Serializable;
 
 public class StsJobModel implements Serializable {
 
-    private static final long serialversionUID = 1L;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -334736522462244653L;
+
+	private static final long serialversionUID = 1L;
 
     private String jobName;
     private String batchID;
