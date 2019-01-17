@@ -17,13 +17,12 @@
 
 package com.google.cloudy.retention.filter;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import org.junit.Before;
+import org.junit.Test;
 
 import static com.google.cloudy.retention.filter.ContainerContextProperties.CORRELATION_UUID;
 import static org.junit.Assert.assertEquals;

@@ -17,13 +17,12 @@
 
 package com.google.cloudy.retention.filter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.UUID;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.ext.Provider;
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.cloudy.retention.filter.ContainerContextProperties.CORRELATION_UUID;
 
