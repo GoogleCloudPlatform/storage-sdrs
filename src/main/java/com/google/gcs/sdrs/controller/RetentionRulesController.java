@@ -19,20 +19,20 @@
 package com.google.gcs.sdrs.controller;
 
 import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
-import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateResponse;
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
-import javax.ws.rs.PUT;
-import javax.ws.rs.PathParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.cloudy.retention.controller.pojo.response.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Controller for managing retention rule objects over HTTP */
 @Path("/retentionrules")
