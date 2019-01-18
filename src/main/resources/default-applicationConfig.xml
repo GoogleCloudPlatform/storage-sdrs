@@ -23,15 +23,15 @@
 	<commands>
 		<command>
 			<name>subscribe</name>
-			<type>com.google.cloudy.retention.scheduler.command.SubscriptionCommand</type>
+			<type>com.google.gcs.sdrs.scheduler.command.SubscriptionCommand</type>
 		</command>
 		<command>
 			<name>sts</name>
-			<type>com.google.cloudy.retention.scheduler.command.STSCommand</type>
+			<type>com.google.gcs.sdrs.scheduler.command.STSCommand</type>
 		</command>
 		<command>
 			<name>validate</name>
-			<type>com.google.cloudy.retention.scheduler.command.ValidationCommand</type>
+			<type>com.google.gcs.sdrs.scheduler.command.ValidationCommand</type>
 		</command>
 	</commands>
 	<jobManager>
