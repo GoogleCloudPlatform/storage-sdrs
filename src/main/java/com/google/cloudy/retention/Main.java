@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.pso;
+package com.google.cloudy.retention;
 
 import java.net.URI;
 
@@ -31,9 +31,12 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.pso.server.ServerShutdownHook;
+import com.google.cloudy.retention.server.ServerShutdownHook;
 
-/** Main class. */
+/**
+ * Main class.
+ * This will be modified in future iterations.
+ */
 @Deprecated
 public class Main {
 
@@ -43,15 +46,15 @@ public class Main {
   public static final String BASE_URI = "http://0.0.0.0:8080/myapp/";
 
   /**
-   * @deprecated Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
    * @return Grizzly HTTP server.
+   * @deprecated Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
    */
   public static HttpServer startServer() {
     // create a resource config that scans for JAX-RS resources and providers
-    // in com.google.pso. and com.google.cloudy.retention. packages
+    // in com.google.cloudy.retention. packages
 
     ResourceConfig config =
-        new ResourceConfig().packages("com.google.pso.", "com.google.cloudy.retention.");
+        new ResourceConfig().packages("com.google.cloudy.retention.");
 
     // create and start a new instance of grizzly http server
     // exposing the Jersey application at BASE_URI
@@ -80,7 +83,7 @@ public class Main {
       logger.error("Unable to load settings from configuration file on server start: ", ex);
     }
 
-    try{
+    try {
       logger.info("Starting grizzly server...");
       server.start();
     } catch (Exception e) {

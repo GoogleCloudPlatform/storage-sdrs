@@ -16,9 +16,9 @@
  *
  */
 
-package com.google.pso;
+package com.google.cloudy.retention.server;
 
-import com.google.pso.server.ServerShutdownHook;
+import com.google.cloudy.retention.server.ServerShutdownHook;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.junit.After;
 import org.junit.Before;

@@ -25,7 +25,6 @@ gcloud beta auth application-default login
 
 3) Verify the jar's deployment by going to a web browser and trying these paths (host relative to box local vs cloud's ip):
 http://localhost:8080/myresource
-http://localhost:8080/myresource/name
 
 #DEPLOYMENT to GCP
 
@@ -39,32 +38,8 @@ tear down by executing ./makeRestEngine down
 ./makeRestEngine gce-many
 ./makeRestEngine down-many
 
-#Features
-## Avro
-/myresource/events/execution endpoint shows hwo to process delete_marker execution and create status events based on 
-Avro schema. Avro schemas are in src/main/avro/*.avsc. Avro maven plug-in is configured to generate Avro related classes 
-during the compile. The following is an sample request to the endpoint. 
 
-```
-curl -X POST \
-  http://localhost:8080/myresource/events/execution \
-  -H ': ' \
-  -H 'Content-Type: application/json' \
-  -H 'Postman-Token: 6c398aa4-4cfd-47a9-9401-db7a692d1a9e' \
-  -H 'cache-control: no-cache' \
-  -d '{
-	"retentionType": {
-		"userCommanded": {
-			"projectId": "project234234324",
-			"bucketName": "pso-testing",
-			"deleteMarker": "gs://user/steve/dataset1/.delete_this_folder"
-		}
-	} 
-}'
-```
-
-
-Docker Deployment to GCP
+#Docker Deployment to GCP
 1) Build the docker image
 ```
 docker build -t gcr.io/sdrs-server/sdrs:tag . -f sdrs.dockerfile

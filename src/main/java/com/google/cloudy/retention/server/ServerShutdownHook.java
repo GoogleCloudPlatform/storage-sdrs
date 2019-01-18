@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.pso.server;
+package com.google.cloudy.retention.server;
 
 import com.google.cloudy.retention.JobManager.JobManager;
 import java.util.concurrent.TimeUnit;
