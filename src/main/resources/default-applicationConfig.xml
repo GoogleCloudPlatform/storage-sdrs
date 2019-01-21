@@ -2,9 +2,10 @@
 <appConfiguration>
 	<serverConfig>
 		<address>127.0.0.1</address>
-		<port>3575</port>
+		<port>8080</port>
 		<sleepMins>60</sleepMins>
         <shutdownGracePeriodInSeconds>60</shutdownGracePeriodInSeconds>
+        <useHttps>false</useHttps>
 	</serverConfig>
 	<database>
 		<host>35.236.103.221:3306</host>
