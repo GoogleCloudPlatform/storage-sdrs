@@ -17,7 +17,7 @@
 
 package com.google.cloudy.retention.controller.pojo.response;
 
-import com.google.cloudy.retention.enums.RetentionRuleTypes;
+import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 
 public class RetentionRuleUpdateResponse extends BaseHttpResponse {
   private Integer ruleId;
