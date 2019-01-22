@@ -29,7 +29,7 @@ public class RetentionRule {
 	@Column(name = "dataset_name")
 	private String datasetName;
 	
-	/*@Column(name = "retention_period_in_days")
+	@Column(name = "retention_period_in_days")
 	private Integer retentionPeriodInDays;
 	
 	@Column(name = "data_storage_name")
@@ -56,7 +56,8 @@ public class RetentionRule {
 	
 	@Column(name = "user")
 	private String user;
-	*/
+	
+	
 	public RetentionRule () {
 	}
 
@@ -75,7 +76,7 @@ public class RetentionRule {
 	public void setDatasetName(String datasetName) {
 		this.datasetName = datasetName;
 	}
-/*
+
 	public Integer getRetentionPeriodInDays() {
 		return retentionPeriodInDays;
 	}
@@ -146,6 +147,6 @@ public class RetentionRule {
 
 	public void setUser(String user) {
 		this.user = user;
-	}*/
+	}
 
 }
