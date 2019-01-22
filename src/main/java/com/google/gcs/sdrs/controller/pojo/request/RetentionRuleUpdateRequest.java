@@ -15,20 +15,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.cloudy.retention.filter;
+package com.google.gcs.sdrs.controller.pojo.request;
 
-/** Enumerated custom properties included as part of the container context */
-public enum ContainerContextProperties {
-  CORRELATION_UUID("correlationUuid");
+import java.io.Serializable;
 
-  private final String value;
+public class RetentionRuleUpdateRequest implements Serializable {
+  private Integer retentionPeriod;
 
-  ContainerContextProperties(String value) {
-    this.value = value;
+  public Integer getRetentionPeriod() {
+    return retentionPeriod;
   }
 
-  @Override
-  public String toString() {
-    return this.value;
+  public void setRetentionPeriod(Integer retentionPeriod) {
+    this.retentionPeriod = retentionPeriod;
   }
 }

@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.cloudy.retention.filter;
+package com.google.gcs.sdrs.filter;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -23,7 +23,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.google.cloudy.retention.filter.ContainerContextProperties.CORRELATION_UUID;
+import static com.google.gcs.sdrs.filter.ContainerContextProperties.CORRELATION_UUID;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.matches;
 import static org.mockito.Mockito.spy;

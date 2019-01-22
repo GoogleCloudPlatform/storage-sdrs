@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.cloudy.retention.filter;
+package com.google.gcs.sdrs.filter;
 
 import java.util.UUID;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -24,7 +24,7 @@ import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.cloudy.retention.filter.ContainerContextProperties.CORRELATION_UUID;
+import static com.google.gcs.sdrs.filter.ContainerContextProperties.CORRELATION_UUID;
 
 /**
  * Extracts the correlation-uuid from the HTTP headers to make it available to the application

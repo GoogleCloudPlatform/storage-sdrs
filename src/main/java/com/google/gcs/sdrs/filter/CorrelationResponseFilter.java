@@ -15,14 +15,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.cloudy.retention.filter;
+package com.google.gcs.sdrs.filter;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.ext.Provider;
 
-import static com.google.cloudy.retention.filter.ContainerContextProperties.CORRELATION_UUID;
+import static com.google.gcs.sdrs.filter.ContainerContextProperties.CORRELATION_UUID;
 
 /** Includes the correlation-uuid in the response headers. */
 @Provider
