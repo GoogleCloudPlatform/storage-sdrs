@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.service.RetentionRulesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,8 @@ public class RetentionRulesController extends BaseController {
   private static final Integer RETENTION_MAX_VALUE = 200;
   private static final String STORAGE_PREFIX = "gs://";
 
+  private RetentionRulesService service = new RetentionRulesService();
+
   /**
    * CRUD create endpoint
    */
@@ -53,7 +56,7 @@ public class RetentionRulesController extends BaseController {
     try {
       validateCreate(request);
 
-      // TODO: Perform business logic
+      service.createRetentionRule(request);
 
       RetentionRuleCreateResponse response = new RetentionRuleCreateResponse();
       response.setRequestUuid(requestUuid);
