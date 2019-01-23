@@ -32,7 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * Controller for managing retention rule objects over HTTP
+ * Controller for handling /retentionrules endpoints to manage retention rules.
  */
 @Path("/retentionrules")
 public class RetentionRulesController extends BaseController {
