@@ -18,20 +18,20 @@
 
 package com.google.gcs.sdrs.controller;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.gcs.sdrs.controller.HttpException;
-import com.google.gcs.sdrs.controller.RetentionRulesController;
-import com.google.gcs.sdrs.controller.ValidationException;
 import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
-
+import com.google.gcs.sdrs.service.RetentionRulesService;
 import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class RetentionRulesControllerTest {
 
@@ -40,6 +40,7 @@ public class RetentionRulesControllerTest {
   @Before()
   public void setup() {
     controller = new RetentionRulesController();
+    controller.service = mock(RetentionRulesService.class);
   }
 
   @Test

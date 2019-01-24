@@ -25,7 +25,7 @@ import java.sql.Timestamp;
 
 public class RetentionRulesService {
 
-  private DAO<RetentionRule, Integer> dao = SingletonDao.retentionRuleDAO;
+  DAO<RetentionRule, Integer> dao = SingletonDao.retentionRuleDAO;
 
   public void createRetentionRule(RetentionRuleCreateRequest rule) {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
@@ -53,6 +53,17 @@ public class RetentionRulesService {
 
     // TODO: pull actual user value from JWT
     entity.setUser("user");
+
+    // TODO: remove when schema is updated
+    if (entity.getDatasetName() == null) {
+      entity.setDatasetName("not-nullable");
+    }
+    if (entity.getDataStorageName() == null) {
+      entity.setDataStorageName("not-nullable");
+    }
+    if (entity.getProjectId() == null) {
+      entity.setProjectId("not-nullable");
+    }
 
     return entity;
   }

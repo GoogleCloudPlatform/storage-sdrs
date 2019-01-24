@@ -42,7 +42,7 @@ public class RetentionRulesController extends BaseController {
   private static final Integer RETENTION_MAX_VALUE = 200;
   private static final String STORAGE_PREFIX = "gs://";
 
-  private RetentionRulesService service = new RetentionRulesService();
+  RetentionRulesService service = new RetentionRulesService();
 
   /**
    * CRUD create endpoint
