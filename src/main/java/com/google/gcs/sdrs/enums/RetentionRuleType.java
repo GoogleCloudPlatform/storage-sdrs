@@ -18,18 +18,25 @@
 
 package com.google.gcs.sdrs.enums;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 /**
  * Supported types for Retention Rules
+ *
+ * JsonProperty values indicate the supported JSON input string.
+ * Enum string values indicate how this value is serialized to the database.
  */
-public enum RetentionRuleTypes implements Serializable {
-  GLOBAL("GLOBAL"),
-  DATASET("DATASET");
+public enum RetentionRuleType implements Serializable {
+  @JsonProperty("GLOBAL")
+  GLOBAL("global"),
+
+  @JsonProperty("DATASET")
+  DATASET("dataset");
 
   private final String value;
 
-  RetentionRuleTypes(final String value) {
+  RetentionRuleType(final String value) {
     this.value = value;
   }
 

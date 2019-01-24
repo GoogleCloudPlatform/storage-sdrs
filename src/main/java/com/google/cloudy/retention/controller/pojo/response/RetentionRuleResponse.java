@@ -17,15 +17,15 @@
 
 package com.google.cloudy.retention.controller.pojo.response;
 
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 
-public class RetentionRuleUpdateResponse extends BaseHttpResponse {
+public class RetentionRuleResponse extends BaseHttpResponse {
   private Integer ruleId;
   private String datasetName;
   private Integer retentionPeriod;
   private String dataStorageName;
   private String projectId;
-  private RetentionRuleTypes type;
+  private RetentionRuleType type;
 
   public Integer getRuleId() {
     return ruleId;
@@ -67,11 +67,11 @@ public class RetentionRuleUpdateResponse extends BaseHttpResponse {
     this.projectId = projectId;
   }
 
-  public RetentionRuleTypes getType() {
+  public RetentionRuleType getType() {
     return type;
   }
 
-  public void setType(RetentionRuleTypes type) {
+  public void setType(RetentionRuleType type) {
     this.type = type;
   }
 }

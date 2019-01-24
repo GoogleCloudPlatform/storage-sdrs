@@ -9,7 +9,8 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Hibernate based Generic DAO implementation
@@ -19,6 +20,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  */
 public class GenericDAO<T, Id extends Serializable> implements DAO<T, Id> {
 
+  private static final Logger logger = LoggerFactory.getLogger(GenericDAO.class);
   private final Class<T> type;
 
   private static StandardServiceRegistry registry;
@@ -60,9 +62,9 @@ public class GenericDAO<T, Id extends Serializable> implements DAO<T, Id> {
   @SuppressWarnings("unchecked")
   public T findById(Id id) {
     openCurrentSession(); // no transaction per se for a find
-    Object object = getCurrentSession().get(type, id);
+    T result = getCurrentSession().get(type, id);
     closeCurrentSession();
-    return (T) object;
+    return result;
   }
 
   /* (non-Javadoc)

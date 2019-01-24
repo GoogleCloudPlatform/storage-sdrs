@@ -19,9 +19,11 @@
 package com.google.gcs.sdrs.controller;
 
 import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
+import com.google.cloudy.retention.controller.pojo.response.RetentionRuleResponse;
 import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import javax.ws.rs.Consumes;
@@ -78,18 +80,9 @@ public class RetentionRulesController extends BaseController {
     try {
       validateUpdate(request);
 
-      // TODO: Perform business logic
+      RetentionRuleResponse response = service.updateRetentionRule(ruleId, request);
 
-      RetentionRuleUpdateResponse response = new RetentionRuleUpdateResponse();
       response.setRequestUuid(requestUuid);
-
-      // TODO: map actual values to response
-      response.setDatasetName("dataset");
-      response.setDataStorageName("gs://bucket/dataset");
-      response.setProjectId("projectId");
-      response.setRetentionPeriod(123);
-      response.setRuleId(ruleId);
-      response.setType(RetentionRuleTypes.DATASET);
 
       return Response.status(200).entity(response).build();
     } catch (HttpException exception) {

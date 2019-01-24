@@ -17,6 +17,8 @@
 
 package com.google.gcs.sdrs.service;
 
+import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
+import com.google.cloudy.retention.controller.pojo.response.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.dao.DAO;
 import com.google.gcs.sdrs.dao.SingletonDao;
@@ -28,19 +30,26 @@ public class RetentionRulesService {
   DAO<RetentionRule, Integer> dao = SingletonDao.retentionRuleDAO;
 
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
-    RetentionRule entity = mapPojoToPersistenceEntity(rule);
+    RetentionRule entity = mapCreateRequestToPersistenceEntity(rule);
     return dao.persist(entity);
   }
 
-  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {
+  public RetentionRuleResponse updateRetentionRule(int ruleId, RetentionRuleUpdateRequest request) {
+    RetentionRule entity = dao.findById(ruleId);
+    entity.setRetentionPeriodInDays(request.getRetentionPeriod());
+    dao.update(entity);
+    return mapRuleToResponse(entity);
+  }
+
+  private RetentionRule mapCreateRequestToPersistenceEntity(RetentionRuleCreateRequest request) {
     RetentionRule entity = new RetentionRule();
 
     // Map over input values
-    entity.setDatasetName(pojo.getDatasetName());
-    entity.setDataStorageName(pojo.getDataStorageName());
-    entity.setProjectId(pojo.getProjectId());
-    entity.setRetentionPeriodInDays(pojo.getRetentionPeriod());
-    entity.setType(pojo.getType());
+    entity.setDatasetName(request.getDatasetName());
+    entity.setDataStorageName(request.getDataStorageName());
+    entity.setProjectId(request.getProjectId());
+    entity.setRetentionPeriodInDays(request.getRetentionPeriod());
+    entity.setType(request.getType());
 
     // Generate metadata
     Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -64,5 +73,18 @@ public class RetentionRulesService {
     }
 
     return entity;
+  }
+
+  private RetentionRuleResponse mapRuleToResponse(RetentionRule rule) {
+    RetentionRuleResponse response = new RetentionRuleResponse();
+
+    response.setDatasetName(rule.getDatasetName());
+    response.setDataStorageName(rule.getDataStorageName());
+    response.setProjectId(rule.getProjectId());
+    response.setRetentionPeriod(rule.getRetentionPeriodInDays());
+    response.setRuleId(rule.getId());
+    response.setType(rule.getType());
+
+    return response;
   }
 }

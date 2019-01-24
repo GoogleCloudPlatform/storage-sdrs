@@ -1,9 +1,10 @@
 package com.google.gcs.sdrs.dao.model;
 
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
+import com.google.gcs.sdrs.dao.converter.RetentionRuleTypeConverter;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 import java.sql.Timestamp;
-
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -34,9 +35,9 @@ public class RetentionRule {
   @Column(name = "project_id")
   private String projectId;
 
-  @Enumerated(EnumType.STRING)
+  @Convert(converter = RetentionRuleTypeConverter.class)
   @Column(name = "type")
-  private RetentionRuleTypes type;
+  private RetentionRuleType type;
 
   @Column(name = "version")
   private Integer version;
@@ -95,11 +96,11 @@ public class RetentionRule {
     this.projectId = projectId;
   }
 
-	public RetentionRuleTypes getType() {
+	public RetentionRuleType getType() {
 		return type;
 	}
 
-	public void setType(RetentionRuleTypes type) {
+	public void setType(RetentionRuleType type) {
 		this.type = type;
 	}
 

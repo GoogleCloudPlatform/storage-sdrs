@@ -20,7 +20,7 @@ package com.google.gcs.sdrs.service;
 import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.dao.impl.GenericDAO;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,7 +43,7 @@ public class RetentionRulesServiceTest {
   @Test
   public void createRulePersistsEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleTypes.GLOBAL);
+    createRule.setType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
 
     service.createRetentionRule(createRule);
@@ -53,7 +53,7 @@ public class RetentionRulesServiceTest {
     verify(service.dao).persist(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
-    assertEquals(RetentionRuleTypes.GLOBAL, input.getType());
+    assertEquals(RetentionRuleType.GLOBAL, input.getType());
     assertEquals(123, (int) input.getRetentionPeriodInDays());
     assertEquals(true, input.getIsActive());
     assertNotNull(input.getUpdatedAt());
@@ -69,4 +69,6 @@ public class RetentionRulesServiceTest {
     assertNotNull(input.getDatasetName());
     assertNotNull(input.getProjectId());
   }
+
+
 }
