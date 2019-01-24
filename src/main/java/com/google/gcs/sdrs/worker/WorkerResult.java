@@ -22,35 +22,35 @@ import java.util.UUID;
 import org.joda.time.DateTime;
 
 /**
- * WorkerLog class to standardize worker output
+ * WorkerResult class to standardize worker output
  */
-public class WorkerLog {
+public class WorkerResult {
 
   private String id;
   private String type;
-  private WorkerLogStatus status;
+  private WorkerResultStatus status;
   private DateTime startTime;
   private DateTime endTime;
 
   /**
-   * An enum of valid WorkerLog status values
+   * An enum of valid WorkerResult status values
    */
-  public enum WorkerLogStatus {
+  public enum WorkerResultStatus {
     RUNNING,
     SUCCESS,
     FAILED
   }
 
   /**
-   * A constructor for the WorkerLog object
+   * A constructor for the WorkerResult object
    */
-  public WorkerLog(){
+  public WorkerResult(){
     id = UUID.randomUUID().toString();
   }
 
   /**
-   * toString method for the WorkerLog.
-   * @return string representation of the WorkerLog.
+   * toString method for the WorkerResult.
+   * @return string representation of the WorkerResult.
    */
   @Override
   public String toString(){
@@ -68,10 +68,10 @@ public class WorkerLog {
   public void setType(String type) {
     this.type = type;
   }
-  public WorkerLogStatus getStatus() {
+  public WorkerResultStatus getStatus() {
     return status;
   }
-  public void setStatus(WorkerLogStatus status) {
+  public void setStatus(WorkerResultStatus status) {
     this.status = status;
   }
   public DateTime getStartTime() {
