@@ -31,7 +31,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RetentionRulesControllerTest {
 
@@ -59,20 +61,24 @@ public class RetentionRulesControllerTest {
   @Test
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException();
-    Response response =
-        controller.generateExceptionResponse(testException, "requestUuid");
+    Response response = controller.generateExceptionResponse(testException, "requestUuid");
     assertEquals(response.getStatus(), 400);
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: ");
   }
 
   @Test
   public void createRuleWhenSuccessfulIncludesResponseFields() {
+    when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
+        .thenReturn(543);
+
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setType(RetentionRuleTypes.GLOBAL);
     rule.setRetentionPeriod(1);
+
     Response response = controller.create(rule);
-    assertEquals(response.getStatus(), 200);
-    assertEquals(((RetentionRuleCreateResponse) response.getEntity()).getRuleId(), 1);
+
+    assertEquals(200, response.getStatus());
+    assertEquals(543, ((RetentionRuleCreateResponse) response.getEntity()).getRuleId());
     assertNotNull(((RetentionRuleCreateResponse) response.getEntity()).getRequestUuid());
   }
 

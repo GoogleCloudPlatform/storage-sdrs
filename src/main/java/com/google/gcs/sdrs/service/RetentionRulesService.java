@@ -27,9 +27,9 @@ public class RetentionRulesService {
 
   DAO<RetentionRule, Integer> dao = SingletonDao.retentionRuleDAO;
 
-  public void createRetentionRule(RetentionRuleCreateRequest rule) {
+  public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
-    dao.persist(entity);
+    return dao.persist(entity);
   }
 
   private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {

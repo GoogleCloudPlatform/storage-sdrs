@@ -12,7 +12,7 @@ import java.io.Serializable;
  */
 public interface DAO<T, Id extends Serializable> {
 
-	void persist(T entity);
+	Id persist(T entity);
 
 	void update(T object);
 

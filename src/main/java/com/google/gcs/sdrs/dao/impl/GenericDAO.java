@@ -1,7 +1,7 @@
 package com.google.gcs.sdrs.dao.impl;
 
+import com.google.gcs.sdrs.dao.DAO;
 import java.io.Serializable;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -9,8 +9,7 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-
-import com.google.gcs.sdrs.dao.DAO;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Hibernate based Generic DAO implementation
@@ -36,10 +35,12 @@ public class GenericDAO<T, Id extends Serializable> implements DAO<T, Id> {
    * @see com.google.gcs.sdrs.dao.impl.DAO#persist(T)
    */
   @Override
-  public void persist(final T entity) {
+  @SuppressWarnings("unchecked")
+  public Id persist(final T entity) {
     openCurrentSessionWithTransaction();
-    getCurrentSession().save(entity);
+    Id result = (Id) getCurrentSession().save(entity);
     closeCurrentSessionwithTransaction();
+    return result;
   }
 
   /* (non-Javadoc)
@@ -120,20 +121,20 @@ public class GenericDAO<T, Id extends Serializable> implements DAO<T, Id> {
   }
 
   /*
-  private static SessionFactory getSessionFactory() {
-		Configuration configuration = new Configuration().configure();
-		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder()
-				.applySettings(configuration.getProperties());
-		SessionFactory sessionFactory = configuration.buildSessionFactory(builder.build());
-		return sessionFactory;
+   private static SessionFactory getSessionFactory() {
+  	Configuration configuration = new Configuration().configure();
+  	StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder()
+  			.applySettings(configuration.getProperties());
+  	SessionFactory sessionFactory = configuration.buildSessionFactory(builder.build());
+  	return sessionFactory;
 
-		Configuration config = new Configuration().configure();
-		ServiceRegistry servReg = new StandardServiceRegistryBuilder().applySettings(config.getProperties()).build();
-		SessionFactory factory = config.buildSessionFactory(servReg);
-		return factory;
+  	Configuration config = new Configuration().configure();
+  	ServiceRegistry servReg = new StandardServiceRegistryBuilder().applySettings(config.getProperties()).build();
+  	SessionFactory factory = config.buildSessionFactory(servReg);
+  	return factory;
 
-	}
-  */
+  }
+   */
 
   public Session getCurrentSession() {
     return currentSession;

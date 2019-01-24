@@ -56,13 +56,12 @@ public class RetentionRulesController extends BaseController {
     try {
       validateCreate(request);
 
-      service.createRetentionRule(request);
+      int result = service.createRetentionRule(request);
 
       RetentionRuleCreateResponse response = new RetentionRuleCreateResponse();
       response.setRequestUuid(requestUuid);
+      response.setRuleId(result);
 
-      // TODO: Replace with real value
-      response.setRuleId(1);
       return Response.status(200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
