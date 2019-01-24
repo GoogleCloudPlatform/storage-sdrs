@@ -20,7 +20,7 @@ package com.google.gcs.sdrs.controller.pojo;
 
 import java.io.Serializable;
 
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 
 /** POJO Tracking JSON input fields/types for creating a retention rule */
 public class RetentionRuleCreateRequest implements Serializable {
@@ -30,7 +30,7 @@ public class RetentionRuleCreateRequest implements Serializable {
   private Integer retentionPeriod;
   private String dataStorageName;
   private String projectId;
-  private RetentionRuleTypes type;
+  private RetentionRuleType type;
 
   public String getDatasetName() {
     return datasetName;
@@ -64,11 +64,11 @@ public class RetentionRuleCreateRequest implements Serializable {
     this.projectId = projectId;
   }
 
-  public RetentionRuleTypes getType() {
+  public RetentionRuleType getType() {
     return type;
   }
 
-  public void setType(RetentionRuleTypes type) {
+  public void setType(RetentionRuleType type) {
     this.type = type;
   }
 }
