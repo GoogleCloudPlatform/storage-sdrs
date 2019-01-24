@@ -21,7 +21,7 @@ package com.google.gcs.sdrs.controller.mapper.exception;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gcs.sdrs.controller.mapper.exception.JsonMappingExceptionMapper;
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.pojo.response;
+package com.google.gcs.sdrs.controller.pojo;
 
 public class RetentionRuleCreateResponse extends BaseHttpResponse {
 
