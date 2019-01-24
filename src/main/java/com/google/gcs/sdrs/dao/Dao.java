@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @param <T>
  * @param <Id>
  */
-public interface DAO<T, Id extends Serializable> {
+public interface Dao<T, Id extends Serializable> {
 
 	void persist(T entity);
 

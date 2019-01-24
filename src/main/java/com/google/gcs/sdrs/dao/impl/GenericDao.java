@@ -10,16 +10,16 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
-import com.google.gcs.sdrs.dao.DAO;
+import com.google.gcs.sdrs.dao.Dao;
 
 /**
  * 
- * Hibernate based Generic DAO implementation
+ * Hibernate based Generic Dao implementation
  *
  * @param <T>
  * @param <Id>
  */
-public class GenericDAO <T, Id extends Serializable > implements DAO<T, Id>  {
+public class GenericDao <T, Id extends Serializable > implements Dao<T, Id>  {
 
 	private final Class<T> type;
 	
@@ -29,7 +29,7 @@ public class GenericDAO <T, Id extends Serializable > implements DAO<T, Id>  {
 	protected Session currentSession;
 	protected Transaction currentTransaction;
 	
-	public GenericDAO(final Class<T> type) {
+	public GenericDao(final Class<T> type) {
 		this.type = type;
 	}
 	
