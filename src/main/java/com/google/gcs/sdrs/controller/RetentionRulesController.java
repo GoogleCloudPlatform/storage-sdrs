@@ -20,11 +20,8 @@ package com.google.gcs.sdrs.controller;
 
 import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
 import com.google.cloudy.retention.controller.pojo.response.RetentionRuleResponse;
-import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
-import com.google.gcs.sdrs.service.RetentionRulesService;
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
