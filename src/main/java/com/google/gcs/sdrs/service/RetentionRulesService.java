@@ -47,8 +47,6 @@ public class RetentionRulesService {
     entity.setCreatedAt(now);
     entity.setUpdatedAt(now);
     entity.setIsActive(true);
-
-    // TODO: What is this?
     entity.setVersion(1);
 
     // TODO: pull actual user value from JWT

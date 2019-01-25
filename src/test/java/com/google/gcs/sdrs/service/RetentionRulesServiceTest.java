@@ -58,12 +58,10 @@ public class RetentionRulesServiceTest {
     assertEquals(true, input.getIsActive());
     assertNotNull(input.getUpdatedAt());
     assertNotNull(input.getCreatedAt());
+    assertEquals(1, (int) input.getVersion());
     //    assertNull(input.getDataStorageName());
     //    assertNull(input.getDatasetName());
     //    assertNull(input.getProjectId());
-
-    // TODO: what is this?
-    assertEquals(1, (int) input.getVersion());
 
     // TODO: revisit when schema is updated
     assertEquals("user", input.getUser());
