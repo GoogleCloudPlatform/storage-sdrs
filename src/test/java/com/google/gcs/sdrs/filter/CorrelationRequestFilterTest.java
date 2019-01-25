@@ -17,15 +17,17 @@
 
 package com.google.gcs.sdrs.filter;
 
+import java.util.UUID;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static com.google.gcs.sdrs.filter.ContainerContextProperties.CORRELATION_UUID;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.matches;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,10 +62,10 @@ public class CorrelationRequestFilterTest {
 
     filter.filter(mockRequestContext);
 
-    verify(mockRequestContext)
-        .setProperty(
-            eq(CORRELATION_UUID.toString()),
-            // UUID regex
-            matches("[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89aAbB][a-f0-9]{3}-[a-f0-9]{12}"));
+    ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+    verify(mockRequestContext).setProperty(eq(CORRELATION_UUID.toString()), captor.capture());
+    String generatedUuid = (String) captor.getValue();
+    UUID result = UUID.fromString(generatedUuid);
+    assertNotNull(result);
   }
 }
