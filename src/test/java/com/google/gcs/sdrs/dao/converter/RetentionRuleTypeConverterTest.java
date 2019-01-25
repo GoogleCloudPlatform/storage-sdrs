@@ -55,4 +55,9 @@ public class RetentionRuleTypeConverterTest {
     RetentionRuleType result = converter.convertToEntityAttribute("global");
     assertEquals(result, RetentionRuleType.GLOBAL);
   }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void convertsBadValueToError() {
+    converter.convertToEntityAttribute("bad");
+  }
 }
