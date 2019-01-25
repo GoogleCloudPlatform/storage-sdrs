@@ -25,9 +25,14 @@ import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 
+/**
+ * 
+ * We'll have one 1 dedicated Dao instance per table in this application
+ *
+ */
 public class DataAccessService {
 
-	private static Dao<RetentionRule, ?> retentionRuleDao; // we'll have one 1 dedicated Dao instance per table in this application
+	private static Dao<RetentionRule, ?> retentionRuleDao; 
 	private static Dao<RetentionJob, ?> retentionJobDao;
 	private static Dao<RetentionJobValidation, ?> retentionJobValidationDao;
 	private static Dao<RetentionExecution, ?> retentionExecutionDao;

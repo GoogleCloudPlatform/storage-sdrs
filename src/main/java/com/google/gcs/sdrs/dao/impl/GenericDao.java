@@ -140,20 +140,6 @@ public class GenericDao <T, Id extends Serializable > implements Dao<T, Id>  {
         return sessionFactory;
     }
 	
-	/*private static SessionFactory getSessionFactory() {
-		Configuration configuration = new Configuration().configure();
-		StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder()
-				.applySettings(configuration.getProperties());
-		SessionFactory sessionFactory = configuration.buildSessionFactory(builder.build());
-		return sessionFactory;
-		
-		Configuration config = new Configuration().configure();
-		ServiceRegistry servReg = new StandardServiceRegistryBuilder().applySettings(config.getProperties()).build();
-		SessionFactory factory = config.buildSessionFactory(servReg);
-		return factory;
-		
-	}
-*/
 	public Session getCurrentSession() {
 		return currentSession;
 	}

@@ -38,7 +38,6 @@ import javax.persistence.Table;
 @Table(name ="retention_job_validation")
 public class RetentionJobValidation {
 	
-	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id", updatable = false, nullable = false)
@@ -110,5 +109,4 @@ public class RetentionJobValidation {
 	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-
 }

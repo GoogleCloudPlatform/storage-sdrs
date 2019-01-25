@@ -38,7 +38,6 @@ import javax.persistence.Table;
 @Table(name ="retention_rule")
 public class RetentionRule {
 	
-	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id", updatable = false, nullable = false)
@@ -166,5 +165,4 @@ public class RetentionRule {
 	public void setUser(String user) {
 		this.user = user;
 	}
-
 }
