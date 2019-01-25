@@ -36,8 +36,12 @@ public class RetentionRulesService {
 
   public RetentionRuleResponse updateRetentionRule(int ruleId, RetentionRuleUpdateRequest request) {
     RetentionRule entity = dao.findById(ruleId);
+
+    entity.setVersion(entity.getVersion() + 1);
     entity.setRetentionPeriodInDays(request.getRetentionPeriod());
+
     dao.update(entity);
+
     return mapRuleToResponse(entity);
   }
 

@@ -17,6 +17,8 @@
 
 package com.google.gcs.sdrs.service;
 
+import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
+import com.google.cloudy.retention.controller.pojo.response.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.dao.impl.GenericDAO;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -30,6 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RetentionRulesServiceTest {
 
@@ -70,5 +73,24 @@ public class RetentionRulesServiceTest {
     assertNotNull(input.getProjectId());
   }
 
+  @Test
+  public void updateRuleFetchesAndUpdatesEntity() {
+    RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
+    request.setRetentionPeriod(123);
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setId(2);
+    existingRule.setRetentionPeriodInDays(12);
+    existingRule.setVersion(3);
+    when(service.dao.findById(2)).thenReturn(existingRule);
 
+    RetentionRuleResponse result = service.updateRetentionRule(2, request);
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    verify(service.dao).update(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertEquals(4, (int) input.getVersion());
+
+    assertEquals(2, (int) result.getRuleId());
+    assertEquals(123, (int) result.getRetentionPeriod());
+  }
 }
