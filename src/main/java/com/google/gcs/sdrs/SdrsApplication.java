@@ -19,7 +19,7 @@
 package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.server.ServerShutdownHook;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -34,9 +34,9 @@ import java.net.URI;
 /**
  * The main startup class for the SDRS service.
  */
-public class SdrsLauncher {
+public class SdrsApplication {
 
-  private static final Logger logger = LoggerFactory.getLogger(SdrsLauncher.class);
+  private static final Logger logger = LoggerFactory.getLogger(SdrsApplication.class);
 
   private static HttpServer server;
 
@@ -61,9 +61,10 @@ public class SdrsLauncher {
    */
   private static void startWebServer() {
     try {
+
       // Read config values
-      HierarchicalConfiguration xmlConfig =
-          new Configurations().xml("default-applicationConfig.xml");
+      Configuration xmlConfig =
+          new Configurations().xml("applicationConfig.xml");
       Boolean useHttps = xmlConfig.getBoolean("serverConfig.useHttps");
       String hostName = xmlConfig.getString("serverConfig.address");
       int port = xmlConfig.getInt("serverConfig.port");

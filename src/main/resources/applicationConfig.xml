@@ -18,33 +18,9 @@
 		<projectID>sdrs-server</projectID>
 		<pathToJsonCredential>./credentials.json</pathToJsonCredential>
 	</gcp>
-	<scheduler>
-		<shutdownCommand>shutdown</shutdownCommand>
-	</scheduler>
-	<commands>
-		<command>
-			<name>subscribe</name>
-			<type>com.google.gcs.sdrs.scheduler.command.SubscriptionCommand</type>
-		</command>
-		<command>
-			<name>sts</name>
-			<type>com.google.gcs.sdrs.scheduler.command.STSCommand</type>
-		</command>
-		<command>
-			<name>validate</name>
-			<type>com.google.gcs.sdrs.scheduler.command.ValidationCommand</type>
-		</command>
-	</commands>
 	<jobManager>
 		<threadPoolSize>7</threadPoolSize>
         <shutdownSleepMinutes>5</shutdownSleepMinutes>
         <monitorThreadSleepInSeconds>30</monitorThreadSleepInSeconds>
 	</jobManager>
-	<processing stage="qa">
-    <paths>
-      <path>/data/path1</path>
-      <path>/data/otherpath</path>
-      <path>/var/log</path>
-    </paths>
-  </processing>
 </appConfiguration>

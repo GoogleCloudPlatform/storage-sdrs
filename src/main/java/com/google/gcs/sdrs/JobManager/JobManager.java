@@ -24,9 +24,10 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,11 +86,11 @@ public class JobManager {
 
   /**
    * Gracefully shuts down the jobManager and associated threads
-   * @param shutdownNow Optionally allows the service to immediately shutdown rather than waiting for thread completion
+   * @param isShutdownNow Optionally allows the service to immediately shutdown rather than waiting for thread completion
    */
-  public void shutDownJobManager(boolean shutdownNow) {
+  public void shutDownJobManager(boolean isShutdownNow) {
     logger.info("Shutting down JobManager.");
-    if(shutdownNow){
+    if(isShutdownNow){
       logger.info("Forcing shutdown now...");
       executorService.shutdownNow();
     } else {
@@ -124,7 +125,7 @@ public class JobManager {
   }
 
   private JobManager () throws ConfigurationException{
-    HierarchicalConfiguration config = configs.xml("default-applicationConfig.xml");
+    Configuration config = configs.xml("applicationConfig.xml");
     THREAD_POOL_SIZE = config.getInt("jobManager.threadPoolSize");
     SLEEP_MINUTES = config.getInt("jobManager.shutdownSleepMinutes");
     MONITOR_THREAD_SLEEP_IN_SECONDS = config.getInt("jobManager.monitorThreadSleepInSeconds");

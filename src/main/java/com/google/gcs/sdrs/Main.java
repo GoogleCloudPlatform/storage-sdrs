@@ -75,7 +75,7 @@ public class Main {
     HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, new AppResourceConfig());
 
     try {
-      HierarchicalConfiguration xmlConfig = new Configurations().xml("default-applicationConfig.xml");
+      HierarchicalConfiguration xmlConfig = new Configurations().xml("applicationConfig.xml");
       long shutdownGracePeriodInSeconds = xmlConfig.getLong("serverConfig.shutdownGracePeriodInSeconds");
 
       Runtime.getRuntime().addShutdownHook(new Thread(new ServerShutdownHook(server, shutdownGracePeriodInSeconds), "shutdownHook"));
