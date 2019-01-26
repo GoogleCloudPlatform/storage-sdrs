@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
@@ -31,52 +32,50 @@ import javax.persistence.Table;
 
 /**
  * 
- * Note - coding to JPA specification, not Hibernate specific annotations 
+ * Note - coding to JPA specification, not Hibernate specific annotations
  *
  */
 @Entity
-@Table(name ="retention_rule")
+@Table(name = "retention_rule")
 public class RetentionRule {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id", updatable = false, nullable = false)
 	private Integer id;
-	
+
 	@Column(name = "dataset_name")
 	private String datasetName;
-	
+
 	@Column(name = "retention_period_in_days")
 	private Integer retentionPeriodInDays;
-	
+
 	@Column(name = "data_storage_name")
 	private String dataStorageName;
-	
+
 	@Column(name = "project_id")
 	private String projectId;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "type")
-	private Enum<?> type;
-	
+	private RetentionRuleTypes type;
+
 	@Column(name = "version")
 	private Integer version;
-	
+
 	@Column(name = "is_active")
 	private Boolean isActive;
-	
+
 	@Column(name = "created_at")
 	private Timestamp createdAt;
-	
+
 	@Column(name = "updated_at")
 	private Timestamp updatedAt;
-	
+
 	@Column(name = "user")
 	private String user;
-	
-	
-	public RetentionRule () {
-	}
+
+	public RetentionRule() {}
 
 	public Integer getId() {
 		return id;
@@ -118,11 +117,11 @@ public class RetentionRule {
 		this.projectId = projectId;
 	}
 
-	public Enum<?> getType() {
+	public RetentionRuleTypes getType() {
 		return type;
 	}
 
-	public void setType(Enum<?> type) {
+	public void setType(RetentionRuleTypes type) {
 		this.type = type;
 	}
 
