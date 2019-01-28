@@ -17,8 +17,8 @@
 
 package com.google.gcs.sdrs.service;
 
-import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.dao.DAO;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
@@ -27,7 +27,7 @@ import java.sql.Timestamp;
 public class RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
 
-  DAO<RetentionRule, Integer> dao = SingletonDao.retentionRuleDAO;
+  Dao<RetentionRule, Integer> dao = SingletonDao.retentionRuleDao;
 
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
