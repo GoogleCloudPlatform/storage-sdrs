@@ -21,8 +21,8 @@ package com.google.gcs.sdrs.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -32,7 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * Controller for managing retention rule objects over HTTP
+ * Controller for handling /retentionrules endpoints to manage retention rules.
  */
 @Path("/retentionrules")
 public class RetentionRulesController extends BaseController {
