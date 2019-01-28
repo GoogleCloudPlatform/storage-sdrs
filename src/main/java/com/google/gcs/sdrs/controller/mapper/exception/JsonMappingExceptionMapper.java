@@ -16,7 +16,6 @@
  *
  */
 
-
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -27,9 +26,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 
-/**
- * Handles Jackson JsonMappingExceptions with custom error messages.
- */
+/** Handles Jackson JsonMappingExceptions with custom error messages. */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class JsonMappingExceptionMapper extends JacksonExceptionMapper<JsonMappingException> {

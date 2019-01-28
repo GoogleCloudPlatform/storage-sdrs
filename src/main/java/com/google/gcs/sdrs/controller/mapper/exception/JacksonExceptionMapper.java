@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Base class for ExceptionMappers for JSON deserialization errors.
+ *
  * @param <T> The specific Jackson Exception type
  */
 public abstract class JacksonExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
@@ -45,6 +46,7 @@ public abstract class JacksonExceptionMapper<T extends Throwable> implements Exc
 
   /**
    * Creates a user-facing message from an exception
+   *
    * @param exception details on the current exception
    * @return A user friendly error message.
    */

@@ -27,8 +27,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 
 /**
- * Handles Jackson UnrecognizedPropertyExceptions with custom error messages.
- * This can be caused by an extraneous property on the request object.
+ * Handles Jackson UnrecognizedPropertyExceptions with custom error messages. This can be caused by
+ * an extraneous property on the request object.
  */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)

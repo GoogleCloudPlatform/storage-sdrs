@@ -26,9 +26,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 
-/**
- * Handles general Jackson JsonProcessingExceptions with custom error messages.
- */
+/** Handles general Jackson JsonProcessingExceptions with custom error messages. */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class JsonProcessingExceptionMapper extends JacksonExceptionMapper<JsonProcessingException> {

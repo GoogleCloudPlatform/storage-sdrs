@@ -22,6 +22,7 @@ import java.io.Serializable;
 
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 
+/** POJO Tracking JSON input fields/types for creating a retention rule */
 public class RetentionRuleCreateRequest implements Serializable {
 
   private static final long serialVersionUID = -6338592900101329098L;

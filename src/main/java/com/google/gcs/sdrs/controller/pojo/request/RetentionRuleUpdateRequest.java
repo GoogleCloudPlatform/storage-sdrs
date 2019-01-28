@@ -15,10 +15,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.cloudy.retention.controller.pojo.request;
+package com.google.gcs.sdrs.controller.pojo.request;
 
 import java.io.Serializable;
 
+/** POJO Tracking JSON input fields/types for updating a retention rule */
 public class RetentionRuleUpdateRequest implements Serializable {
   private Integer retentionPeriod;
 
