@@ -18,6 +18,8 @@
 
 package com.google.gcs.sdrs;
 
+import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import com.google.gcs.sdrs.runners.RuleExecutionRunner;
 import com.google.gcs.sdrs.server.ServerShutdownHook;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -47,6 +49,7 @@ public class SdrsApplication {
   public static void main(String[] args) {
     logger.info("Starting SDRS...");
     startWebServer();
+    startRuleExecutor();
   }
 
   /**
@@ -91,8 +94,10 @@ public class SdrsApplication {
     }
   }
 
-  private static void createDatabaseConnection() {
-    // TODO Register database connection once data layer is complete
+  private static void startRuleExecutor(){
+    JobScheduler ruleExecutor = JobScheduler.getInstance();
+    ruleExecutor.submitScheduledJob(new RuleExecutionRunner());
+    logger.info("Rule execution scheduled successfully.");
   }
 
   private static void registerPubSub() {

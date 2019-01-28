@@ -16,48 +16,51 @@
  *
  */
 
-package com.google.gcs.sdrs.server;
+package com.google.gcs.sdrs.JobScheduler;
 
-import org.glassfish.grizzly.http.server.HttpServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-/**
- * Test class for the ServerShutdownHook
- */
-public class ServerShutdownHookTest {
+public class JobSchedulerTest {
 
-  private HttpServer server;
-  private ServerShutdownHook objectUnderTest;
+  private JobScheduler instance;
 
   /**
    * Set up steps before each test
    */
   @Before
-  public void setUp() throws Exception {
-    // start the server
-    server = new HttpServer();
-    server.start();
-    objectUnderTest = new ServerShutdownHook(server, 5);
+  public void setUp(){
+    instance = JobScheduler.getInstance();
   }
 
   /**
    * Tear down steps after each test
    */
   @After
-  public void tearDown() {
-    server.shutdown();
+  public void tearDown(){
+    instance.shutdownScheduler();
   }
 
   /**
-   * Test that the shutdown hook does shutdown the server
+   * Test that a JobManager instance is created when a getInstance is called without an existing instance
    */
   @Test
-  public void testServerShutdownHook() {
-    objectUnderTest.run();
-    assertFalse(server.isStarted());
+  public void getInstanceWhenInstanceDoesNotExist() {
+    // Instance created in test setup
+    assertNotNull(instance);
+  }
+
+  /**
+   * Test that the same JobManager instance is returned when getInstance is called more than once
+   */
+  @Test
+  public void getInstanceWhenInstanceAlreadyExists() {
+    assertNotNull(instance);
+    JobScheduler secondInstance = JobScheduler.getInstance();
+    assertEquals(instance, secondInstance);
   }
 }
