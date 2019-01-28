@@ -18,11 +18,8 @@
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
-import javax.ws.rs.core.Response;
-import com.google.gcs.sdrs.controller.mapper.exception.JsonParseExceptionMapper;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
-
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

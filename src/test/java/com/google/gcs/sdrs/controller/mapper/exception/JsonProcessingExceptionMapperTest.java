@@ -19,13 +19,10 @@
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.gcs.sdrs.controller.mapper.exception.JsonProcessingExceptionMapper;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
-
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
