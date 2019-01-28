@@ -16,16 +16,18 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.pojo.response;
+package com.google.gcs.sdrs.controller.pojo;
 
-public class ErrorResponse extends BaseHttpResponse {
-  public String getMessage() {
-    return message;
+/** POJO Tracking JSON response fields/types when creating a retention rule */
+public class RetentionRuleCreateResponse extends BaseHttpResponse {
+
+  private int ruleId;
+
+  public int getRuleId() {
+    return ruleId;
   }
 
-  public void setMessage(String message) {
-    this.message = message;
+  public void setRuleId(int ruleId) {
+    this.ruleId = ruleId;
   }
-
-  public String message;
 }

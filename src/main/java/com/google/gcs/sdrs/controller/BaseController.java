@@ -18,12 +18,11 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import java.util.UUID;
 import javax.ws.rs.core.Response;
 
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
-
-import java.util.UUID;
-
+/** Abstract base class for Controllers. */
 public abstract class BaseController {
 
   protected String generateRequestUuid() {

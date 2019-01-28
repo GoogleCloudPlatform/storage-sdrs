@@ -18,11 +18,11 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleUpdateRequest;
-import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleUpdateResponse;
-import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
-import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -58,8 +58,7 @@ public class RetentionRulesControllerTest {
   @Test
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException();
-    Response response =
-        controller.generateExceptionResponse(testException, "requestUuid");
+    Response response = controller.generateExceptionResponse(testException, "requestUuid");
     assertEquals(response.getStatus(), 400);
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: ");
   }

@@ -16,17 +16,18 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.pojo.response;
+package com.google.gcs.sdrs.controller.pojo;
 
-public class RetentionRuleCreateResponse extends BaseHttpResponse {
+/** Base class to be used by HTTP response objects */
+public abstract class BaseHttpResponse {
 
-  private int ruleId;
+  private String requestUuid;
 
-  public int getRuleId() {
-    return ruleId;
+  public String getRequestUuid() {
+    return requestUuid;
   }
 
-  public void setRuleId(int ruleId) {
-    this.ruleId = ruleId;
+  public void setRequestUuid(String requestUUID) {
+    this.requestUuid = requestUUID;
   }
 }

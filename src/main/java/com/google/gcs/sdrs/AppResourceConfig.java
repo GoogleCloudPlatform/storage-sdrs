@@ -29,6 +29,11 @@ import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonP
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
+/**
+ * 
+ * Resource Configuration for Grizzly Http Server
+ *
+ */
 @ApplicationPath("resources")
 public class AppResourceConfig extends ResourceConfig {
   public AppResourceConfig() {

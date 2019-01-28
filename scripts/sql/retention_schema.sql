@@ -17,9 +17,9 @@ DROP TABLE IF EXISTS retention_rule;
 
 CREATE TABLE retention_rule (
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `dataset_name` varchar(256) NOT NULL,
+  `dataset_name` varchar(256) NULL,
   `retention_period_in_days` int UNSIGNED NOT NULL,
-  `data_storage_name` varchar(256) NOT NULL,
+  `data_storage_name` varchar(256) NULL,
   `project_id` varchar(256) NOT NULL,
   `type` enum('global', 'dataset') NOT NULL,
   `version` int UNSIGNED NOT NULL DEFAULT 0,

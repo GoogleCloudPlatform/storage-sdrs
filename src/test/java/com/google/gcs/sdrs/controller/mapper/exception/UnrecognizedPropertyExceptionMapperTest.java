@@ -21,15 +21,11 @@ package com.google.gcs.sdrs.controller.mapper.exception;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import com.google.gcs.sdrs.controller.mapper.exception.UnrecognizedPropertyExceptionMapper;
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
-
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import java.util.List;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-
-import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

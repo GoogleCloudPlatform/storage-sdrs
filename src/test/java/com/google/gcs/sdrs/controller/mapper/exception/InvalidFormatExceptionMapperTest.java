@@ -19,15 +19,12 @@
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.google.gcs.sdrs.controller.mapper.exception.InvalidFormatExceptionMapper;
-import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
-
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
