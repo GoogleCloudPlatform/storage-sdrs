@@ -24,11 +24,17 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import java.sql.Timestamp;
 
+/** Service for managing retention rules including mapping. */
 public class RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
 
   Dao<RetentionRule, Integer> dao = SingletonDao.retentionRuleDao;
 
+  /**
+   * Creates a retention rule and returns its ID
+   * @param rule the request object input by the user
+   * @return The identifier for the created rule
+   */
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
     return dao.persist(entity);

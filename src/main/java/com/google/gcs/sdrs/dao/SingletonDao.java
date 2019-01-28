@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.dao.impl.GenericDAO;
+import com.google.gcs.sdrs.dao.impl.GenericDao;
 import com.google.gcs.sdrs.dao.model.RetentionExecution;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
@@ -26,15 +26,15 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 /** Class to manage singleton DAO instances. */
 public class SingletonDao {
 
-  public static final DAO<RetentionRule, Integer> retentionRuleDAO =
-      new GenericDAO<>(RetentionRule.class);
+  public static final Dao<RetentionRule, Integer> retentionRuleDao =
+      new GenericDao<>(RetentionRule.class);
 
-  public static final DAO<RetentionJob, Integer> retentionJobDAO =
-      new GenericDAO<>(RetentionJob.class);
+  public static final Dao<RetentionJob, Integer> retentionJobDao =
+      new GenericDao<>(RetentionJob.class);
 
-  public static final DAO<RetentionJobValidation, Integer> retentionJobValidationDAO =
-      new GenericDAO<>(RetentionJobValidation.class);
+  public static final Dao<RetentionJobValidation, Integer> retentionJobValidationDao =
+      new GenericDao<>(RetentionJobValidation.class);
 
-  public static final DAO<RetentionExecution, Integer> retentionExecutionDAO =
-      new GenericDAO<>(RetentionExecution.class);
+  public static final Dao<RetentionExecution, Integer> retentionExecutionDao =
+      new GenericDao<>(RetentionExecution.class);
 }
