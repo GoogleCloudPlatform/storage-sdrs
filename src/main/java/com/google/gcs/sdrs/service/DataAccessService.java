@@ -24,6 +24,7 @@ import com.google.gcs.sdrs.dao.model.RetentionExecution;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 
 /**
  * 
@@ -38,20 +39,38 @@ public class DataAccessService {
 	private static Dao<RetentionExecution, ?> retentionExecutionDao;
 	
 	public DataAccessService() {
-		retentionRuleDao = new GenericDao(RetentionRule.class); // inject entity class this dao is responsibe for
+		retentionRuleDao = new GenericDao(RetentionRule.class); // inject entity class for this dao
 		retentionJobDao = new GenericDao(RetentionJob.class);
 		retentionJobValidationDao = new GenericDao(RetentionJobValidation.class);
 		retentionExecutionDao = new GenericDao(RetentionExecution.class);
 	}
 	
+	/**
+	 * Example method to demonstrate the pattern to perform any 
+	 * any needed conversion from POJO to Entity objects
+	 * in order to decouple the data access layer from the rest
+	 * of the application business logic tier and above
+	 * 
+	 * TODO remove this method/update with code from PC-118 (Implement Service Tier)
+	 * @param retentionDomainObject
+	 */
 	public void persistRetentionRule(Object retentionDomainObject) {
-
-		// do any needed business logic conversion from POJO to Entity Object here
-		RetentionRule retentionRule = new RetentionRule();
-		retentionRule.setDatasetName("helloWorld");
+		
+		// PK created/managed by the DB
+		RetentionRule retentionRule = new RetentionRule(); 
+		retentionRule.setDatasetName("dataSetX");
+		retentionRule.setRetentionPeriodInDays(90);
+		retentionRule.setProjectId("coldStorageCluster");
+		retentionRule.setType(RetentionRuleTypes.DATASET);
+		retentionRule.setVersion(1);
+		retentionRule.setIsActive(true);
+		retentionRule.setUser("UserX");
 		retentionRuleDao.persist(retentionRule);
 	}
 	
+	/**
+	 * TODO remove method
+	 */
 	public static void main (String[] args) {
 		DataAccessService dataAccessService = new DataAccessService();
 		dataAccessService.persistRetentionRule(new Object()); //dummy example

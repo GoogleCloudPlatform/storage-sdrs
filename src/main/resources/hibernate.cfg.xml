@@ -6,9 +6,9 @@
 	<session-factory>
 		<property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
 		<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
-		<property name="hibernate.connection.url">jdbc:mysql://35.236.103.221:3306/retention_schema</property>
+		<property name="hibernate.connection.url">jdbc:mysql://35.185.192.218:3306/sdrs_schema</property>
 		<property name="hibernate.connection.username">root</property>
-		<property name="hibernate.connection.password">Ofagnoas7</property>
+		<property name="hibernate.connection.password">sdrsGrt</property>
 		<property name="hibernate.hbm2ddl.auto">update</property>
 		<property name="hibernate.c3p0.min_size">7</property>
 		<property name="hibernate.c3p0.max_size">21</property>
