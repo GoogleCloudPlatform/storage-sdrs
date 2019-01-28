@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service;
+package com.google.gcs.sdrs.service.impl;
 
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.dao.impl.GenericDao;
@@ -31,9 +31,9 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class RetentionRulesServiceTest {
+public class RetentionRulesServiceImplTest {
 
-  private RetentionRulesService service = new RetentionRulesService();
+  private RetentionRulesServiceImpl service = new RetentionRulesServiceImpl();
 
   @Before
   public void setup() {

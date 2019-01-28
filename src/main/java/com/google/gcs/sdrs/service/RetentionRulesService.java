@@ -18,52 +18,15 @@
 package com.google.gcs.sdrs.service;
 
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.dao.Dao;
-import com.google.gcs.sdrs.dao.SingletonDao;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
-import java.sql.Timestamp;
 
-/** Service for managing retention rules including mapping. */
-public class RetentionRulesService {
-  private static final String DEFAULT_PROJECT_ID = "global-default";
-
-  Dao<RetentionRule, Integer> dao = SingletonDao.retentionRuleDao;
+/** Service implementation for managing retention rules. */
+public interface RetentionRulesService {
 
   /**
    * Creates a retention rule and returns its ID
+   *
    * @param rule the request object input by the user
    * @return The identifier for the created rule
    */
-  public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
-    RetentionRule entity = mapPojoToPersistenceEntity(rule);
-    return dao.persist(entity);
-  }
-
-  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {
-    RetentionRule entity = new RetentionRule();
-
-    // Map over input values
-    entity.setDatasetName(pojo.getDatasetName());
-    entity.setDataStorageName(pojo.getDataStorageName());
-    entity.setProjectId(pojo.getProjectId());
-    entity.setRetentionPeriodInDays(pojo.getRetentionPeriod());
-    entity.setType(pojo.getType());
-
-    if (entity.getType() == RetentionRuleTypes.GLOBAL) {
-      entity.setProjectId(DEFAULT_PROJECT_ID);
-    }
-
-    // Generate metadata
-    Timestamp now = new Timestamp(System.currentTimeMillis());
-    entity.setCreatedAt(now);
-    entity.setUpdatedAt(now);
-    entity.setIsActive(true);
-    entity.setVersion(1);
-
-    // TODO: pull actual user value from JWT
-    entity.setUser("user");
-
-    return entity;
-  }
+  Integer createRetentionRule(RetentionRuleCreateRequest rule);
 }
