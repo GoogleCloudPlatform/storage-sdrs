@@ -21,9 +21,11 @@ import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.dao.DAO;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import java.sql.Timestamp;
 
 public class RetentionRulesService {
+  private static final String DEFAULT_PROJECT_ID = "global-default";
 
   DAO<RetentionRule, Integer> dao = SingletonDao.retentionRuleDAO;
 
@@ -42,6 +44,10 @@ public class RetentionRulesService {
     entity.setRetentionPeriodInDays(pojo.getRetentionPeriod());
     entity.setType(pojo.getType());
 
+    if (entity.getType() == RetentionRuleTypes.GLOBAL) {
+      entity.setProjectId(DEFAULT_PROJECT_ID);
+    }
+
     // Generate metadata
     Timestamp now = new Timestamp(System.currentTimeMillis());
     entity.setCreatedAt(now);
@@ -51,17 +57,6 @@ public class RetentionRulesService {
 
     // TODO: pull actual user value from JWT
     entity.setUser("user");
-
-    // TODO: remove when schema is updated
-    if (entity.getDatasetName() == null) {
-      entity.setDatasetName("not-nullable");
-    }
-    if (entity.getDataStorageName() == null) {
-      entity.setDataStorageName("not-nullable");
-    }
-    if (entity.getProjectId() == null) {
-      entity.setProjectId("not-nullable");
-    }
 
     return entity;
   }

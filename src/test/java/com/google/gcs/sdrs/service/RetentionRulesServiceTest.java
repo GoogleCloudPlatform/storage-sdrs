@@ -41,7 +41,34 @@ public class RetentionRulesServiceTest {
   }
 
   @Test
-  public void createRulePersistsEntity() {
+  public void createRulePersistsDatasetEntity() {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setType(RetentionRuleTypes.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDatasetName("dataset");
+    createRule.setDataStorageName("gs://b/d");
+    createRule.setProjectId("projectId");
+
+    service.createRetentionRule(createRule);
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+
+    verify(service.dao).persist(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertNull(input.getId());
+    assertEquals(RetentionRuleTypes.DATASET, input.getType());
+    assertEquals(123, (int) input.getRetentionPeriodInDays());
+    assertEquals(true, input.getIsActive());
+    assertNotNull(input.getUpdatedAt());
+    assertNotNull(input.getCreatedAt());
+    assertEquals(input.getProjectId(), "projectId");
+    assertEquals(input.getDataStorageName(), "gs://b/d");
+    assertEquals(input.getDatasetName(), "dataset");
+    assertEquals(1, (int) input.getVersion());
+  }
+
+  @Test
+  public void createRulePersistsGlobalEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setType(RetentionRuleTypes.GLOBAL);
     createRule.setRetentionPeriod(123);
@@ -58,15 +85,9 @@ public class RetentionRulesServiceTest {
     assertEquals(true, input.getIsActive());
     assertNotNull(input.getUpdatedAt());
     assertNotNull(input.getCreatedAt());
+    assertEquals(input.getProjectId(), "global-default");
     assertEquals(1, (int) input.getVersion());
-    //    assertNull(input.getDataStorageName());
-    //    assertNull(input.getDatasetName());
-    //    assertNull(input.getProjectId());
-
-    // TODO: revisit when schema is updated
-    assertEquals("user", input.getUser());
-    assertNotNull(input.getDataStorageName());
-    assertNotNull(input.getDatasetName());
-    assertNotNull(input.getProjectId());
+    assertNull(input.getDataStorageName());
+    assertNull(input.getDatasetName());
   }
 }
