@@ -18,20 +18,22 @@
 
 package com.google.gcs.sdrs.controller;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.gcs.sdrs.controller.HttpException;
-import com.google.gcs.sdrs.controller.RetentionRulesController;
-import com.google.gcs.sdrs.controller.ValidationException;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
-
+import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RetentionRulesControllerTest {
 
@@ -40,6 +42,7 @@ public class RetentionRulesControllerTest {
   @Before()
   public void setup() {
     controller = new RetentionRulesController();
+    controller.service = mock(RetentionRulesServiceImpl.class);
   }
 
   @Test
@@ -58,20 +61,24 @@ public class RetentionRulesControllerTest {
   @Test
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException();
-    Response response =
-        controller.generateExceptionResponse(testException, "requestUuid");
+    Response response = controller.generateExceptionResponse(testException, "requestUuid");
     assertEquals(response.getStatus(), 400);
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: ");
   }
 
   @Test
   public void createRuleWhenSuccessfulIncludesResponseFields() {
+    when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
+        .thenReturn(543);
+
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setType(RetentionRuleTypes.GLOBAL);
     rule.setRetentionPeriod(1);
+
     Response response = controller.create(rule);
-    assertEquals(response.getStatus(), 200);
-    assertEquals(((RetentionRuleCreateResponse) response.getEntity()).getRuleId(), 1);
+
+    assertEquals(200, response.getStatus());
+    assertEquals(543, ((RetentionRuleCreateResponse) response.getEntity()).getRuleId());
     assertNotNull(((RetentionRuleCreateResponse) response.getEntity()).getRequestUuid());
   }
 
