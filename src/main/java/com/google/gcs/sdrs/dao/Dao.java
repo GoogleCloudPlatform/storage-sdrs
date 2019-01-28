@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google LLC. All rights reserved.
+ *  Copyright 2019 Google LLC. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the “License”);
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  *
  */
+ 
+package com.google.gcs.sdrs.dao;
 
-package com.google.gcs.sdrs.controller.pojo.response;
+import java.io.Serializable;
 
-/** Base class to be used by HTTP response objects */
-public abstract class BaseHttpResponse {
+/**
+ * Interface for Data Access Object pattern 
+ * 
+ * @author salguerod
+ *
+ * @param <T>
+ * @param <Id>
+ */
+public interface Dao<T, Id extends Serializable> {
 
-  private String requestUuid;
+	void persist(T entity);
 
-  public String getRequestUuid() {
-    return requestUuid;
-  }
+	void update(T object);
 
-  public void setRequestUuid(String requestUUID) {
-    this.requestUuid = requestUUID;
-  }
+	T findById(Id id);
+
+	void delete(T object);
+
 }

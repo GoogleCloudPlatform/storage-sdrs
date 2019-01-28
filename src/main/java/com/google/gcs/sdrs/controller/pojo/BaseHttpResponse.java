@@ -16,16 +16,18 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.pojo.response;
+package com.google.gcs.sdrs.controller.pojo;
 
-public class ErrorResponse extends BaseHttpResponse {
-  public String getMessage() {
-    return message;
+/** Base class to be used by HTTP response objects */
+public abstract class BaseHttpResponse {
+
+  private String requestUuid;
+
+  public String getRequestUuid() {
+    return requestUuid;
   }
 
-  public void setMessage(String message) {
-    this.message = message;
+  public void setRequestUuid(String requestUUID) {
+    this.requestUuid = requestUUID;
   }
-
-  public String message;
 }

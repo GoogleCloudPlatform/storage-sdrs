@@ -20,7 +20,7 @@ package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gcs.sdrs.controller.mapper.exception.JsonProcessingExceptionMapper;
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 
 import org.junit.Before;
 import org.junit.Test;

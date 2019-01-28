@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gcs.sdrs.JobManager.JobManager;
 
+/**
+ * Wrapper class around a Runnable thread designed to gracefully shutdown the Job Manager.
+ */
 public class ServerShutdownHook implements Runnable {
 
   private static HttpServer server;

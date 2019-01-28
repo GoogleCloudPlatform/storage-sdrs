@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.google.gcs.sdrs.controller.mapper.exception.UnrecognizedPropertyExceptionMapper;
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 
 import org.junit.Before;
 import org.junit.Test;

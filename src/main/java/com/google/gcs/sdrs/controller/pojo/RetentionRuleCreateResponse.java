@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.pojo.response;
+package com.google.gcs.sdrs.controller.pojo;
 
 /** POJO Tracking JSON response fields/types when creating a retention rule */
 public class RetentionRuleCreateResponse extends BaseHttpResponse {

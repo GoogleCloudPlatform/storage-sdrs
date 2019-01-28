@@ -16,30 +16,16 @@
  *
  */
 
-package com.google.gcs.sdrs.controller;
+package com.google.gcs.sdrs.controller.pojo;
 
-import javax.ws.rs.core.Response;
-
-import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
-
-import java.util.UUID;
-
-/**
- * 
- * Abstract base class for Controllers.
- *
- */
-public abstract class BaseController {
-
-  protected String generateRequestUuid() {
-    return UUID.randomUUID().toString();
+public class ErrorResponse extends BaseHttpResponse {
+  public String getMessage() {
+    return message;
   }
 
-  protected Response generateExceptionResponse(HttpException exception, String requestUuid) {
-    ErrorResponse errorResponse = new ErrorResponse();
-    errorResponse.setMessage(exception.getMessage());
-    errorResponse.setRequestUuid(requestUuid);
-
-    return Response.status(exception.getStatusCode()).entity(errorResponse).build();
+  public void setMessage(String message) {
+    this.message = message;
   }
+
+  public String message;
 }

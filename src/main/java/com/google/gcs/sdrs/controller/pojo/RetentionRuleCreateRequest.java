@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.pojo.request;
+package com.google.gcs.sdrs.controller.pojo;
 
 import java.io.Serializable;
 
