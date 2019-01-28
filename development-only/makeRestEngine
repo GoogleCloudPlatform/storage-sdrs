@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#    Copyright 2016 Google, Inc.
+#    Copyright 2019 Google, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ TEMPLATE=$GROUP-tmpl
 MACHINE_TYPE=g1-small
 IMAGE_FAMILY=debian-9
 IMAGE_PROJECT=debian-cloud
-STARTUP_SCRIPT=gce/startup-script.sh
+STARTUP_SCRIPT=development-only/gce/startup-script.sh
 SCOPES="datastore,userinfo-email,logging-write,storage-full,cloud-platform"
 TAGS=http-server
 INSTANCE_NAME=rest-engine-poc
@@ -80,11 +80,12 @@ deploy)
   ;;
 
 gce)
+  cd ..
   set -v
 # [START gce-single]
   mvn clean package
 
-  gsutil cp -r target/${JAR} gce/base gs://${BUCKET}/gce/
+  gsutil cp -r target/${JAR} development-only/gce/base gs://${BUCKET}/gce/
 
   gcloud compute firewall-rules create allow-http-bookshelf \
     --allow tcp:8080 \
@@ -111,13 +112,15 @@ down)
   ;;
 
 gce-many)
+
+  cd ..
   set -v
 #
 # Instance group setup
 #
   mvn clean package
 
-  gsutil cp -r target/${JAR} gce/base gs://${BUCKET}/gce/
+  gsutil cp -r target/${JAR} development-only/gce/base gs://${BUCKET}/gce/
 
 # First we have to create an instance template.
 # This template will be used by the instance group
