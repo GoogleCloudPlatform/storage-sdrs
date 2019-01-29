@@ -36,11 +36,20 @@ public class ServerShutdownHook implements Runnable {
   private static JobManager jobManager;
   private static JobScheduler jobScheduler;
   private static long GRACE_PERIOD_IN_SECONDS;
+  private boolean isImmediateShutdown;
   private static final Logger logger = LoggerFactory.getLogger(ServerShutdownHook.class);
 
-  public ServerShutdownHook(HttpServer httpServer, long gracePeriodInSeconds) {
+  /**
+   *
+   * @param httpServer The server to shutdown
+   * @param gracePeriodInSeconds How long to wait until forcing the http server to shutdown
+   * @param isImmediateShutdown Immediately shuts down all threads if true
+   */
+  public ServerShutdownHook(HttpServer httpServer, long gracePeriodInSeconds,
+                            boolean isImmediateShutdown) {
     server = httpServer;
     GRACE_PERIOD_IN_SECONDS = gracePeriodInSeconds;
+    this.isImmediateShutdown = isImmediateShutdown;
   }
 
   @Override
@@ -49,12 +58,12 @@ public class ServerShutdownHook implements Runnable {
 
     logger.info("Shutting down Job Manager...");
     jobManager = JobManager.getInstance();
-    jobManager.shutDownJobManager();
+    jobManager.shutDownJobManager(isImmediateShutdown);
     logger.info("Job Manager shutdown complete.");
 
     logger.info("Shutting down Job Scheduler...");
     jobScheduler = JobScheduler.getInstance();
-    jobScheduler.shutdownScheduler();
+    jobScheduler.shutdownScheduler(isImmediateShutdown);
     logger.info("Job Scheduler shutdown complete.");
 
     logger.info("Shutting down web server...");

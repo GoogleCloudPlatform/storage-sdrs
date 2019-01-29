@@ -41,7 +41,7 @@ public class ServerShutdownHookTest {
     // start the server
     server = new HttpServer();
     server.start();
-    objectUnderTest = new ServerShutdownHook(server, 5);
+    objectUnderTest = new ServerShutdownHook(server, 5, true);
   }
 
   /**

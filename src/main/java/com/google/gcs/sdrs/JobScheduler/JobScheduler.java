@@ -35,10 +35,9 @@ public class JobScheduler {
 
   private ScheduledExecutorService scheduledExecutor;
   private static JobScheduler instance;
-  private static int THREAD_POOL_SIZE;
-  private static int SLEEP_MINUTES;
-  private static int INITIAL_DELAY_MINUTES;
-  private static int FREQUENCY_MINUTES;
+  private static int THREAD_POOL_SIZE = 5;
+  private static int SHUTDOWN_WAIT = 1;
+  private static TimeUnit SHUTDOWN_TIME_UNIT = TimeUnit.MINUTES;
   private static final Logger logger = LoggerFactory.getLogger(JobScheduler.class);
 
   /**
@@ -53,9 +52,8 @@ public class JobScheduler {
         instance = new JobScheduler();
 
       } catch (ConfigurationException configEx) {
-        logger.error("Configurations couldn't be loaded from the file.", configEx.getCause());
-      } catch (Exception e) {
-        logger.error("An error occurred while retrieving the JobScheduler instance: ", e.getCause());
+        logger.error("Configurations couldn't be loaded from the file. Using default values..."
+            , configEx.getCause());
       }
     }
 
@@ -71,11 +69,11 @@ public class JobScheduler {
 
   /**
    * Shuts down the job scheduler
-   * @param isShutdownNow Tells the scheduler to shut down immediately, if needed
+   * @param isImmediateShutdown Tells the scheduler to shut down immediately, if needed
    */
-  public void shutdownScheduler(boolean isShutdownNow) {
+  public void shutdownScheduler(boolean isImmediateShutdown) {
     logger.info("Shutting down...");
-    if(isShutdownNow){
+    if(isImmediateShutdown){
       logger.info("Forcing JobScheduler shutdown now...");
       scheduledExecutor.shutdownNow();
     } else {
@@ -83,7 +81,7 @@ public class JobScheduler {
       logger.info("Attempting JobScheduler graceful shutdown...");
       scheduledExecutor.shutdown();
       try {
-        if (!scheduledExecutor.awaitTermination(SLEEP_MINUTES, TimeUnit.MINUTES)) {
+        if (!scheduledExecutor.awaitTermination(SHUTDOWN_WAIT, SHUTDOWN_TIME_UNIT)) {
           scheduledExecutor.shutdownNow();
         }
       } catch (InterruptedException e) {
@@ -100,18 +98,20 @@ public class JobScheduler {
   /**
    * Submits a job to be run on a scheduled, recurring basis
    * @param job The runnable job to be executed
+   * @param initialDelay How long to wait until the first execution
+   * @param frequency How long to wait between job executions
+   * @param timeUnit The timeunit that determines the time value of initialDelay and frequency
    */
-  public void submitScheduledJob(Runnable job){
+  public void submitScheduledJob(Runnable job, int initialDelay, int frequency, TimeUnit timeUnit){
     scheduledExecutor.scheduleAtFixedRate(job,
-        INITIAL_DELAY_MINUTES, FREQUENCY_MINUTES, TimeUnit.MINUTES);
+        initialDelay, frequency, timeUnit);
   }
 
   private JobScheduler() throws ConfigurationException {
     Configuration config = new Configurations().xml("applicationConfig.xml");
     THREAD_POOL_SIZE = config.getInt("scheduler.threadPoolSize");
-    SLEEP_MINUTES = config.getInt("scheduler.shutdownSleepMinutes");
-    INITIAL_DELAY_MINUTES = config.getInt("scheduler.initialDelayInMinutes");
-    FREQUENCY_MINUTES = config.getInt("scheduler.frequencyInMinutes");
+    SHUTDOWN_WAIT = config.getInt("scheduler.shutdownWait");
+    SHUTDOWN_TIME_UNIT = TimeUnit.valueOf(config.getString("scheduler.shutdownTimeUnit"));
 
     scheduledExecutor = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
     logger.info("JobScheduler instance created.");

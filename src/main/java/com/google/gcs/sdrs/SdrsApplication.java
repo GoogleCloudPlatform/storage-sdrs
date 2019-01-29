@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The main startup class for the SDRS service.
@@ -41,6 +42,7 @@ public class SdrsApplication {
   private static final Logger logger = LoggerFactory.getLogger(SdrsApplication.class);
 
   private static HttpServer server;
+  private static Configuration xmlConfig;
 
   /**
    * Starts the SDRS service
@@ -48,6 +50,14 @@ public class SdrsApplication {
    */
   public static void main(String[] args) {
     logger.info("Starting SDRS...");
+
+    try{
+      xmlConfig = new Configurations().xml("applicationConfig.xml");
+    } catch(ConfigurationException ex) {
+      logger.error("The server could not start because the configuration file could not be read: "
+          + ex.getCause());
+    }
+
     startWebServer();
     startRuleExecutor();
   }
@@ -66,8 +76,6 @@ public class SdrsApplication {
     try {
 
       // Read config values
-      Configuration xmlConfig =
-          new Configurations().xml("applicationConfig.xml");
       Boolean useHttps = xmlConfig.getBoolean("serverConfig.useHttps");
       String hostName = xmlConfig.getString("serverConfig.address");
       int port = xmlConfig.getInt("serverConfig.port");
@@ -82,13 +90,11 @@ public class SdrsApplication {
 
       // Register shutdown hook so the monitoring thread is killed when the app is stopped
       Runtime.getRuntime().addShutdownHook(new Thread(
-          new ServerShutdownHook(server, shutdownGracePeriodInSeconds), "shutdownHook"));
+          new ServerShutdownHook(server, shutdownGracePeriodInSeconds, false),
+          "shutdownHook"));
 
       server.start();
       logger.info("SDRS Web Server Started.");
-    } catch (ConfigurationException ex) {
-      logger.error("The server could not start because the configuration file could not be read: "
-          + ex.getCause());
     } catch (IOException ex) {
       logger.error("An error occurred during web server start up: " + ex.getCause());
     }
@@ -96,7 +102,12 @@ public class SdrsApplication {
 
   private static void startRuleExecutor(){
     JobScheduler ruleExecutor = JobScheduler.getInstance();
-    ruleExecutor.submitScheduledJob(new RuleExecutionRunner());
+
+    int initialDelay = xmlConfig.getInt("ruleExecution.initialDelay");
+    int frequency = xmlConfig.getInt("ruleExecution.frequency");
+    TimeUnit timeUnit = TimeUnit.valueOf(xmlConfig.getString("ruleExecution.timeUnit"));
+
+    ruleExecutor.submitScheduledJob(new RuleExecutionRunner(), initialDelay, frequency, timeUnit);
     logger.info("Rule execution scheduled successfully.");
   }
 

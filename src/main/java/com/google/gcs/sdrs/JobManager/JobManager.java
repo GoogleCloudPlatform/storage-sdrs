@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.google.gcs.sdrs.JobScheduler.JobScheduler;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -44,13 +45,14 @@ public class JobManager {
   private ExecutorService executorService;
 
   private static JobManager instance;
+  private static JobScheduler scheduler;
   private static JobManagerMonitor monitor;
-  private static Thread monitorThread;
-  private static Configurations configs = new Configurations();
-  private static int THREAD_POOL_SIZE;
-  private static int SLEEP_MINUTES;
-  private static int MONITOR_THREAD_SLEEP_IN_SECONDS;
-  private static final String MONITOR_THREAD_NAME = "monitoringThread";
+  private static int THREAD_POOL_SIZE = 10;
+  private static int SLEEP_MINUTES = 5;
+  private static int monitorInitialDelay = 0;
+  private static int monitorFrequency = 30;
+  private static TimeUnit monitorTimeUnit = TimeUnit.SECONDS;
+  private static int MONITOR_THREAD_SLEEP_IN_SECONDS = 30;
   private static final Logger logger = LoggerFactory.getLogger(JobManager.class);
 
   /**
@@ -64,14 +66,14 @@ public class JobManager {
 
         instance = new JobManager();
 
-        monitor = new JobManagerMonitor(instance, MONITOR_THREAD_SLEEP_IN_SECONDS);
-        monitorThread = new Thread(monitor, MONITOR_THREAD_NAME);
-        monitorThread.start();
       } catch (ConfigurationException configEx) {
-        logger.error("Configurations couldn't be loaded from the file.", configEx.getCause());
-      } catch (Exception e) {
-        logger.error("An error occurred while retrieving the JobManager instance: ", e.getCause());
+        logger.error("Configurations couldn't be loaded from the file. Applying defaults..."
+            , configEx.getCause());
       }
+
+      monitor = new JobManagerMonitor(instance, MONITOR_THREAD_SLEEP_IN_SECONDS);
+      scheduler = JobScheduler.getInstance();
+      scheduler.submitScheduledJob(monitor, monitorInitialDelay, monitorFrequency, monitorTimeUnit);
     }
 
     return instance;
@@ -86,13 +88,14 @@ public class JobManager {
 
   /**
    * Gracefully shuts down the jobManager and associated threads
-   * @param isShutdownNow Optionally allows the service to immediately shutdown rather than waiting for thread completion
+   * @param isImmediateShutdown Optionally allows the service to immediately shutdown rather than waiting for thread completion
    */
-  public void shutDownJobManager(boolean isShutdownNow) {
+  public void shutDownJobManager(boolean isImmediateShutdown) {
     logger.info("Shutting down JobManager.");
-    if(isShutdownNow){
+    if(isImmediateShutdown){
       logger.info("Forcing shutdown now...");
       executorService.shutdownNow();
+      scheduler.shutdownScheduler(true);
     } else {
       // waits nicely for executing tasks to finish, and won't spawn new ones
       logger.info("Attempting graceful shutdown...");
@@ -104,8 +107,8 @@ public class JobManager {
       } catch (InterruptedException e) {
         executorService.shutdownNow();
       }
+      scheduler.shutdownScheduler();
     }
-    monitorThread.interrupt();
 
     // Ensure the job manager instance is destroyed
     instance = null;
@@ -125,10 +128,12 @@ public class JobManager {
   }
 
   private JobManager () throws ConfigurationException{
-    Configuration config = configs.xml("applicationConfig.xml");
+    Configuration config = new Configurations().xml("applicationConfig.xml");
     THREAD_POOL_SIZE = config.getInt("jobManager.threadPoolSize");
     SLEEP_MINUTES = config.getInt("jobManager.shutdownSleepMinutes");
-    MONITOR_THREAD_SLEEP_IN_SECONDS = config.getInt("jobManager.monitorThreadSleepInSeconds");
+    monitorInitialDelay = config.getInt("jobManager.monitor.initialDelay");
+    monitorFrequency = config.getInt("jobManager.monitor.frequency");
+    monitorTimeUnit = TimeUnit.valueOf(config.getString("jobManager.monitor.timeUnit"));
 
     executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     completionService = new ExecutorCompletionService<>(executorService);

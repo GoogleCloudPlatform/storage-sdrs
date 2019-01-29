@@ -21,12 +21,21 @@
 	<jobManager>
 		<threadPoolSize>7</threadPoolSize>
         <shutdownSleepMinutes>5</shutdownSleepMinutes>
+        <monitor>
+            <initialDelay>0</initialDelay>
+            <frequency>30</frequency>
+            <timeUnit>SECONDS</timeUnit>
+        </monitor>
         <monitorThreadSleepInSeconds>30</monitorThreadSleepInSeconds>
 	</jobManager>
     <scheduler>
         <threadPoolSize>1</threadPoolSize>
-        <shutdownSleepMinutes>5</shutdownSleepMinutes>
-        <initialDelayInMinutes>0</initialDelayInMinutes>
-        <frequencyInMinutes>30</frequencyInMinutes>
+        <shutdownWait>30</shutdownWait>
+        <shutdownTimeUnit>SECONDS</shutdownTimeUnit>
     </scheduler>
+    <ruleExecution>
+        <initialDelay>0</initialDelay>
+        <frequency>30</frequency>
+        <timeUnit>MINUTES</timeUnit>
+    </ruleExecution>
 </appConfiguration>
