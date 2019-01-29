@@ -18,9 +18,7 @@
 
 package com.google.gcs.sdrs.controller.pojo;
 
-/**
- * Base class to be used by HTTP response objects
- */
+/** Base class to be used by HTTP response objects */
 public abstract class BaseHttpResponse {
 
   private String requestUuid;

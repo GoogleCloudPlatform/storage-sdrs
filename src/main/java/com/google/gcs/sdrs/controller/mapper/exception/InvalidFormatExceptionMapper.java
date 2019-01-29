@@ -19,17 +19,16 @@
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.Arrays;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
-import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Handles Jackson InvalidFormatExceptions with custom error messages.
- * This can be caused by an invalid enum value on the request object.
+ * Handles Jackson InvalidFormatExceptions with custom error messages. This can be caused by an
+ * invalid enum value on the request object.
  */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)

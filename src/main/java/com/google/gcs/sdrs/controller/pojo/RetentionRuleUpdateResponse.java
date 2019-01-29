@@ -13,24 +13,28 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
 package com.google.gcs.sdrs.controller.pojo;
 
-import java.io.Serializable;
-
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 
-/** POJO Tracking JSON input fields/types for creating a retention rule */
-public class RetentionRuleCreateRequest implements Serializable {
-
-  private static final long serialVersionUID = -6338592900101329098L;
+/** POJO Tracking JSON response fields/types when updating a retention rule */
+public class RetentionRuleUpdateResponse extends BaseHttpResponse {
+  private Integer ruleId;
   private String datasetName;
   private Integer retentionPeriod;
   private String dataStorageName;
   private String projectId;
   private RetentionRuleTypes type;
+
+  public Integer getRuleId() {
+    return ruleId;
+  }
+
+  public void setRuleId(Integer ruleId) {
+    this.ruleId = ruleId;
+  }
 
   public String getDatasetName() {
     return datasetName;
