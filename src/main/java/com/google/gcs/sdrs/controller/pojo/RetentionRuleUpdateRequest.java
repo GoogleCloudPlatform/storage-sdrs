@@ -21,6 +21,8 @@ import java.io.Serializable;
 
 /** POJO Tracking JSON input fields/types for updating a retention rule */
 public class RetentionRuleUpdateRequest implements Serializable {
+  private static final long serialVersionUID = -8538049672164651286L;
+
   private Integer retentionPeriod;
 
   public Integer getRetentionPeriod() {
