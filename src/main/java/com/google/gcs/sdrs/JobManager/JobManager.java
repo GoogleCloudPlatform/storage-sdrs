@@ -92,7 +92,7 @@ public class JobManager {
    */
   public void shutDownJobManager(boolean isImmediateShutdown) {
     logger.info("Shutting down JobManager.");
-    if(isImmediateShutdown){
+    if (isImmediateShutdown) {
       logger.info("Forcing shutdown now...");
       executorService.shutdownNow();
       scheduler.shutdownScheduler(true);

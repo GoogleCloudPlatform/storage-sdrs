@@ -73,7 +73,7 @@ public class JobScheduler {
    */
   public void shutdownScheduler(boolean isImmediateShutdown) {
     logger.info("Shutting down...");
-    if(isImmediateShutdown){
+    if (isImmediateShutdown) {
       logger.info("Forcing JobScheduler shutdown now...");
       scheduledExecutor.shutdownNow();
     } else {
@@ -103,8 +103,7 @@ public class JobScheduler {
    * @param timeUnit The timeunit that determines the time value of initialDelay and frequency
    */
   public void submitScheduledJob(Runnable job, int initialDelay, int frequency, TimeUnit timeUnit){
-    scheduledExecutor.scheduleAtFixedRate(job,
-        initialDelay, frequency, timeUnit);
+    scheduledExecutor.scheduleAtFixedRate(job, initialDelay, frequency, timeUnit);
   }
 
   private JobScheduler() throws ConfigurationException {

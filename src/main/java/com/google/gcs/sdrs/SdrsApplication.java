@@ -51,7 +51,7 @@ public class SdrsApplication {
   public static void main(String[] args) {
     logger.info("Starting SDRS...");
 
-    try{
+    try {
       xmlConfig = new Configurations().xml("applicationConfig.xml");
     } catch(ConfigurationException ex) {
       logger.error("The server could not start because the configuration file could not be read: "
