@@ -23,6 +23,8 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
+import com.google.gcs.sdrs.service.RetentionRulesService;
+import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -42,6 +44,8 @@ public class RetentionRulesController extends BaseController {
   private static final Integer RETENTION_MAX_VALUE = 200;
   private static final String STORAGE_PREFIX = "gs://";
 
+  RetentionRulesService service = new RetentionRulesServiceImpl();
+
   /** CRUD create endpoint */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
@@ -52,13 +56,12 @@ public class RetentionRulesController extends BaseController {
     try {
       validateCreate(request);
 
-      // TODO: Perform business logic
+      int result = service.createRetentionRule(request);
 
       RetentionRuleCreateResponse response = new RetentionRuleCreateResponse();
       response.setRequestUuid(requestUuid);
+      response.setRuleId(result);
 
-      // TODO: Replace with real value
-      response.setRuleId(1);
       return Response.status(200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
