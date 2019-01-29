@@ -15,27 +15,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  *
  */
- 
+
 package com.google.gcs.sdrs.dao;
 
 import java.io.Serializable;
 
 /**
- * Interface for Data Access Object pattern 
- * 
- * @author salguerod
+ * Interface for Data Access Object pattern
  *
+ * @author salguerod
  * @param <T>
  * @param <Id>
  */
 public interface Dao<T, Id extends Serializable> {
 
-	void persist(T entity);
+  void persist(T entity);
 
-	void update(T object);
+  void update(T object);
 
-	T findById(Id id);
+  T findById(Id id);
 
-	void delete(T object);
-
+  void delete(T object);
 }

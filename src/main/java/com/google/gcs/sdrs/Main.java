@@ -40,54 +40,54 @@ import com.google.gcs.sdrs.server.ServerShutdownHook;
 @Deprecated
 public class Main {
 
-  private static final Logger logger = LoggerFactory.getLogger(Main.class);
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-  // Base URI the Grizzly HTTP server will listen on
-  public static final String BASE_URI = "http://0.0.0.0:8080/myapp/";
+	// Base URI the Grizzly HTTP server will listen on
+	public static final String BASE_URI = "http://0.0.0.0:8080/myapp/";
 
-  /**
-   * @return Grizzly HTTP server.
-   * @deprecated Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
-   */
-  public static HttpServer startServer() {
-    // create a resource config that scans for JAX-RS resources and providers
-    // in com.google.gcs.sdrs. packages
+	/**
+	 * @return Grizzly HTTP server.
+	 * @deprecated Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
+	 */
+	public static HttpServer startServer() {
+		// create a resource config that scans for JAX-RS resources and providers
+		// in com.google.gcs.sdrs. packages
 
-    ResourceConfig config =
-        new ResourceConfig().packages("com.google.gcs.sdrs.");
+		ResourceConfig config =
+				new ResourceConfig().packages("com.google.gcs.sdrs.");
 
-    // create and start a new instance of grizzly http server
-    // exposing the Jersey application at BASE_URI
-    return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), config);
-  }
+		// create and start a new instance of grizzly http server
+		// exposing the Jersey application at BASE_URI
+		return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), config);
+	}
 
-  /**
-   * Main method. Configures and starts the grizzly HTTP server
-   *
-   * @param args Standard java main method signature
-   */
-  public static void main(String[] args) {
-    String hostName = args[0];
-    logger.info("hostname from args is " + hostName);
+	/**
+	 * Main method. Configures and starts the grizzly HTTP server
+	 *
+	 * @param args Standard java main method signature
+	 */
+	public static void main(String[] args) {
+		String hostName = args[0];
+		logger.info("hostname from args is " + hostName);
 
-    URI baseUri = UriBuilder.fromUri("http://" + hostName + "/").port(8080).build();
+		URI baseUri = UriBuilder.fromUri("http://" + hostName + "/").port(8080).build();
 
-    HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, new AppResourceConfig());
+		HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, new AppResourceConfig());
 
-    try {
-      HierarchicalConfiguration xmlConfig = new Configurations().xml("default-applicationConfig.xml");
-      long shutdownGracePeriodInSeconds = xmlConfig.getLong("serverConfig.shutdownGracePeriodInSeconds");
+		try {
+			HierarchicalConfiguration xmlConfig = new Configurations().xml("default-applicationConfig.xml");
+			long shutdownGracePeriodInSeconds = xmlConfig.getLong("serverConfig.shutdownGracePeriodInSeconds");
 
-      Runtime.getRuntime().addShutdownHook(new Thread(new ServerShutdownHook(server, shutdownGracePeriodInSeconds), "shutdownHook"));
-    } catch (ConfigurationException ex) {
-      logger.error("Unable to load settings from configuration file on server start: ", ex);
-    }
+			Runtime.getRuntime().addShutdownHook(new Thread(new ServerShutdownHook(server, shutdownGracePeriodInSeconds), "shutdownHook"));
+		} catch (ConfigurationException ex) {
+			logger.error("Unable to load settings from configuration file on server start: ", ex);
+		}
 
-    try {
-      logger.info("Starting grizzly server...");
-      server.start();
-    } catch (Exception e) {
-      logger.error("There was an error while starting the HTTP server: ", e.getCause());
-    }
-  }
+		try {
+			logger.info("Starting grizzly server...");
+			server.start();
+		} catch (Exception e) {
+			logger.error("There was an error while starting the HTTP server: ", e.getCause());
+		}
+	}
 }

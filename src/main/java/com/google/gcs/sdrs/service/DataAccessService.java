@@ -26,53 +26,47 @@ import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 
-/**
- * 
- * We'll have one 1 dedicated Dao instance per table in this application
- *
- */
+/** We'll have one 1 dedicated Dao instance per table in this application */
 public class DataAccessService {
 
-	private static Dao<RetentionRule, ?> retentionRuleDao; 
-	private static Dao<RetentionJob, ?> retentionJobDao;
-	private static Dao<RetentionJobValidation, ?> retentionJobValidationDao;
-	private static Dao<RetentionExecution, ?> retentionExecutionDao;
-	
-	public DataAccessService() {
-		retentionRuleDao = new GenericDao(RetentionRule.class); // inject entity class for this dao
-		retentionJobDao = new GenericDao(RetentionJob.class);
-		retentionJobValidationDao = new GenericDao(RetentionJobValidation.class);
-		retentionExecutionDao = new GenericDao(RetentionExecution.class);
-	}
-	
-	/**
-	 * Example method to demonstrate the pattern to perform any 
-	 * any needed conversion from POJO to Entity objects
-	 * in order to decouple the data access layer from the rest
-	 * of the application business logic tier and above
-	 * 
-	 * TODO remove this method/update with code from PC-118 (Implement Service Tier)
-	 * @param retentionDomainObject
-	 */
-	public void persistRetentionRule(Object retentionDomainObject) {
-		
-		// PK created/managed by the DB
-		RetentionRule retentionRule = new RetentionRule(); 
-		retentionRule.setDatasetName("dataSetX");
-		retentionRule.setRetentionPeriodInDays(90);
-		retentionRule.setProjectId("coldStorageCluster");
-		retentionRule.setType(RetentionRuleTypes.DATASET);
-		retentionRule.setVersion(1);
-		retentionRule.setIsActive(true);
-		retentionRule.setUser("UserX");
-		retentionRuleDao.persist(retentionRule);
-	}
-	
-	/**
-	 * TODO remove method
-	 */
-	public static void main (String[] args) {
-		DataAccessService dataAccessService = new DataAccessService();
-		dataAccessService.persistRetentionRule(new Object()); //dummy example
-	}
+  private static Dao<RetentionRule, ?> retentionRuleDao;
+  private static Dao<RetentionJob, ?> retentionJobDao;
+  private static Dao<RetentionJobValidation, ?> retentionJobValidationDao;
+  private static Dao<RetentionExecution, ?> retentionExecutionDao;
+
+  public DataAccessService() {
+    retentionRuleDao = new GenericDao(RetentionRule.class); // inject entity class for this dao
+    retentionJobDao = new GenericDao(RetentionJob.class);
+    retentionJobValidationDao = new GenericDao(RetentionJobValidation.class);
+    retentionExecutionDao = new GenericDao(RetentionExecution.class);
+  }
+
+  /**
+   * Example method to demonstrate the pattern to perform any any needed conversion from POJO to
+   * Entity objects in order to decouple the data access layer from the rest of the application
+   * business logic tier and above
+   *
+   * <p>TODO remove this method/update with code from PC-118 (Implement Service Tier)
+   *
+   * @param retentionDomainObject
+   */
+  public void persistRetentionRule(Object retentionDomainObject) {
+
+    // PK created/managed by the DB
+    RetentionRule retentionRule = new RetentionRule();
+    retentionRule.setDatasetName("dataSetX");
+    retentionRule.setRetentionPeriodInDays(90);
+    retentionRule.setProjectId("coldStorageCluster");
+    retentionRule.setType(RetentionRuleTypes.DATASET);
+    retentionRule.setVersion(1);
+    retentionRule.setIsActive(true);
+    retentionRule.setUser("UserX");
+    retentionRuleDao.persist(retentionRule);
+  }
+
+  /** TODO remove method */
+  public static void main(String[] args) {
+    DataAccessService dataAccessService = new DataAccessService();
+    dataAccessService.persistRetentionRule(new Object()); // dummy example
+  }
 }
