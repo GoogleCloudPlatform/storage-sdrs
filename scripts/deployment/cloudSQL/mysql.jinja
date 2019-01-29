@@ -11,7 +11,7 @@
   {% endfor %}
 {%- endmacro %}
 
-{% set dbDeps = dbDependencyList(properties['failover'], 
+{% set dbDeps = dbDependencyList(properties['failover'],
   properties['readReplicas']) %}
 
 resources:
@@ -41,6 +41,7 @@ resources:
       ipConfiguration:
         ipv4Enabled: false
         privateNetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+        privateNetwork: {{ properties['cloudsql']['backupStartTime'] }}
 
 {% if properties['failover'] %}
 - name: {{ ID }}-failover
@@ -58,7 +59,7 @@ resources:
       ipConfiguration:
         ipv4Enabled: false
         privateNetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-        
+
 {% endif %}
 
 {% for i in range(properties['readReplicas']) %}
@@ -92,7 +93,7 @@ resources:
     instance: $(ref.{{ ID }}-master.name)
     charset: {{ properties['database']['charset'] }}
   metadata:
-    dependsOn: 
+    dependsOn:
       {{ dbDeps }}
 {% endif %}
 
@@ -109,7 +110,7 @@ resources:
     {% if properties['database'] %}
       - {{ ID }}-db
     {% else %}
-      {{ dbDeps }}  
+      {{ dbDeps }}
     {% endif %}
 {% endif %}
 
@@ -118,7 +119,7 @@ outputs:
     value: $(ref.{{ ID }}-master.ipAddresses[0].ipAddress)
   - name: {{ ID }}-master-connectionName
     value: $(ref.{{ ID }}-master.connectionName)
-  {% if properties['failover'] %} 
+  {% if properties['failover'] %}
   - name: {{ ID }}-failover-ip
     value: $(ref.{{ ID }}-failover.ipAddresses[0].ipAddress)
   - name: {{ ID }}-failover-connectionName
