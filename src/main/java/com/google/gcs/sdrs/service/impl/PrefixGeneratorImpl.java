@@ -17,18 +17,13 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /** A service to generate bucket name prefixes within a time interval. */
 public class PrefixGeneratorImpl {
@@ -74,43 +69,5 @@ public class PrefixGeneratorImpl {
     }
 
     return result;
-  }
-
-  public static List<String> generateDateTimePrefix(Instant startTime, Instant endTime) {
-    List<String> datetimeList = new ArrayList<>();
-
-    ZonedDateTime start = startTime.atZone(ZoneId.of("UTC"));
-    ZonedDateTime end = endTime.atZone((ZoneId.of("UTC")));
-    Stream.iterate(start, d -> d.plusHours(1))
-        .limit(ChronoUnit.HOURS.between(start, end) + 1)
-        .forEach(
-            dt -> {
-              String tempDatetimeStr = null;
-              if (dt.getYear() == end.getYear()
-                  && dt.getMonthValue() == end.getMonthValue()
-                  && dt.getDayOfMonth() == end.getDayOfMonth()) {
-                tempDatetimeStr = dt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd/HH"));
-                // datetimeList.add(dt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd/HH")));
-              } else if (dt.getYear() == end.getYear()
-                  && dt.getMonthValue() == end.getMonthValue()) {
-                tempDatetimeStr = dt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-                if (!datetimeList.contains(tempDatetimeStr)) {
-                  datetimeList.add(tempDatetimeStr);
-                }
-              } else if (dt.getYear() == end.getYear()) {
-                tempDatetimeStr = dt.format(DateTimeFormatter.ofPattern("yyyy/MM"));
-
-              } else if (dt.getYear() != end.getYear()) {
-                tempDatetimeStr = dt.format(DateTimeFormatter.ofPattern("yyyy"));
-              }
-
-              if (tempDatetimeStr != null && !datetimeList.contains(tempDatetimeStr)) {
-                datetimeList.add(tempDatetimeStr);
-              }
-            });
-
-    // System.out.println(datetimeList);
-
-    return datetimeList;
   }
 }

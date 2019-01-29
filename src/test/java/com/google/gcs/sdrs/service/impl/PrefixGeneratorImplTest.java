@@ -23,11 +23,23 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PrefixGeneratorImplTest {
 
   @Before
   public void setup() {}
+
+  @Test
+  public void patternPrecedesPrefix() {
+    String pattern = "pattern/example";
+    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 1, 0);
+
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    assertTrue(result.get(0).startsWith("pattern/example/"));
+  }
 
   @Test
   public void hourlyGeneratorWithEmptyRangeIs1Prefix() {
@@ -46,8 +58,7 @@ public class PrefixGeneratorImplTest {
     LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
     LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 1, 0);
 
-    List<String> result =
-        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
     assertEquals("test/2019/01/01/00", result.get(0));
@@ -59,8 +70,7 @@ public class PrefixGeneratorImplTest {
     LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
     LocalDateTime time2 = LocalDateTime.of(2019, 1, 2, 0, 0);
 
-    List<String> result =
-        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
     assertEquals("test/2019/01/01", result.get(0));
@@ -85,8 +95,7 @@ public class PrefixGeneratorImplTest {
     LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
     LocalDateTime time2 = LocalDateTime.of(2020, 1, 1, 0, 0);
 
-    List<String> result =
-        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
     assertEquals("test/2019", result.get(0));
@@ -98,13 +107,40 @@ public class PrefixGeneratorImplTest {
     LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
     LocalDateTime time2 = LocalDateTime.of(2020, 2, 2, 1, 0);
 
-    List<String> result =
-        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(4, result.size());
     assertEquals("test/2019", result.get(0));
     assertEquals("test/2020/01", result.get(1));
     assertEquals("test/2020/02/01", result.get(2));
     assertEquals("test/2020/02/02/00", result.get(3));
+  }
+
+  @Test
+  public void generatesMultiplePrefixesOfVariousIntervals() {
+    String pattern = "test";
+    LocalDateTime time1 = LocalDateTime.of(2018, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2020, 3, 3, 2, 0);
+
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    assertEquals(8, result.size());
+    assertEquals("test/2018", result.get(0));
+    assertEquals("test/2019", result.get(1));
+    assertEquals("test/2020/01", result.get(2));
+    assertEquals("test/2020/02", result.get(3));
+    assertEquals("test/2020/03/01", result.get(4));
+    assertEquals("test/2020/03/02", result.get(5));
+    assertEquals("test/2020/03/03/00", result.get(6));
+    assertEquals("test/2020/03/03/01", result.get(7));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void throwsWhenTimesAreOutOfOrder() {
+    String pattern = "test";
+    LocalDateTime time1 = LocalDateTime.of(2020, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 0, 0);
+
+    PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
   }
 }
