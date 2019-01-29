@@ -16,24 +16,16 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.mapper.exception;
+package com.google.gcs.sdrs.controller.pojo;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-/** Handles general Jackson JsonParseExceptions with custom error messages. */
-@Provider
-@Produces(MediaType.APPLICATION_JSON)
-public class JsonParseExceptionMapper extends JacksonExceptionMapper<JsonParseException> {
-
-  private static final Logger logger = LoggerFactory.getLogger(JsonParseExceptionMapper.class);
-
-  @Override
-  protected String createExceptionResponseMessage(JsonParseException exception) {
-    return "Unable to read JSON input";
+public class ErrorResponse extends BaseHttpResponse {
+  public String getMessage() {
+    return message;
   }
+
+  public void setMessage(String message) {
+    this.message = message;
+  }
+
+  public String message;
 }

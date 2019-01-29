@@ -15,12 +15,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service;
+package com.google.gcs.sdrs.service.impl;
 
-import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
-import com.google.cloudy.retention.controller.pojo.response.RetentionRuleResponse;
-import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.dao.impl.GenericDAO;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.dao.impl.GenericDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import org.junit.Before;
@@ -34,17 +32,44 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RetentionRulesServiceTest {
+public class RetentionRulesServiceImplTest {
 
-  private RetentionRulesService service = new RetentionRulesService();
+  private RetentionRulesServiceImpl service = new RetentionRulesServiceImpl();
 
   @Before
   public void setup() {
-    service.dao = mock(GenericDAO.class);
+    service.dao = mock(GenericDao.class);
   }
 
   @Test
-  public void createRulePersistsEntity() {
+  public void createRulePersistsDatasetEntity() {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setType(RetentionRuleTypes.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDatasetName("dataset");
+    createRule.setDataStorageName("gs://b/d");
+    createRule.setProjectId("projectId");
+
+    service.createRetentionRule(createRule);
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+
+    verify(service.dao).persist(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertNull(input.getId());
+    assertEquals(RetentionRuleTypes.DATASET, input.getType());
+    assertEquals(123, (int) input.getRetentionPeriodInDays());
+    assertEquals(true, input.getIsActive());
+    assertNotNull(input.getUpdatedAt());
+    assertNotNull(input.getCreatedAt());
+    assertEquals(input.getProjectId(), "projectId");
+    assertEquals(input.getDataStorageName(), "gs://b/d");
+    assertEquals(input.getDatasetName(), "dataset");
+    assertEquals(1, (int) input.getVersion());
+  }
+
+  @Test
+  public void createRulePersistsGlobalEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
@@ -61,16 +86,10 @@ public class RetentionRulesServiceTest {
     assertEquals(true, input.getIsActive());
     assertNotNull(input.getUpdatedAt());
     assertNotNull(input.getCreatedAt());
+    assertEquals(input.getProjectId(), "global-default");
     assertEquals(1, (int) input.getVersion());
-    //    assertNull(input.getDataStorageName());
-    //    assertNull(input.getDatasetName());
-    //    assertNull(input.getProjectId());
-
-    // TODO: revisit when schema is updated
-    assertEquals("user", input.getUser());
-    assertNotNull(input.getDataStorageName());
-    assertNotNull(input.getDatasetName());
-    assertNotNull(input.getProjectId());
+    assertNull(input.getDataStorageName());
+    assertNull(input.getDatasetName());
   }
 
   @Test

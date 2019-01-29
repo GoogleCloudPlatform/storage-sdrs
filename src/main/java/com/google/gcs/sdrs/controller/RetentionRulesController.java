@@ -18,11 +18,13 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
-import com.google.cloudy.retention.controller.pojo.response.RetentionRuleResponse;
-import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateResponse;
+import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import com.google.gcs.sdrs.service.RetentionRulesService;
+import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -34,7 +36,7 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Controller for managing retention rule objects over HTTP */
+/** Controller for handling /retentionrules endpoints to manage retention rules. */
 @Path("/retentionrules")
 public class RetentionRulesController extends BaseController {
 
@@ -42,7 +44,7 @@ public class RetentionRulesController extends BaseController {
   private static final Integer RETENTION_MAX_VALUE = 200;
   private static final String STORAGE_PREFIX = "gs://";
 
-  RetentionRulesService service = new RetentionRulesService();
+  RetentionRulesService service = new RetentionRulesServiceImpl();
 
   /** CRUD create endpoint */
   @POST
@@ -80,6 +82,36 @@ public class RetentionRulesController extends BaseController {
       RetentionRuleResponse response = service.updateRetentionRule(ruleId, request);
 
       response.setRequestUuid(requestUuid);
+
+      return Response.status(200).entity(response).build();
+    } catch (HttpException exception) {
+      return generateExceptionResponse(exception, requestUuid);
+    }
+  }
+
+  /** CRUD update endpoint */
+  @PUT
+  @Path("/{ruleId}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response update(@PathParam("ruleId") Integer ruleId, RetentionRuleUpdateRequest request) {
+    String requestUuid = generateRequestUuid();
+
+    try {
+      validateUpdate(request);
+
+      // TODO: Perform business logic
+
+      RetentionRuleUpdateResponse response = new RetentionRuleUpdateResponse();
+      response.setRequestUuid(requestUuid);
+
+      // TODO: map actual values to response
+      response.setDatasetName("dataset");
+      response.setDataStorageName("gs://bucket/dataset");
+      response.setProjectId("projectId");
+      response.setRetentionPeriod(123);
+      response.setRuleId(ruleId);
+      response.setType(RetentionRuleTypes.DATASET);
 
       return Response.status(200).entity(response).build();
     } catch (HttpException exception) {

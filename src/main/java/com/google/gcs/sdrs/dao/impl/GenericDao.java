@@ -1,6 +1,24 @@
+/*
+ * Copyright 2019 Google LLC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the “License”);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
+ *
+ * Any software provided by Google hereunder is distributed “AS IS”,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ *
+ */
+
 package com.google.gcs.sdrs.dao.impl;
 
-import com.google.gcs.sdrs.dao.DAO;
+import com.google.gcs.sdrs.dao.Dao;
 import java.io.Serializable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -13,12 +31,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Hibernate based Generic DAO implementation
+ * Hibernate based Generic Dao implementation
  *
  * @param <T>
  * @param <Id>
  */
-public class GenericDAO<T, Id extends Serializable> implements DAO<T, Id> {
+public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
 
   private static final Logger logger = LoggerFactory.getLogger(GenericDAO.class);
   private final Class<T> type;
@@ -29,7 +47,7 @@ public class GenericDAO<T, Id extends Serializable> implements DAO<T, Id> {
   protected Session currentSession;
   protected Transaction currentTransaction;
 
-  public GenericDAO(final Class<T> type) {
+  public GenericDao(final Class<T> type) {
     this.type = type;
   }
 
@@ -121,22 +139,6 @@ public class GenericDAO<T, Id extends Serializable> implements DAO<T, Id> {
     }
     return sessionFactory;
   }
-
-  /*
-   private static SessionFactory getSessionFactory() {
-  	Configuration configuration = new Configuration().configure();
-  	StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder()
-  			.applySettings(configuration.getProperties());
-  	SessionFactory sessionFactory = configuration.buildSessionFactory(builder.build());
-  	return sessionFactory;
-
-  	Configuration config = new Configuration().configure();
-  	ServiceRegistry servReg = new StandardServiceRegistryBuilder().applySettings(config.getProperties()).build();
-  	SessionFactory factory = config.buildSessionFactory(servReg);
-  	return factory;
-
-  }
-   */
 
   public Session getCurrentSession() {
     return currentSession;

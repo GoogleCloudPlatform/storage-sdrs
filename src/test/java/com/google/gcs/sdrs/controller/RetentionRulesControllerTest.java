@@ -18,12 +18,13 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.cloudy.retention.controller.pojo.request.RetentionRuleUpdateRequest;
-import com.google.cloudy.retention.controller.pojo.response.RetentionRuleResponse;
-import com.google.gcs.sdrs.controller.pojo.request.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.controller.pojo.response.ErrorResponse;
-import com.google.gcs.sdrs.controller.pojo.response.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -45,7 +46,7 @@ public class RetentionRulesControllerTest {
   @Before()
   public void setup() {
     controller = new RetentionRulesController();
-    controller.service = mock(RetentionRulesService.class);
+    controller.service = mock(RetentionRulesServiceImpl.class);
   }
 
   @Test
