@@ -18,42 +18,99 @@
 package com.google.gcs.sdrs.service.impl;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Stream;
 
 /** A service to generate bucket name prefixes within a time interval. */
 public class PrefixGeneratorImpl {
 
   /**
-   * Generate a list of bucket name prefixes with hourly suffix
+   * Generate a list of bucket name prefixes within a time interval.
    *
    * @param pattern indicating the base portion of the prefix.
-   * @param rangeStart indicating the time of the most recent prefix to generate (inclusive).
-   * @param rangeEnd indicating the time of the least recent prefix to generate (inclusive). This
-   *     value must be earlier than {@code rangeStart}.
-   * @return a {@link List} of {@link String}s of the form `pattern/yyyy/mm/dd/hh` for every hour
-   *     within the interval between rangeStart and rangeEnd.
+   * @param upperBound indicating the time of the most recent prefix to generate (exclusive).
+   * @param lowerBound indicating the time of the least recent prefix to generate. This value must
+   *     be earlier than {@code upperBound}. There is no guarantee that files older than this value
+   *     will not be deleted.
+   * @return a {@link List} of {@link String}s of the form `pattern/period` for every time segment
+   *     within the interval between upperBound and lowerBound.
    */
-  public List<String> generateHourlyPrefixes(String pattern, Instant rangeStart, Instant rangeEnd) {
-    if (rangeStart.isBefore(rangeEnd)) {
-      throw new IllegalArgumentException("rangeStart occurs before rangeEnd; try swapping them.");
+  public static List<String> generateTimePrefixes(
+      String pattern, LocalDateTime upperBound, LocalDateTime lowerBound) {
+    if (upperBound.isBefore(lowerBound)) {
+      throw new IllegalArgumentException("upperBound occurs before lowerBound; try swapping them.");
     }
     List<String> result = new LinkedList<>();
 
-    DateTimeFormatter formatter =
-        DateTimeFormatter.ofPattern("yyyy/MM/dd/HH").withLocale(Locale.US).withZone(ZoneOffset.UTC);
+    Map<ChronoUnit, DateTimeFormatter> formatters = new HashMap<>();
+    formatters.put(ChronoUnit.YEARS, DateTimeFormatter.ofPattern("yyyy"));
+    formatters.put(ChronoUnit.MONTHS, DateTimeFormatter.ofPattern("yyyy/MM"));
+    formatters.put(ChronoUnit.DAYS, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+    formatters.put(ChronoUnit.HOURS, DateTimeFormatter.ofPattern("yyyy/MM/dd/HH"));
 
-    Instant nextPrefixTime = Instant.from(rangeStart);
-    while (nextPrefixTime.isAfter(rangeEnd) || nextPrefixTime.equals(rangeEnd)) {
-      result.add(String.format("%s/%s", pattern, formatter.format(nextPrefixTime)));
-
-      nextPrefixTime = nextPrefixTime.minus(1, ChronoUnit.HOURS);
+    LocalDateTime currentTime = LocalDateTime.from(lowerBound);
+    while (currentTime.isBefore(upperBound)) {
+      ChronoUnit increment;
+      if (!upperBound.isBefore(currentTime.plus(1, ChronoUnit.YEARS))) {
+        increment = ChronoUnit.YEARS;
+      } else if (!upperBound.isBefore(currentTime.plus(1, ChronoUnit.MONTHS))) {
+        increment = ChronoUnit.MONTHS;
+      } else if (!upperBound.isBefore(currentTime.plus(1, ChronoUnit.DAYS))) {
+        increment = ChronoUnit.DAYS;
+      } else {
+        increment = ChronoUnit.HOURS;
+      }
+      result.add(String.format("%s/%s", pattern, formatters.get(increment).format(currentTime)));
+      currentTime = currentTime.plus(1, increment);
     }
 
     return result;
+  }
+
+  public static List<String> generateDateTimePrefix(Instant startTime, Instant endTime) {
+    List<String> datetimeList = new ArrayList<>();
+
+    ZonedDateTime start = startTime.atZone(ZoneId.of("UTC"));
+    ZonedDateTime end = endTime.atZone((ZoneId.of("UTC")));
+    Stream.iterate(start, d -> d.plusHours(1))
+        .limit(ChronoUnit.HOURS.between(start, end) + 1)
+        .forEach(
+            dt -> {
+              String tempDatetimeStr = null;
+              if (dt.getYear() == end.getYear()
+                  && dt.getMonthValue() == end.getMonthValue()
+                  && dt.getDayOfMonth() == end.getDayOfMonth()) {
+                tempDatetimeStr = dt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd/HH"));
+                // datetimeList.add(dt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd/HH")));
+              } else if (dt.getYear() == end.getYear()
+                  && dt.getMonthValue() == end.getMonthValue()) {
+                tempDatetimeStr = dt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+                if (!datetimeList.contains(tempDatetimeStr)) {
+                  datetimeList.add(tempDatetimeStr);
+                }
+              } else if (dt.getYear() == end.getYear()) {
+                tempDatetimeStr = dt.format(DateTimeFormatter.ofPattern("yyyy/MM"));
+
+              } else if (dt.getYear() != end.getYear()) {
+                tempDatetimeStr = dt.format(DateTimeFormatter.ofPattern("yyyy"));
+              }
+
+              if (tempDatetimeStr != null && !datetimeList.contains(tempDatetimeStr)) {
+                datetimeList.add(tempDatetimeStr);
+              }
+            });
+
+    // System.out.println(datetimeList);
+
+    return datetimeList;
   }
 }

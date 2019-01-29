@@ -17,32 +17,25 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class PrefixGeneratorImplTest {
 
-  private PrefixGeneratorImpl service;
-
   @Before
-  public void setup() {
-    service = new PrefixGeneratorImpl();
-  }
+  public void setup() {}
 
   @Test
   public void hourlyGeneratorWithEmptyRangeIs1Prefix() {
     String pattern = "test";
-    Instant now = Instant.now();
+    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 1, 0);
 
-    List<String> result = service.generateHourlyPrefixes(pattern, now, now);
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
   }
@@ -50,12 +43,68 @@ public class PrefixGeneratorImplTest {
   @Test
   public void hourlyGeneratorPrefixFormatMatchesExpectedOutput() {
     String pattern = "test";
-    LocalDate localDate = LocalDate.of(2019, 1, 1);
-    LocalDateTime localDateTime = localDate.atStartOfDay();
-    Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
+    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 1, 0);
 
-    List<String> result = service.generateHourlyPrefixes(pattern, instant, instant);
+    List<String> result =
+        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
+    assertEquals(1, result.size());
     assertEquals("test/2019/01/01/00", result.get(0));
+  }
+
+  @Test
+  public void dailyGeneratorPrefixFormatMatchesExpectedOutput() {
+    String pattern = "test";
+    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2019, 1, 2, 0, 0);
+
+    List<String> result =
+        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    assertEquals(1, result.size());
+    assertEquals("test/2019/01/01", result.get(0));
+  }
+
+  @Test
+  public void monthlyGeneratorPrefixFormatMatchesExpectedOutput() {
+    String pattern = "test";
+    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2019, 2, 1, 0, 0);
+
+    List<String> result =
+        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    assertEquals(1, result.size());
+    assertEquals("test/2019/01", result.get(0));
+  }
+
+  @Test
+  public void yearlyGeneratorPrefixFormatMatchesExpectedOutput() {
+    String pattern = "test";
+    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2020, 1, 1, 0, 0);
+
+    List<String> result =
+        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    assertEquals(1, result.size());
+    assertEquals("test/2019", result.get(0));
+  }
+
+  @Test
+  public void prefixGeneratorFluctuatesInterval() {
+    String pattern = "test";
+    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
+    LocalDateTime time2 = LocalDateTime.of(2020, 2, 2, 1, 0);
+
+    List<String> result =
+        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    assertEquals(4, result.size());
+    assertEquals("test/2019", result.get(0));
+    assertEquals("test/2020/01", result.get(1));
+    assertEquals("test/2020/02/01", result.get(2));
+    assertEquals("test/2020/02/02/00", result.get(3));
   }
 }
