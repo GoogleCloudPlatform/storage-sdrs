@@ -52,7 +52,6 @@ public class JobManager {
   private static int monitorInitialDelay = 0;
   private static int monitorFrequency = 30;
   private static TimeUnit monitorTimeUnit = TimeUnit.SECONDS;
-  private static int MONITOR_THREAD_SLEEP_IN_SECONDS = 30;
   private static final Logger logger = LoggerFactory.getLogger(JobManager.class);
 
   /**
@@ -71,7 +70,7 @@ public class JobManager {
             , configEx.getCause());
       }
 
-      monitor = new JobManagerMonitor(instance, MONITOR_THREAD_SLEEP_IN_SECONDS);
+      monitor = new JobManagerMonitor(instance);
       scheduler = JobScheduler.getInstance();
       scheduler.submitScheduledJob(monitor, monitorInitialDelay, monitorFrequency, monitorTimeUnit);
     }

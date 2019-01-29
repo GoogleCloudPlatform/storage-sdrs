@@ -44,7 +44,7 @@ public class JobManagerMonitorTest {
   @Before
   public void setUp() {
     instance = JobManager.getInstance();
-    objectToTest = new JobManagerMonitor(instance, 1);
+    objectToTest = new JobManagerMonitor(instance);
   }
 
   /**
