@@ -15,16 +15,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service;
+package com.google.gcs.sdrs.service.impl;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 /** A service to generate bucket name prefixes within a time interval. */
-public class PrefixGenerator {
+public class PrefixGeneratorImpl {
 
   /**
    * Generate a list of bucket name prefixes with hourly suffix
@@ -37,16 +39,19 @@ public class PrefixGenerator {
    *     within the interval between rangeStart and rangeEnd.
    */
   public List<String> generateHourlyPrefixes(String pattern, Instant rangeStart, Instant rangeEnd) {
+    if (rangeStart.isBefore(rangeEnd)) {
+      throw new IllegalArgumentException("rangeStart occurs before rangeEnd; try swapping them.");
+    }
     List<String> result = new LinkedList<>();
 
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd/hh");
-
+    DateTimeFormatter formatter =
+        DateTimeFormatter.ofPattern("yyyy/MM/dd/HH").withLocale(Locale.US).withZone(ZoneOffset.UTC);
 
     Instant nextPrefixTime = Instant.from(rangeStart);
-    while (nextPrefixTime.isBefore(rangeEnd)) {
+    while (nextPrefixTime.isAfter(rangeEnd) || nextPrefixTime.equals(rangeEnd)) {
       result.add(String.format("%s/%s", pattern, formatter.format(nextPrefixTime)));
 
-      nextPrefixTime.minus(1, ChronoUnit.HOURS);
+      nextPrefixTime = nextPrefixTime.minus(1, ChronoUnit.HOURS);
     }
 
     return result;
