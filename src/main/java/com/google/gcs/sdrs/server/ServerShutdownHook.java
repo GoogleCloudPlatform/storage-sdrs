@@ -58,12 +58,20 @@ public class ServerShutdownHook implements Runnable {
 
     logger.info("Shutting down Job Manager...");
     jobManager = JobManager.getInstance();
-    jobManager.shutDownJobManager(isImmediateShutdown);
+    if (isImmediateShutdown) {
+      jobManager.shutDownJobManagerNow();
+    } else {
+      jobManager.shutDownJobManager();
+    }
     logger.info("Job Manager shutdown complete.");
 
     logger.info("Shutting down Job Scheduler...");
     jobScheduler = JobScheduler.getInstance();
-    jobScheduler.shutdownScheduler(isImmediateShutdown);
+    if (isImmediateShutdown) {
+      jobScheduler.shutdownSchedulerNow();
+    } else {
+      jobScheduler.shutdownScheduler();
+    }
     logger.info("Job Scheduler shutdown complete.");
 
     logger.info("Shutting down web server...");

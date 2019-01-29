@@ -80,35 +80,35 @@ public class JobManager {
   }
 
   /**
-   * Gracefully shuts down the jobManager and associated threads
+   * Immediately shuts down the job manager and doesn't wait for threads to resolve
    */
-  public void shutDownJobManager(){
-    shutDownJobManager(false);
+  public void shutDownJobManagerNow(){
+    logger.info("Forcing shutdown now...");
+    executorService.shutdownNow();
+    scheduler.shutdownSchedulerNow();
+
+    // Ensure the job manager instance is destroyed
+    instance = null;
+
+    logger.info("JobManager shut down.");
   }
 
   /**
    * Gracefully shuts down the jobManager and associated threads
-   * @param isImmediateShutdown Optionally allows the service to immediately shutdown rather than waiting for thread completion
    */
-  public void shutDownJobManager(boolean isImmediateShutdown) {
+  public void shutDownJobManager() {
     logger.info("Shutting down JobManager.");
-    if (isImmediateShutdown) {
-      logger.info("Forcing shutdown now...");
-      executorService.shutdownNow();
-      scheduler.shutdownScheduler(true);
-    } else {
-      // waits nicely for executing tasks to finish, and won't spawn new ones
-      logger.info("Attempting graceful shutdown...");
-      executorService.shutdown();
-      try {
-        if (!executorService.awaitTermination(SLEEP_MINUTES, TimeUnit.MINUTES)) {
-          executorService.shutdownNow();
-        }
-      } catch (InterruptedException e) {
+    // waits nicely for executing tasks to finish, and won't spawn new ones
+    logger.info("Attempting graceful shutdown...");
+    executorService.shutdown();
+    try {
+      if (!executorService.awaitTermination(SLEEP_MINUTES, TimeUnit.MINUTES)) {
         executorService.shutdownNow();
       }
-      scheduler.shutdownScheduler();
+    } catch (InterruptedException e) {
+      executorService.shutdownNow();
     }
+    scheduler.shutdownScheduler();
 
     // Ensure the job manager instance is destroyed
     instance = null;

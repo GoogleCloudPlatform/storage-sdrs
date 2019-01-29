@@ -52,7 +52,7 @@ public class JobManagerMonitorTest {
    */
   @After
   public void tearDown(){
-    instance.shutDownJobManager(true);
+    instance.shutDownJobManagerNow();
   }
 
   /**

@@ -61,32 +61,32 @@ public class JobScheduler {
   }
 
   /**
-   * Gracefully shuts down the Job Scheduler
+   * Immediately shuts down the scheduler and doesn't wait for threads to resolve
    */
-  public void shutdownScheduler() {
-    shutdownScheduler(false);
+  public void shutdownSchedulerNow() {
+    logger.info("Forcing JobScheduler shutdown now...");
+    scheduledExecutor.shutdownNow();
+
+    // Ensure the job scheduler instance is destroyed
+    instance = null;
+
+    logger.info("JobScheduler shut down.");
   }
 
   /**
-   * Shuts down the job scheduler
-   * @param isImmediateShutdown Tells the scheduler to shut down immediately, if needed
+   * Waits for threads to complete and shuts down the job scheduler
    */
-  public void shutdownScheduler(boolean isImmediateShutdown) {
+  public void shutdownScheduler() {
     logger.info("Shutting down...");
-    if (isImmediateShutdown) {
-      logger.info("Forcing JobScheduler shutdown now...");
-      scheduledExecutor.shutdownNow();
-    } else {
-      // waits nicely for executing tasks to finish, and won't spawn new ones
-      logger.info("Attempting JobScheduler graceful shutdown...");
-      scheduledExecutor.shutdown();
-      try {
-        if (!scheduledExecutor.awaitTermination(SHUTDOWN_WAIT, SHUTDOWN_TIME_UNIT)) {
-          scheduledExecutor.shutdownNow();
-        }
-      } catch (InterruptedException e) {
+    // waits nicely for executing tasks to finish, and won't spawn new ones
+    logger.info("Attempting JobScheduler graceful shutdown...");
+    scheduledExecutor.shutdown();
+    try {
+      if (!scheduledExecutor.awaitTermination(SHUTDOWN_WAIT, SHUTDOWN_TIME_UNIT)) {
         scheduledExecutor.shutdownNow();
       }
+    } catch (InterruptedException e) {
+      scheduledExecutor.shutdownNow();
     }
 
     // Ensure the job scheduler instance is destroyed

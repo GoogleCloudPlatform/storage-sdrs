@@ -42,7 +42,7 @@ public class JobSchedulerTest {
    */
   @After
   public void tearDown(){
-    instance.shutdownScheduler();
+    instance.shutdownSchedulerNow();
   }
 
   /**
