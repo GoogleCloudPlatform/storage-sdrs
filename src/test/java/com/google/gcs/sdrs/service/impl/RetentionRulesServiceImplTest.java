@@ -18,6 +18,8 @@
 package com.google.gcs.sdrs.service.impl;
 
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.dao.impl.GenericDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
@@ -44,7 +46,7 @@ public class RetentionRulesServiceImplTest {
   @Test
   public void createRulePersistsDatasetEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleTypes.DATASET);
+    createRule.setType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDatasetName("dataset");
     createRule.setDataStorageName("gs://b/d");
@@ -57,7 +59,7 @@ public class RetentionRulesServiceImplTest {
     verify(service.dao).persist(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
-    assertEquals(RetentionRuleTypes.DATASET, input.getType());
+    assertEquals(RetentionRuleType.DATASET, input.getType());
     assertEquals(123, (int) input.getRetentionPeriodInDays());
     assertEquals(true, input.getIsActive());
     assertNotNull(input.getUpdatedAt());

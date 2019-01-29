@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
 
-  private static final Logger logger = LoggerFactory.getLogger(GenericDAO.class);
+  private static final Logger logger = LoggerFactory.getLogger(GenericDao.class);
   private final Class<T> type;
 
   private static StandardServiceRegistry registry;
@@ -77,7 +77,6 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
    * @see com.google.gcs.sdrs.dao.impl.DAO#findById(Id)
    */
   @Override
-  @SuppressWarnings("unchecked")
   public T findById(Id id) {
     openCurrentSession(); // no transaction per se for a find
     T result = getCurrentSession().get(type, id);

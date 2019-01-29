@@ -15,10 +15,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.cloudy.retention.controller.pojo.response;
+package com.google.gcs.sdrs.controller.pojo;
 
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 
+/** POJO Tracking JSON response fields/types for a retention rule */
 public class RetentionRuleResponse extends BaseHttpResponse {
   private Integer ruleId;
   private String datasetName;

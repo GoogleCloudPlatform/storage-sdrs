@@ -17,7 +17,9 @@
 
 package com.google.gcs.sdrs.service;
 
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 
 /** Service implementation for managing retention rules. */
 public interface RetentionRulesService {
@@ -29,4 +31,13 @@ public interface RetentionRulesService {
    * @return The identifier for the created rule
    */
   Integer createRetentionRule(RetentionRuleCreateRequest rule);
+
+  /**
+   * Updates a retention rule and returns the rule with updates
+   *
+   * @param ruleId the identifier for the rule to update
+   * @param request the update request
+   * @return the updated retention rule
+   */
+  RetentionRuleResponse updateRetentionRule(Integer ruleId, RetentionRuleUpdateRequest request);
 }
