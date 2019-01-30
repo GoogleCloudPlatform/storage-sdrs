@@ -29,11 +29,11 @@ import java.io.Serializable;
  */
 public interface Dao<T, Id extends Serializable> {
 
-  void persist(T entity);
+  void save(T entity);
 
-  void update(T object);
+  void update(T entity);
 
   T findById(Id id);
 
-  void delete(T object);
+  void delete(T entity);
 }
