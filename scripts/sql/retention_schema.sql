@@ -1,25 +1,21 @@
-# ************************************************************
-# Sequel Pro SQL dump
-# Version 4541
-#
-# http://www.sequelpro.com/
-# https://github.com/sequelpro/sequelpro
-#
-# Host: 35.236.103.221 (MySQL 5.7.14-google-log)
-# Database: retention_schema
-# Generation Time: 2018-09-20 22:46:21 +0000
-# ************************************************************
+-- Schema Script
+CREATE DATABASE IF NOT EXISTS sdrs;
+USE sdrs;
 
--- Table Scripts
--- ----------------------------------------------------------
-
+-- Drop Tables
+DROP TABLE IF EXISTS retention_execution;
+DROP TABLE IF EXISTS retention_job_validation;
+DROP TABLE IF EXISTS retention_job;
+DROP TABLE IF EXISTS retention_rule_history;
 DROP TABLE IF EXISTS retention_rule;
 
+-- Table Create Scripts
+-- ----------------------------------------------------------
 CREATE TABLE retention_rule (
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `dataset_name` varchar(256) NOT NULL,
+  `dataset_name` varchar(256) NULL,
   `retention_period_in_days` int UNSIGNED NOT NULL,
-  `data_storage_name` varchar(256) NOT NULL,
+  `data_storage_name` varchar(256) NULL,
   `project_id` varchar(256) NOT NULL,
   `type` enum('global', 'dataset') NOT NULL,
   `version` int UNSIGNED NOT NULL DEFAULT 0,
@@ -31,14 +27,12 @@ CREATE TABLE retention_rule (
   INDEX `retention_rule_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS retention_rule_history;
-
 CREATE TABLE retention_rule_history (
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `retention_rule_id` int UNSIGNED NOT NULL,
-  `dataset_name` varchar(256) NOT NULL,
+  `dataset_name` varchar(256) NULL,
   `retention_period_in_days` int UNSIGNED NOT NULL,
-  `data_storage_name` varchar(256) NOT NULL,
+  `data_storage_name` varchar(256) NULL,
   `project_id` varchar(256) NOT NULL,
   `type` enum('global', 'dataset') NOT NULL,
   `version` int UNSIGNED NOT NULL DEFAULT 0,
@@ -48,8 +42,6 @@ CREATE TABLE retention_rule_history (
 
   FOREIGN KEY (retention_rule_id) REFERENCES retention_rule(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS retention_job;
 
 CREATE TABLE retention_job (
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -64,8 +56,6 @@ CREATE TABLE retention_job (
   INDEX `retention_job_name` (`name`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS retention_job_validation;
-
 CREATE TABLE retention_job_validation (
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `retention_job_id` int UNSIGNED NOT NULL,
@@ -76,8 +66,6 @@ CREATE TABLE retention_job_validation (
   FOREIGN KEY (retention_job_id) REFERENCES retention_job(id),
   INDEX `retention_job_validation_status` (`status`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS retention_execution;
 
 CREATE TABLE retention_execution (
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
