@@ -18,6 +18,10 @@
 		<property name="show_sql">true</property>
 		<property name="hibernate.current_session_context_class">thread</property>
 		<property name="hibernate.id.new_generator_mappings">false</property>
+		<!-- mappings for annotated classes -->
 		<mapping class="com.google.gcs.sdrs.dao.model.RetentionRule" />
+		<mapping class="com.google.gcs.sdrs.dao.model.RetentionJob" />
+		<mapping class="com.google.gcs.sdrs.dao.model.RetentionJobValidation" />
+		<mapping class="com.google.gcs.sdrs.dao.model.RetentionExecution" />
 	</session-factory>
 </hibernate-configuration>
