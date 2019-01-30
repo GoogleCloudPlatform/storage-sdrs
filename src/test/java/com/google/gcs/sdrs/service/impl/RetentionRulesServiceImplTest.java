@@ -53,7 +53,7 @@ public class RetentionRulesServiceImplTest {
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).persist(captor.capture());
+    verify(service.dao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
     assertEquals(RetentionRuleTypes.DATASET, input.getType());
@@ -77,7 +77,7 @@ public class RetentionRulesServiceImplTest {
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).persist(captor.capture());
+    verify(service.dao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
     assertEquals(RetentionRuleTypes.GLOBAL, input.getType());

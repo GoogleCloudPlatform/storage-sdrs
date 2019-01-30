@@ -34,7 +34,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   @Override()
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
-    return dao.persist(entity);
+    return dao.save(entity);
   }
 
   private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {

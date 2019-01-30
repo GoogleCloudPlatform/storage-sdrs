@@ -30,7 +30,7 @@ import java.io.Serializable;
  */
 public interface Dao<T, Id extends Serializable> {
 
-  Id persist(T entity);
+  Id save(T entity);
 
   void update(T object);
 

@@ -51,11 +51,11 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
   }
 
   /* (non-Javadoc)
-   * @see com.google.gcs.sdrs.dao.impl.DAO#persist(T)
+   * @see com.google.gcs.sdrs.dao.impl.DAO#save(T)
    */
   @Override
   @SuppressWarnings("unchecked")
-  public Id persist(final T entity) {
+  public Id save(final T entity) {
     openCurrentSessionWithTransaction();
     Id result = (Id) getCurrentSession().save(entity);
     closeCurrentSessionwithTransaction();
