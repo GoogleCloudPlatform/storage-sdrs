@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -32,16 +32,16 @@ public class PrefixGeneratorImpl {
    * Generate a list of bucket name prefixes within a time interval.
    *
    * @param pattern indicating the base portion of the prefix.
-   * @param upperBound indicating the time of the most recent prefix to generate (exclusive).
-   * @param lowerBound indicating the time of the least recent prefix to generate. This value must
+   * @param mostRecent indicating the time of the most recent prefix to generate (exclusive).
+   * @param leastRecent indicating the time of the least recent prefix to generate. This value must
    *     be earlier than {@code upperBound}. There is no guarantee that files older than this value
    *     will not be deleted.
    * @return a {@link List} of {@link String}s of the form `pattern/period` for every time segment
    *     within the interval between upperBound and lowerBound.
    */
   public static List<String> generateTimePrefixes(
-      String pattern, LocalDateTime upperBound, LocalDateTime lowerBound) {
-    if (upperBound.isBefore(lowerBound)) {
+      String pattern, ZonedDateTime mostRecent, ZonedDateTime leastRecent) {
+    if (mostRecent.isBefore(leastRecent)) {
       throw new IllegalArgumentException("upperBound occurs before lowerBound; try swapping them.");
     }
     List<String> result = new LinkedList<>();
@@ -52,14 +52,14 @@ public class PrefixGeneratorImpl {
     formatters.put(ChronoUnit.DAYS, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
     formatters.put(ChronoUnit.HOURS, DateTimeFormatter.ofPattern("yyyy/MM/dd/HH"));
 
-    LocalDateTime currentTime = LocalDateTime.from(lowerBound);
-    while (currentTime.isBefore(upperBound)) {
+    ZonedDateTime currentTime = ZonedDateTime.from(leastRecent);
+    while (currentTime.isBefore(mostRecent)) {
       ChronoUnit increment;
-      if (!upperBound.isBefore(currentTime.plus(1, ChronoUnit.YEARS))) {
+      if (!mostRecent.isBefore(currentTime.plus(1, ChronoUnit.YEARS))) {
         increment = ChronoUnit.YEARS;
-      } else if (!upperBound.isBefore(currentTime.plus(1, ChronoUnit.MONTHS))) {
+      } else if (!mostRecent.isBefore(currentTime.plus(1, ChronoUnit.MONTHS))) {
         increment = ChronoUnit.MONTHS;
-      } else if (!upperBound.isBefore(currentTime.plus(1, ChronoUnit.DAYS))) {
+      } else if (!mostRecent.isBefore(currentTime.plus(1, ChronoUnit.DAYS))) {
         increment = ChronoUnit.DAYS;
       } else {
         increment = ChronoUnit.HOURS;

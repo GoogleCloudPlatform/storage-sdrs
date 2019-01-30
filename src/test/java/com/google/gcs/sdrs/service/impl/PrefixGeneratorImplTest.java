@@ -17,7 +17,8 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,8 +34,8 @@ public class PrefixGeneratorImplTest {
   @Test
   public void patternPrecedesPrefix() {
     String pattern = "pattern/example";
-    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 1, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC);
 
     List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
@@ -44,8 +45,8 @@ public class PrefixGeneratorImplTest {
   @Test
   public void hourlyGeneratorWithEmptyRangeIs1Prefix() {
     String pattern = "test";
-    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 1, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC);
 
     List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
@@ -55,8 +56,8 @@ public class PrefixGeneratorImplTest {
   @Test
   public void hourlyGeneratorPrefixFormatMatchesExpectedOutput() {
     String pattern = "test";
-    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 1, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC);
 
     List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
@@ -67,8 +68,8 @@ public class PrefixGeneratorImplTest {
   @Test
   public void dailyGeneratorPrefixFormatMatchesExpectedOutput() {
     String pattern = "test";
-    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2019, 1, 2, 0, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC);
 
     List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
@@ -79,11 +80,10 @@ public class PrefixGeneratorImplTest {
   @Test
   public void monthlyGeneratorPrefixFormatMatchesExpectedOutput() {
     String pattern = "test";
-    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2019, 2, 1, 0, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 2, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result =
-        PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
     assertEquals("test/2019/01", result.get(0));
@@ -92,8 +92,8 @@ public class PrefixGeneratorImplTest {
   @Test
   public void yearlyGeneratorPrefixFormatMatchesExpectedOutput() {
     String pattern = "test";
-    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2020, 1, 1, 0, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
     List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
@@ -104,8 +104,8 @@ public class PrefixGeneratorImplTest {
   @Test
   public void prefixGeneratorFluctuatesInterval() {
     String pattern = "test";
-    LocalDateTime time1 = LocalDateTime.of(2019, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2020, 2, 2, 1, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2020, 2, 2, 1, 0, 0, 0, ZoneOffset.UTC);
 
     List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
@@ -119,8 +119,8 @@ public class PrefixGeneratorImplTest {
   @Test
   public void generatesMultiplePrefixesOfVariousIntervals() {
     String pattern = "test";
-    LocalDateTime time1 = LocalDateTime.of(2018, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2020, 3, 3, 2, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2018, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2020, 3, 3, 2, 0, 0, 0, ZoneOffset.UTC);
 
     List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
 
@@ -136,10 +136,19 @@ public class PrefixGeneratorImplTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
+  public void respectsTimeZones() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.ofHours(2));
+
+    PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
   public void throwsWhenTimesAreOutOfOrder() {
     String pattern = "test";
-    LocalDateTime time1 = LocalDateTime.of(2020, 1, 1, 0, 0);
-    LocalDateTime time2 = LocalDateTime.of(2019, 1, 1, 0, 0);
+    ZonedDateTime time1 = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
     PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
   }
