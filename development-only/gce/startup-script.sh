@@ -51,7 +51,7 @@ service google-fluentd restart &
 
 
 #start server via embedded FAT jar
-java -jar restEngine-jar-with-dependencies.jar ${HOSTNAME}
+java -jar storage-sdrs-jar-with-dependencies.jar ${HOSTNAME}
 echo "Startup Complete"
 # [END script]
 

@@ -21,7 +21,7 @@ gcloud beta auth application-default login
 1) from within the top directory ../rest-engine at the prompt type: "mvn clean install package"
    that will package a fat jar within the target directory
 
-2) Launch the jar by typing at the prompt: "java -jar ./target/restEngine-jar-with-dependencies.jar localhost"
+2) Launch the jar by typing at the prompt: "java -jar ./target/storage-sdrs-jar-with-dependencies.jar localhost"
 
 3) Verify the jar's deployment by going to a web browser and trying these paths (host relative to box local vs cloud's ip):
 http://localhost:8080/myresource
