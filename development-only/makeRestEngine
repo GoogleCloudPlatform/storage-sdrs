@@ -36,6 +36,7 @@ TARGET_UTILIZATION=0.6
 
 SERVICE=frontend-web-service
 JAR=storage-sdrs-jar-with-dependencies.jar
+
 # [END useful]
 
 function print_usage() {

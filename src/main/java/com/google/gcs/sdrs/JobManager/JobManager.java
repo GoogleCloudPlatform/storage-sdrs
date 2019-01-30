@@ -31,13 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gcs.sdrs.worker.BaseWorker;
-import com.google.gcs.sdrs.worker.WorkerLog;
+import com.google.gcs.sdrs.worker.WorkerResult;
 
 /**
  * JobManager for creating and managing worker threads.
  */
 public class JobManager {
-  CompletionService<WorkerLog> completionService;
+  CompletionService<WorkerResult> completionService;
   AtomicInteger activeWorkerCount = new AtomicInteger(0);
 
   private ExecutorService executorService;
@@ -114,13 +114,13 @@ public class JobManager {
 
   /**
    * Submits a callable worker for execution
-   * @param job A callable that returns a WorkerLog record.
+   * @param job A callable that returns a WorkerResult record.
    */
   public void submitJob(BaseWorker job) {
     completionService.submit(job);
     activeWorkerCount.incrementAndGet();
     logger.debug("Active Workers after submission: " + activeWorkerCount.get());
-    logger.info("Job submitted: " + job.getWorkerLog().toString());
+    logger.info("Job submitted: " + job.getWorkerResult().toString());
   }
 
   private JobManager () throws ConfigurationException{
