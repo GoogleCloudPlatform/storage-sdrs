@@ -75,10 +75,12 @@ public class Main {
     HttpServer server = GrizzlyHttpServerFactory.createHttpServer(baseUri, new AppResourceConfig());
 
     try {
-      HierarchicalConfiguration xmlConfig = new Configurations().xml("default-applicationConfig.xml");
+      HierarchicalConfiguration xmlConfig = new Configurations().xml("applicationConfig.xml");
       long shutdownGracePeriodInSeconds = xmlConfig.getLong("serverConfig.shutdownGracePeriodInSeconds");
 
-      Runtime.getRuntime().addShutdownHook(new Thread(new ServerShutdownHook(server, shutdownGracePeriodInSeconds), "shutdownHook"));
+      Runtime.getRuntime().addShutdownHook(new Thread(
+          new ServerShutdownHook(server, shutdownGracePeriodInSeconds, false),
+          "shutdownHook"));
     } catch (ConfigurationException ex) {
       logger.error("Unable to load settings from configuration file on server start: ", ex);
     }

@@ -44,9 +44,7 @@ public class JobManagerMonitorTest {
   @Before
   public void setUp() {
     instance = JobManager.getInstance();
-    // Kill the existing thread so we can isolate this test
-    stopMonitorThread();
-    objectToTest = new JobManagerMonitor(instance, 1);
+    objectToTest = new JobManagerMonitor(instance);
   }
 
   /**
@@ -54,7 +52,7 @@ public class JobManagerMonitorTest {
    */
   @After
   public void tearDown(){
-    instance.shutDownJobManager(true);
+    instance.shutDownJobManagerNow();
   }
 
   /**
@@ -71,20 +69,6 @@ public class JobManagerMonitorTest {
       assertEquals(instance.activeWorkerCount.get(), activeWorkers);
     } catch (InterruptedException ex){
       fail();
-    }
-  }
-
-  /**
-   * Stops the monitor thread
-   */
-  private void stopMonitorThread(){
-
-    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-
-    for(Thread thread : threadSet) {
-      if(thread.getName().equals("monitoringThread")){
-        thread.interrupt();
-      }
     }
   }
 }

@@ -16,31 +16,25 @@
  *
  */
 
-package com.google.gcs.sdrs.JobManager;
+package com.google.gcs.sdrs.JobScheduler;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
-import com.google.gcs.sdrs.worker.BaseWorker;
-import com.google.gcs.sdrs.worker.DemoWorker;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-/**
- * Test class for JobManager
- */
-public class JobManagerTest {
-  private JobManager instance;
+public class JobSchedulerTest {
+
+  private JobScheduler instance;
 
   /**
    * Set up steps before each test
    */
   @Before
   public void setUp(){
-    instance = JobManager.getInstance();
+    instance = JobScheduler.getInstance();
   }
 
   /**
@@ -48,7 +42,7 @@ public class JobManagerTest {
    */
   @After
   public void tearDown(){
-    instance.shutDownJobManagerNow();
+    instance.shutdownSchedulerNow();
   }
 
   /**
@@ -58,8 +52,6 @@ public class JobManagerTest {
   public void getInstanceWhenInstanceDoesNotExist() {
     // Instance created in test setup
     assertNotNull(instance);
-    assertNotNull(instance.completionService);
-    assertEquals(instance.activeWorkerCount.get(), 0);
   }
 
   /**
@@ -68,19 +60,7 @@ public class JobManagerTest {
   @Test
   public void getInstanceWhenInstanceAlreadyExists() {
     assertNotNull(instance);
-    JobManager secondInstance = JobManager.getInstance();
+    JobScheduler secondInstance = JobScheduler.getInstance();
     assertEquals(instance, secondInstance);
-  }
-
-  /**
-   * Test that the worker count is incremented when a job is submitted
-   */
-  @Test
-  public void testSubmitJob() {
-    assertNotNull(instance);
-    BaseWorker worker = new DemoWorker();
-    int currentActiveWorkers = instance.activeWorkerCount.get();
-    instance.submitJob(worker);
-    assertEquals(currentActiveWorkers + 1, instance.activeWorkerCount.get());
   }
 }
