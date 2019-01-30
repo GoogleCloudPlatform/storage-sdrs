@@ -32,10 +32,10 @@ public interface Dao<T, Id extends Serializable> {
 
   Id save(T entity);
 
-  void update(T object);
+  void update(T entity);
 
   T findById(Id id);
 
-  void delete(T object);
+  void delete(T entity);
 
 }
