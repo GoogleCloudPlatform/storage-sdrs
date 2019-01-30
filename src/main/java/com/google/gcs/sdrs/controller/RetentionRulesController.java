@@ -98,11 +98,11 @@ public class RetentionRulesController extends BaseController {
           if (request.getDataStorageName() == null) {
             validation.addValidationError("dataStorageName must be provided if type is DATASET");
           } else {
+            // DataStorageName should match gs://<bucket_name>/<dataset_name>
             if (!request.getDataStorageName().startsWith(STORAGE_PREFIX)) {
               validation.addValidationError(
                   String.format("dataStorageName must start with '%s'", STORAGE_PREFIX));
             } else {
-              // DataStorageName should match gs://<bucket_name>/<dataset_name>
               String bucketAndDataset =
                   request.getDataStorageName().substring(STORAGE_PREFIX.length());
               String[] pathSegments = bucketAndDataset.split("/");

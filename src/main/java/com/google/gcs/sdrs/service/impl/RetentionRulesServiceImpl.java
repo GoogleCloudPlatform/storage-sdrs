@@ -23,7 +23,6 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import com.google.gcs.sdrs.service.RetentionRulesService;
-import java.sql.Timestamp;
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
@@ -52,9 +51,6 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     }
 
     // Generate metadata
-    Timestamp now = new Timestamp(System.currentTimeMillis());
-    entity.setCreatedAt(now);
-    entity.setUpdatedAt(now);
     entity.setIsActive(true);
     entity.setVersion(1);
 
