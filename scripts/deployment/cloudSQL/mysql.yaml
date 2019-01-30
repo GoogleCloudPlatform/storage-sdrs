@@ -1,19 +1,18 @@
 imports:
-  - path: cloudsql.jinja
+  - path: mysql.jinja
 resources:
-  - name: twitter
-    type: cloudsql.jinja
+  - name: sdrs
+    type: mysql.jinja
     properties:
       cloudsql:
         tier: db-n1-standard-1
         dataDiskSizeGb: 150
-        
+        privateNetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+
       database:
-        name: google
+        name: sdrs
       dbUser:
         user: root
-        password: test123
+        password:
       failover: true
       readReplicas: 1
-        
-      

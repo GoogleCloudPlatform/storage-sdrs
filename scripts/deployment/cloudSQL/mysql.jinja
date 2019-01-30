@@ -1,4 +1,15 @@
-
+{#
+Copyright 2019 Google Inc. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
 
 {% set ID = env['deployment'] + '-' + env['name'] %}
 
@@ -11,7 +22,7 @@
   {% endfor %}
 {%- endmacro %}
 
-{% set dbDeps = dbDependencyList(properties['failover'], 
+{% set dbDeps = dbDependencyList(properties['failover'],
   properties['readReplicas']) %}
 
 resources:
@@ -40,7 +51,7 @@ resources:
         startTime: {{ properties['cloudsql']['backupStartTime'] }}
       ipConfiguration:
         ipv4Enabled: false
-        privateNetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+        privateNetwork: {{ properties['cloudsql']['privateNetwork'] }}
 
 {% if properties['failover'] %}
 - name: {{ ID }}-failover
@@ -57,8 +68,8 @@ resources:
       tier: {{ properties['cloudsql']['tier'] }}
       ipConfiguration:
         ipv4Enabled: false
-        privateNetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-        
+        privateNetwork: {{ properties['cloudsql']['privateNetwork'] }}
+
 {% endif %}
 
 {% for i in range(properties['readReplicas']) %}
@@ -76,7 +87,7 @@ resources:
       tier: {{ properties['cloudsql']['tier'] }}
       ipConfiguration:
         ipv4Enabled: false
-        privateNetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+        privateNetwork: {{ properties['cloudsql']['privateNetwork'] }}
   {% if properties['failover'] %}
   metadata:
     dependsOn:
@@ -92,7 +103,7 @@ resources:
     instance: $(ref.{{ ID }}-master.name)
     charset: {{ properties['database']['charset'] }}
   metadata:
-    dependsOn: 
+    dependsOn:
       {{ dbDeps }}
 {% endif %}
 
@@ -109,7 +120,7 @@ resources:
     {% if properties['database'] %}
       - {{ ID }}-db
     {% else %}
-      {{ dbDeps }}  
+      {{ dbDeps }}
     {% endif %}
 {% endif %}
 
@@ -118,7 +129,7 @@ outputs:
     value: $(ref.{{ ID }}-master.ipAddresses[0].ipAddress)
   - name: {{ ID }}-master-connectionName
     value: $(ref.{{ ID }}-master.connectionName)
-  {% if properties['failover'] %} 
+  {% if properties['failover'] %}
   - name: {{ ID }}-failover-ip
     value: $(ref.{{ ID }}-failover.ipAddresses[0].ipAddress)
   - name: {{ ID }}-failover-connectionName
