@@ -55,7 +55,6 @@ properties:
       privateNetwork:
         type: string
         description: The resource link for the VPC network from which the Cloud SQL instance is accessible for private IP
-        default: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
 
   databaseFlags:
     type: array
