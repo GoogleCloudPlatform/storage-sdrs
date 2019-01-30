@@ -2,9 +2,8 @@
 
 The deployment creates a MYSQL_5_7 master instance with a failover in different region, a read replica and root user.
 
-Deployment
 
-## Update mysql.yaml accordingly. ##
+# Update mysql.yaml accordingly. #
 
 ### Instructions on how to use the mysql.yaml (configuration file) ###
 
@@ -13,7 +12,7 @@ Deployment
 3. IMPORTANT: After the successful launch of deployment **remove the password from the mysql.yaml file**
 4. Project name and VPC name in url of property privateNetwork in mysql.yaml needs to be provided.
 
-## Usage: ##
+### Usage: ###
 
 mysql.yaml, mysql.jinja and mysql.jinja.schema needs to be in the same directory.
 
