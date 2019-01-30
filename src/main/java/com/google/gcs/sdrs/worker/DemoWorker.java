@@ -18,7 +18,7 @@
 
 package com.google.gcs.sdrs.worker;
 
-import com.google.gcs.sdrs.worker.BaseWorker;
-
+// TODO Remove this class and replace usages after a
+//  concrete worker implementation is written
 public class DemoWorker extends BaseWorker {
 }
