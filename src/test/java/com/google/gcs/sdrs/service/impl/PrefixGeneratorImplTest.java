@@ -135,6 +135,19 @@ public class PrefixGeneratorImplTest {
     assertEquals("test/2020/03/03/01", result.get(7));
   }
 
+  @Test
+  public void tailsAreNotPreserved() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2018, 3, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2020, 3, 3, 2, 0, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    // Not all of 2018 is between the two dates, but all of 2018 is to be deleted because there is
+    // no requirement to preserve old values.
+    assertEquals("test/2018", result.get(0));
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void respectsTimeZones() {
     String pattern = "test";
@@ -142,6 +155,18 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.ofHours(2));
 
     PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+  }
+
+  @Test()
+  public void outputsInUtc() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.ofHours(-12));
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.ofHours(-12));
+
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    assertEquals(1, result.size());
+    assertEquals("test/2019/01/01/12", result.get(0));
   }
 
   @Test(expected = IllegalArgumentException.class)

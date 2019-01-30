@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -41,6 +42,7 @@ public class PrefixGeneratorImpl {
    */
   public static List<String> generateTimePrefixes(
       String pattern, ZonedDateTime mostRecent, ZonedDateTime leastRecent) {
+
     if (mostRecent.isBefore(leastRecent)) {
       throw new IllegalArgumentException("upperBound occurs before lowerBound; try swapping them.");
     }
@@ -64,7 +66,9 @@ public class PrefixGeneratorImpl {
       } else {
         increment = ChronoUnit.HOURS;
       }
-      result.add(String.format("%s/%s", pattern, formatters.get(increment).format(currentTime)));
+
+      DateTimeFormatter formatter = formatters.get(increment).withZone(ZoneOffset.UTC);
+      result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
       currentTime = currentTime.plus(1, increment);
     }
 
