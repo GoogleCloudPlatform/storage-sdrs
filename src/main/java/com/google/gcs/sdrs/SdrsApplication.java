@@ -114,4 +114,11 @@ public class SdrsApplication {
   private static void registerPubSub() {
     // TODO Create pubsub connection once pub sub utility is complete
   }
+
+  private static void createServiceInstances(){
+    /*
+      TODO Wire up any injection of services once they're needed.
+      May be unnecessary if we add a DI framework
+    */   
+  }
 }
