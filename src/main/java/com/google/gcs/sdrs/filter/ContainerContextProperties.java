@@ -13,21 +13,22 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.controller.pojo;
+package com.google.gcs.sdrs.filter;
 
-/** POJO Tracking JSON response fields/types when creating a retention rule */
-public class RetentionRuleCreateResponse extends BaseHttpResponse {
+/** Enumerated custom properties included as part of the container context */
+public enum ContainerContextProperties {
+  CORRELATION_UUID("correlationUuid");
 
-  private int ruleId;
+  private final String value;
 
-  public int getRuleId() {
-    return ruleId;
+  ContainerContextProperties(String value) {
+    this.value = value;
   }
 
-  public void setRuleId(int ruleId) {
-    this.ruleId = ruleId;
+  @Override
+  public String toString() {
+    return this.value;
   }
 }

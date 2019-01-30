@@ -13,27 +13,26 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.controller.mapper.exception;
+package com.google.gcs.sdrs.filter;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.ext.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-/** Handles general Jackson JsonParseExceptions with custom error messages. */
+import static com.google.gcs.sdrs.filter.ContainerContextProperties.CORRELATION_UUID;
+
+/** Includes the correlation-uuid in the response headers. */
 @Provider
-@Produces(MediaType.APPLICATION_JSON)
-public class JsonParseExceptionMapper extends JacksonExceptionMapper<JsonParseException> {
+public class CorrelationResponseFilter implements ContainerResponseFilter {
 
-  private static final Logger logger = LoggerFactory.getLogger(JsonParseExceptionMapper.class);
-
+  /** Adds the correlation-uuid to the ResponseContext headers object */
   @Override
-  protected String createExceptionResponseMessage(JsonParseException exception) {
-    return "Unable to read JSON input";
+  public void filter(
+      ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
+    String correlationUuid = (String) requestContext.getProperty(CORRELATION_UUID.toString());
+    responseContext.getHeaders().add("correlation-uuid", correlationUuid);
   }
 }
