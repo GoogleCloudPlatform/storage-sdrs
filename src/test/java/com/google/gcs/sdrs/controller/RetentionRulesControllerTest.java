@@ -18,20 +18,20 @@
 
 package com.google.gcs.sdrs.controller;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.google.gcs.sdrs.controller.HttpException;
-import com.google.gcs.sdrs.controller.RetentionRulesController;
-import com.google.gcs.sdrs.controller.ValidationException;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
-
 import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 public class RetentionRulesControllerTest {
 
@@ -58,8 +58,7 @@ public class RetentionRulesControllerTest {
   @Test
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException();
-    Response response =
-        controller.generateExceptionResponse(testException, "requestUuid");
+    Response response = controller.generateExceptionResponse(testException, "requestUuid");
     assertEquals(response.getStatus(), 400);
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: ");
   }
@@ -196,5 +195,34 @@ public class RetentionRulesControllerTest {
     rule.setProjectId("projectId");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), 200);
+  }
+
+  @Test
+  public void updateRuleWithValidFieldsSucceeds() {
+    RetentionRuleUpdateRequest rule = new RetentionRuleUpdateRequest();
+    rule.setRetentionPeriod(123);
+
+    Response response = controller.update(1, rule);
+
+    assertEquals(response.getStatus(), 200);
+    RetentionRuleUpdateResponse body = (RetentionRuleUpdateResponse) response.getEntity();
+    assertEquals(body.getDatasetName(), "dataset");
+    assertEquals(body.getDataStorageName(), "gs://bucket/dataset");
+    assertEquals(body.getProjectId(), "projectId");
+    assertEquals((int) body.getRetentionPeriod(), 123);
+    assertEquals((int) body.getRuleId(), 1);
+    assertEquals(body.getType(), RetentionRuleTypes.DATASET);
+  }
+
+  @Test
+  public void updateRuleWithInvalidRetentionRuleFails() {
+    RetentionRuleUpdateRequest rule = new RetentionRuleUpdateRequest();
+    rule.setRetentionPeriod(-1);
+
+    Response response = controller.update(1, rule);
+
+    assertEquals(response.getStatus(), 400);
+    ErrorResponse body = (ErrorResponse) response.getEntity();
+    assertTrue(body.getMessage().contains("retentionPeriod"));
   }
 }

@@ -18,16 +18,16 @@
 
 package com.google.gcs.sdrs.controller.mapper.exception;
 
+import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import java.util.UUID;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-
 /**
  * Base class for ExceptionMappers for JSON deserialization errors.
+ *
  * @param <T> The specific Jackson Exception type
  */
 public abstract class JacksonExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
@@ -39,12 +39,14 @@ public abstract class JacksonExceptionMapper<T extends Throwable> implements Exc
     logger.debug(exception.getMessage());
     ErrorResponse errorResponse = new ErrorResponse();
     errorResponse.setMessage(createExceptionResponseMessage(exception));
+    errorResponse.setRequestUuid(UUID.randomUUID().toString());
 
     return Response.status(400).entity(errorResponse).build();
   }
 
   /**
    * Creates a user-facing message from an exception
+   *
    * @param exception details on the current exception
    * @return A user friendly error message.
    */

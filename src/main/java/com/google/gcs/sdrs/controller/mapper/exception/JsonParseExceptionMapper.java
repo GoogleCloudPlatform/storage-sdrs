@@ -19,16 +19,13 @@
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Handles general Jackson JsonParseExceptions with custom error messages.
- */
+/** Handles general Jackson JsonParseExceptions with custom error messages. */
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class JsonParseExceptionMapper extends JacksonExceptionMapper<JsonParseException> {

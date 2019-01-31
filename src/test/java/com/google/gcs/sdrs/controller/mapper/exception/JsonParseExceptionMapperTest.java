@@ -13,19 +13,15 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.google.gcs.sdrs.controller.mapper.exception.JsonParseExceptionMapper;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
-
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -48,6 +44,7 @@ public class JsonParseExceptionMapperTest {
 
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("Unable"));
+    assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }
 
   @Test
