@@ -17,11 +17,13 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import java.sql.Timestamp;
 
@@ -37,6 +39,20 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     return dao.persist(entity);
   }
 
+  @Override
+  public RetentionRuleResponse updateRetentionRule(
+      Integer ruleId, RetentionRuleUpdateRequest request) {
+
+    RetentionRule entity = dao.findById(ruleId);
+
+    entity.setVersion(entity.getVersion() + 1);
+    entity.setRetentionPeriodInDays(request.getRetentionPeriod());
+
+    dao.update(entity);
+
+    return mapRuleToResponse(entity);
+  }
+
   private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {
     RetentionRule entity = new RetentionRule();
 
@@ -47,7 +63,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setRetentionPeriodInDays(pojo.getRetentionPeriod());
     entity.setType(pojo.getType());
 
-    if (entity.getType() == RetentionRuleTypes.GLOBAL) {
+    if (entity.getType() == RetentionRuleType.GLOBAL) {
       entity.setProjectId(DEFAULT_PROJECT_ID);
     }
 
@@ -62,5 +78,18 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setUser("user");
 
     return entity;
+  }
+
+  private RetentionRuleResponse mapRuleToResponse(RetentionRule rule) {
+    RetentionRuleResponse response = new RetentionRuleResponse();
+
+    response.setDatasetName(rule.getDatasetName());
+    response.setDataStorageName(rule.getDataStorageName());
+    response.setProjectId(rule.getProjectId());
+    response.setRetentionPeriod(rule.getRetentionPeriodInDays());
+    response.setRuleId(rule.getId());
+    response.setType(rule.getType());
+
+    return response;
   }
 }

@@ -13,28 +13,23 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.enums;
+package com.google.gcs.sdrs.controller.pojo;
 
 import java.io.Serializable;
 
-/**
- * Supported types for Retention Rules
- */
-public enum RetentionRuleTypes implements Serializable {
-  GLOBAL("GLOBAL"),
-  DATASET("DATASET");
+/** POJO Tracking JSON input fields/types for updating a retention rule */
+public class RetentionRuleUpdateRequest implements Serializable {
+  private static final long serialVersionUID = -8538049672164651286L;
 
-  private final String value;
+  private Integer retentionPeriod;
 
-  RetentionRuleTypes(final String value) {
-    this.value = value;
+  public Integer getRetentionPeriod() {
+    return retentionPeriod;
   }
 
-  @Override
-  public String toString() {
-    return this.value;
+  public void setRetentionPeriod(Integer retentionPeriod) {
+    this.retentionPeriod = retentionPeriod;
   }
 }

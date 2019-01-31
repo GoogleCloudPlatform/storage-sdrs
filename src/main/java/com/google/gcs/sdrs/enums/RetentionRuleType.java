@@ -16,18 +16,32 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.pojo;
+package com.google.gcs.sdrs.enums;
 
-/** POJO Tracking JSON response fields/types when creating a retention rule */
-public class RetentionRuleCreateResponse extends BaseHttpResponse {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 
-  private int ruleId;
+/**
+ * Supported types for Retention Rules
+ *
+ * JsonProperty values indicate the supported JSON input string.
+ * Enum string values indicate how this value is serialized to the database.
+ */
+public enum RetentionRuleType implements Serializable {
+  @JsonProperty("GLOBAL")
+  GLOBAL("global"),
 
-  public int getRuleId() {
-    return ruleId;
+  @JsonProperty("DATASET")
+  DATASET("dataset");
+
+  private final String value;
+
+  RetentionRuleType(final String value) {
+    this.value = value;
   }
 
-  public void setRuleId(int ruleId) {
-    this.ruleId = ruleId;
+  @Override
+  public String toString() {
+    return this.value;
   }
 }

@@ -16,18 +16,24 @@
  *
  */
 
-package com.google.gcs.sdrs.controller.pojo;
+package com.google.gcs.sdrs.runners;
 
-/** POJO Tracking JSON response fields/types when creating a retention rule */
-public class RetentionRuleCreateResponse extends BaseHttpResponse {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-  private int ruleId;
+/**
+ * Calls the Rule execution endpoint when run
+ */
+public class RuleExecutionRunner implements Runnable {
 
-  public int getRuleId() {
-    return ruleId;
-  }
+  private static final Logger logger = LoggerFactory.getLogger(RuleExecutionRunner.class);
 
-  public void setRuleId(int ruleId) {
-    this.ruleId = ruleId;
+  /**
+   * Calls the SDRS rule execution endpoint
+   */
+  public void run(){
+    logger.info("Beginning rule execution runner...");
+    //TODO Call rule execution endpoint once available
+    logger.info("Rule execution runner complete.");
   }
 }

@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.JobManager;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -31,41 +32,26 @@ import com.google.gcs.sdrs.worker.WorkerLog;
 class JobManagerMonitor implements Runnable {
 
   private JobManager jobManager;
-  private int THREAD_SLEEP_SECS;
   private static final Logger logger = LoggerFactory.getLogger(JobManagerMonitor.class);
 
   /**
    * Constructor for the job manager monitor thread
    * @param jobManager the job manager instance that this thread will monitor
-   * @param threadSleepInSeconds how long the thread should wait between polls for results
    */
-  JobManagerMonitor(JobManager jobManager, int threadSleepInSeconds){
+  JobManagerMonitor(JobManager jobManager){
     this.jobManager = jobManager;
-    this.THREAD_SLEEP_SECS = threadSleepInSeconds;
   }
 
   /**
    * Runs the monitoring thread.
    */
   public void run() {
-    logger.info("Monitoring thread started.");
-    while (!Thread.currentThread().isInterrupted()) {
-      if(jobManager.activeWorkerCount.get() > 0) {
-        try {
-          getWorkerResults();
-        } catch (InterruptedException e) {
-          logger.info("Monitoring thread interrupted. Shutting down.");
-          Thread.currentThread().interrupt();
-          return;
-        }
-      }
-      try {
-        // polls every X seconds to see if there are workThreads waiting to complete
-        TimeUnit.SECONDS.sleep(THREAD_SLEEP_SECS);
-      } catch (InterruptedException e) {
-        logger.info("Monitoring thread interrupted. Shutting down.");
-        Thread.currentThread().interrupt();
-        return;
+    logger.info("Looking for worker results...");
+    if (jobManager.activeWorkerCount.get() > 0) {
+      try{
+        getWorkerResults();
+      } catch (InterruptedException ex){
+        logger.error("Could not retrieve results. Job Manager interrupted:" + ex.getCause());
       }
     }
   }
@@ -90,7 +76,7 @@ class JobManagerMonitor implements Runnable {
         } else {
           logger.info("Worker " + result.getStatus().name() + ": " + result.toString());
         }
-      } catch (java.util.concurrent.ExecutionException e) {
+      } catch (ExecutionException e) {
         logger.error("Error getting worker status: " + e.getCause());
       }
     }

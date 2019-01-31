@@ -19,15 +19,12 @@
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.google.gcs.sdrs.controller.mapper.exception.InvalidFormatExceptionMapper;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
-
+import com.google.gcs.sdrs.enums.RetentionRuleType;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -48,14 +45,15 @@ public class InvalidFormatExceptionMapperTest {
     Response response = mapper.toResponse(exception);
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("value"));
+    assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }
 
   @Test
   public void createExceptionResponseMessageWhenEnumExpectedReturnsOptions() {
     InvalidFormatException exception =
-        new InvalidFormatException(null, "message", "value", RetentionRuleTypes.class);
+        new InvalidFormatException(null, "message", "value", RetentionRuleType.class);
     String message = mapper.createExceptionResponseMessage(exception);
-    assertTrue(message.contains(RetentionRuleTypes.GLOBAL.toString()));
+    assertTrue(message.contains(RetentionRuleType.GLOBAL.toString()));
   }
 
   @Test
