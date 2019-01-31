@@ -66,6 +66,42 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
+  public void createRuleUsesBucketForDatasetWhenNoDataset() {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setType(RetentionRuleTypes.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDataStorageName("gs://b");
+    createRule.setProjectId("projectId");
+
+    service.createRetentionRule(createRule);
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+
+    verify(service.dao).save(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertEquals("gs://b", input.getDataStorageName());
+    assertEquals("b", input.getDatasetName());
+  }
+
+  @Test
+  public void createRuleUsesDataStorageDatasetForDataset() {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setType(RetentionRuleTypes.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDataStorageName("gs://b/d");
+    createRule.setProjectId("projectId");
+
+    service.createRetentionRule(createRule);
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+
+    verify(service.dao).save(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertEquals("gs://b/d", input.getDataStorageName());
+    assertEquals("d", input.getDatasetName());
+  }
+
+  @Test
   public void createRulePersistsGlobalEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setType(RetentionRuleTypes.GLOBAL);

@@ -180,20 +180,6 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void createDatasetRuleMissingDataStorageDatasetFails() {
-    RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
-    rule.setType(RetentionRuleTypes.DATASET);
-    rule.setDatasetName("datasetName");
-    rule.setDataStorageName("gs://bucket");
-    rule.setRetentionPeriod(123);
-    rule.setProjectId("projectId");
-    Response response = controller.create(rule);
-    assertEquals(response.getStatus(), 400);
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("dataStorageName"));
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("dataset"));
-  }
-
-  @Test
   public void createDatasetRuleWithValidFieldsSucceeds() {
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setType(RetentionRuleTypes.DATASET);

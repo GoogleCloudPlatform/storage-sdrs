@@ -24,6 +24,9 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 
+import static com.google.gcs.sdrs.controller.RetentionRulesController.STORAGE_SEPARATOR;
+import static com.google.gcs.sdrs.controller.RetentionRulesController.STORAGE_PREFIX;
+
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
@@ -40,11 +43,16 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     RetentionRule entity = new RetentionRule();
 
     // Map over input values
-    entity.setDatasetName(pojo.getDatasetName());
     entity.setDataStorageName(pojo.getDataStorageName());
     entity.setProjectId(pojo.getProjectId());
     entity.setRetentionPeriodInDays(pojo.getRetentionPeriod());
     entity.setType(pojo.getType());
+
+    String datasetName = pojo.getDatasetName();
+    if (datasetName == null) {
+      datasetName = extractDatasetNameFromDataStorage(pojo.getDataStorageName());
+    }
+    entity.setDatasetName(datasetName);
 
     if (entity.getType() == RetentionRuleTypes.GLOBAL) {
       entity.setProjectId(DEFAULT_PROJECT_ID);
@@ -58,5 +66,20 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setUser("user");
 
     return entity;
+  }
+
+  private String extractDatasetNameFromDataStorage(String dataStorageName) {
+    if (dataStorageName == null) {
+      return null;
+    }
+
+    String removedPrefix = dataStorageName.substring(STORAGE_PREFIX.length());
+    String[] bucketAndDataset = removedPrefix.split(STORAGE_SEPARATOR, 2);
+
+    if (bucketAndDataset.length == 2) {
+      return bucketAndDataset[1];
+    } else {
+      return bucketAndDataset[0];
+    }
   }
 }
