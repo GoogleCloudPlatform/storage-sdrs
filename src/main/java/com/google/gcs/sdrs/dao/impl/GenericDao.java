@@ -18,8 +18,8 @@
 
 package com.google.gcs.sdrs.dao.impl;
 
+import com.google.gcs.sdrs.dao.Dao;
 import java.io.Serializable;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -27,8 +27,8 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-
-import com.google.gcs.sdrs.dao.Dao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Hibernate based Generic Dao implementation
@@ -38,6 +38,7 @@ import com.google.gcs.sdrs.dao.Dao;
  */
 public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
 
+  private static final Logger logger = LoggerFactory.getLogger(GenericDao.class);
   private final Class<T> type;
 
   private static StandardServiceRegistry registry;
@@ -76,12 +77,11 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
    * @see com.google.gcs.sdrs.dao.impl.DAO#findById(Id)
    */
   @Override
-  @SuppressWarnings("unchecked")
   public T findById(Id id) {
     openCurrentSession(); // no transaction per se for a find
-    Object object = getCurrentSession().get(type, id);
+    T result = getCurrentSession().get(type, id);
     closeCurrentSession();
-    return (T) object;
+    return result;
   }
 
   /* (non-Javadoc)
