@@ -59,8 +59,6 @@ public class RetentionRulesServiceImplTest {
     assertEquals(RetentionRuleTypes.DATASET, input.getType());
     assertEquals(123, (int) input.getRetentionPeriodInDays());
     assertEquals(true, input.getIsActive());
-    assertNotNull(input.getUpdatedAt());
-    assertNotNull(input.getCreatedAt());
     assertEquals(input.getProjectId(), "projectId");
     assertEquals(input.getDataStorageName(), "gs://b/d");
     assertEquals(input.getDatasetName(), "dataset");
@@ -83,8 +81,6 @@ public class RetentionRulesServiceImplTest {
     assertEquals(RetentionRuleTypes.GLOBAL, input.getType());
     assertEquals(123, (int) input.getRetentionPeriodInDays());
     assertEquals(true, input.getIsActive());
-    assertNotNull(input.getUpdatedAt());
-    assertNotNull(input.getCreatedAt());
     assertEquals(input.getProjectId(), "global-default");
     assertEquals(1, (int) input.getVersion());
     assertNull(input.getDataStorageName());

@@ -28,7 +28,7 @@ import com.google.gcs.sdrs.service.RetentionRulesService;
 public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
 
-  Dao<RetentionRule, Integer> dao = SingletonDao.retentionRuleDao;
+  Dao<RetentionRule, Integer> dao = SingletonDao.getRetentionRuleDao();
 
   @Override()
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
