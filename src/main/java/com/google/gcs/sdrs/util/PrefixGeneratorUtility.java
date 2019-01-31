@@ -15,19 +15,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service.impl;
+package com.google.gcs.sdrs.util;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 
-/** A service to generate bucket name prefixes within a time interval. */
-public class PrefixGeneratorImpl {
+/** A utility to generate bucket name prefixes within a time interval. */
+public class PrefixGeneratorUtility {
 
   /**
    * Generate a list of bucket name prefixes within a time interval.
@@ -37,10 +37,10 @@ public class PrefixGeneratorImpl {
    * @param leastRecent indicating the time of the least recent prefix to generate. This value must
    *     be earlier than {@code mostRecent}. There is no guarantee that files older than this value
    *     will not be deleted.
-   * @return a {@link List} of {@link String}s of the form `pattern/period` for every time segment
-   *     within the interval between mostRecent and leastRecent.
+   * @return a {@link Collection} of {@link String}s of the form `pattern/period` for every time
+   *     segment within the interval between mostRecent and leastRecent.
    */
-  public static List<String> generateTimePrefixes(
+  public static Collection<String> generateTimePrefixes(
       String pattern, ZonedDateTime mostRecent, ZonedDateTime leastRecent) {
 
     if (mostRecent.isBefore(leastRecent)) {
@@ -50,7 +50,7 @@ public class PrefixGeneratorImpl {
 
     mostRecent = mostRecent.truncatedTo(ChronoUnit.HOURS);
 
-    List<String> result = new LinkedList<>();
+    Collection<String> result = new HashSet<>();
 
     Map<ChronoUnit, DateTimeFormatter> formatters = new HashMap<>();
     formatters.put(ChronoUnit.YEARS, DateTimeFormatter.ofPattern("yyyy"));

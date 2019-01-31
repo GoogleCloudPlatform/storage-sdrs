@@ -15,10 +15,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service.impl;
+package com.google.gcs.sdrs.util;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +28,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class PrefixGeneratorImplTest {
+public class PrefixGeneratorUtilityTest {
 
   @Before
   public void setup() {}
@@ -37,9 +39,10 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
-    assertTrue(result.get(0).startsWith("pattern/example/"));
+    List<String> resultList = new ArrayList<>(result);
+    assertTrue(resultList.get(0).startsWith("pattern/example/"));
   }
 
   @Test
@@ -48,7 +51,7 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
   }
@@ -59,10 +62,11 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01/01/00", result.get(0));
+    List<String> resultList = new ArrayList<>(result);
+    assertEquals("test/2019/01/01/00", resultList.get(0));
   }
 
   @Test
@@ -71,10 +75,11 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 2, 0, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01/01", result.get(0));
+    List<String> resultList = new ArrayList<>(result);
+    assertEquals("test/2019/01/01", resultList.get(0));
   }
 
   @Test
@@ -83,10 +88,11 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2019, 2, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01", result.get(0));
+    List<String> resultList = new ArrayList<>(result);
+    assertEquals("test/2019/01", resultList.get(0));
   }
 
   @Test
@@ -95,10 +101,11 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019", result.get(0));
+    List<String> resultList = new ArrayList<>(result);
+    assertEquals("test/2019", resultList.get(0));
   }
 
   @Test
@@ -107,13 +114,13 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2020, 2, 2, 1, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(4, result.size());
-    assertEquals("test/2019", result.get(0));
-    assertEquals("test/2020/01", result.get(1));
-    assertEquals("test/2020/02/01", result.get(2));
-    assertEquals("test/2020/02/02/00", result.get(3));
+    assertTrue(result.contains("test/2019"));
+    assertTrue(result.contains("test/2020/01"));
+    assertTrue(result.contains("test/2020/02/01"));
+    assertTrue(result.contains("test/2020/02/02/00"));
   }
 
   @Test
@@ -122,17 +129,17 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2018, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2020, 3, 3, 2, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(8, result.size());
-    assertEquals("test/2018", result.get(0));
-    assertEquals("test/2019", result.get(1));
-    assertEquals("test/2020/01", result.get(2));
-    assertEquals("test/2020/02", result.get(3));
-    assertEquals("test/2020/03/01", result.get(4));
-    assertEquals("test/2020/03/02", result.get(5));
-    assertEquals("test/2020/03/03/00", result.get(6));
-    assertEquals("test/2020/03/03/01", result.get(7));
+    assertTrue(result.contains("test/2018"));
+    assertTrue(result.contains("test/2019"));
+    assertTrue(result.contains("test/2020/01"));
+    assertTrue(result.contains("test/2020/02"));
+    assertTrue(result.contains("test/2020/03/01"));
+    assertTrue(result.contains("test/2020/03/02"));
+    assertTrue(result.contains("test/2020/03/03/00"));
+    assertTrue(result.contains("test/2020/03/03/01"));
   }
 
   @Test
@@ -141,11 +148,11 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2018, 3, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2020, 3, 3, 2, 0, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     // Not all of 2018 is between the two dates, but all of 2018 is to be deleted because there is
     // no requirement to preserve old values.
-    assertEquals("test/2018", result.get(0));
+    assertTrue(result.contains("test/2018"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -154,7 +161,7 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.ofHours(2));
 
-    PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
   }
 
   @Test
@@ -163,10 +170,11 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.ofHours(-12));
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 0, 0, 0, ZoneOffset.ofHours(-12));
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01/01/12", result.get(0));
+    List<String> resultList = new ArrayList<>(result);
+    assertEquals("test/2019/01/01/12", resultList.get(0));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -175,7 +183,7 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
-    PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
   }
 
   @Test
@@ -184,9 +192,10 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 30, 0, 0, ZoneOffset.UTC);
 
-    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+    Collection<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time2, time1);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01/01/00", result.get(0));
+    List<String> resultList = new ArrayList<>(result);
+    assertEquals("test/2019/01/01/00", resultList.get(0));
   }
 }
