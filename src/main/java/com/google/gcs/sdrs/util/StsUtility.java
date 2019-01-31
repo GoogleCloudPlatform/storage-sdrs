@@ -56,8 +56,9 @@ public class StsUtility {
 
   /**
    * Submits a job to be executed by STS
+   * @param client the storage transfer client to use
    * @param projectId the project ID of the target GCP project
-   * @param jobDescription a description of the STS job
+   * @param jobName a description of the STS job
    * @param sourceBucket the bucket from which you want to move
    * @param destinationBucket the destination bucket you want to move to
    * @param startDate the date when you want the job to start
@@ -65,8 +66,9 @@ public class StsUtility {
    * @return the TransferJob object that is created
    * @throws IOException when the client or job cannot be created
    */
-  public static TransferJob createStsJob(String projectId,
-                                          String jobDescription,
+  public static TransferJob createStsJob(Storagetransfer client,
+                                          String projectId,
+                                          String jobName,
                                           String sourceBucket,
                                           String destinationBucket,
                                           LocalDate startDate,
@@ -76,7 +78,7 @@ public class StsUtility {
     TimeOfDay time = createTimeOfDay(startTime);
     TransferJob transferJob =
         new TransferJob()
-            .setDescription(jobDescription)
+            .setName(jobName)
             .setProjectId(projectId)
             .setTransferSpec(
                 new TransferSpec()
@@ -89,7 +91,6 @@ public class StsUtility {
                 new Schedule().setScheduleStartDate(date).setStartTimeOfDay(time))
             .setStatus("ENABLED");
 
-    Storagetransfer client = createStsClient();
     return client.transferJobs().create(transferJob).execute();
   }
 
