@@ -157,7 +157,7 @@ public class PrefixGeneratorImplTest {
     PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
   }
 
-  @Test()
+  @Test
   public void outputsInUtc() {
     String pattern = "test";
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.ofHours(-12));
@@ -176,5 +176,17 @@ public class PrefixGeneratorImplTest {
     ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 
     PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+  }
+
+  @Test
+  public void mostRecentMinutesAreTruncated() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 1, 1, 1, 30, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorImpl.generateTimePrefixes(pattern, time2, time1);
+
+    assertEquals(1, result.size());
+    assertEquals("test/2019/01/01/00", result.get(0));
   }
 }

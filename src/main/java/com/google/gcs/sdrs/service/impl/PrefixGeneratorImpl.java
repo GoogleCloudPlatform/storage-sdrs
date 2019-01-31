@@ -35,17 +35,21 @@ public class PrefixGeneratorImpl {
    * @param pattern indicating the base portion of the prefix.
    * @param mostRecent indicating the time of the most recent prefix to generate (exclusive).
    * @param leastRecent indicating the time of the least recent prefix to generate. This value must
-   *     be earlier than {@code upperBound}. There is no guarantee that files older than this value
+   *     be earlier than {@code mostRecent}. There is no guarantee that files older than this value
    *     will not be deleted.
    * @return a {@link List} of {@link String}s of the form `pattern/period` for every time segment
-   *     within the interval between upperBound and lowerBound.
+   *     within the interval between mostRecent and leastRecent.
    */
   public static List<String> generateTimePrefixes(
       String pattern, ZonedDateTime mostRecent, ZonedDateTime leastRecent) {
 
     if (mostRecent.isBefore(leastRecent)) {
-      throw new IllegalArgumentException("upperBound occurs before lowerBound; try swapping them.");
+      throw new IllegalArgumentException(
+          "mostRecent occurs before leastRecent; try swapping them.");
     }
+
+    mostRecent = mostRecent.truncatedTo(ChronoUnit.HOURS);
+
     List<String> result = new LinkedList<>();
 
     Map<ChronoUnit, DateTimeFormatter> formatters = new HashMap<>();
