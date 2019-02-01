@@ -23,6 +23,7 @@ import java.util.HashSet;
 /** Exposes static methods for validation shared between controllers. */
 public class FieldValidations {
   private static final String STORAGE_PREFIX = "gs://";
+  private static final String STORAGE_SEPARATOR = "/";
 
   private FieldValidations() {}
 
@@ -45,13 +46,10 @@ public class FieldValidations {
         validationMessages.add(String.format("%s must start with '%s'", fieldName, STORAGE_PREFIX));
       } else {
         String bucketAndDataset = fieldValue.substring(STORAGE_PREFIX.length());
-        String[] pathSegments = bucketAndDataset.split("/");
+        String[] pathSegments = bucketAndDataset.split(STORAGE_SEPARATOR);
 
         if (pathSegments[0].length() == 0) {
           validationMessages.add(String.format("%s must include a bucket name", fieldName));
-        }
-        if (pathSegments.length < 2 || pathSegments[1].length() == 0) {
-          validationMessages.add(String.format("%s must include a dataset name", fieldName));
         }
       }
     }

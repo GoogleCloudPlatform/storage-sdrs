@@ -43,9 +43,6 @@ import org.slf4j.LoggerFactory;
 @Path("/retentionrules")
 public class RetentionRulesController extends BaseController {
 
-  public static final String STORAGE_PREFIX = "gs://";
-  public static final String STORAGE_SEPARATOR = "/";
-
   private static final Logger logger = LoggerFactory.getLogger(RetentionRulesController.class);
   private static final Integer RETENTION_MAX_VALUE = 200;
 

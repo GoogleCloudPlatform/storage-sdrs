@@ -117,17 +117,4 @@ public class EventsControllerTest {
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("projectId"));
   }
-
-  @Test
-  public void executeUserEventWithInvalidTargetFails() {
-    ExecutionEventRequest request = new ExecutionEventRequest();
-    request.setType(ExecutionEventType.USER_COMMANDED);
-    request.setProjectId("projectId");
-    request.setTarget("gs://b/");
-
-    Response response = controller.executeEvent(request);
-
-    assertEquals(response.getStatus(), 400);
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("target"));
-  }
 }
