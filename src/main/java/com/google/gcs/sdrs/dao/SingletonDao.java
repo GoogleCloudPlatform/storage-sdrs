@@ -26,15 +26,36 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 /** Class to manage singleton DAO instances. */
 public class SingletonDao {
 
-  public static final Dao<RetentionRule, Integer> retentionRuleDao =
-      new GenericDao<>(RetentionRule.class);
+  private static Dao<RetentionRule, Integer> retentionRuleDao;
+  private static Dao<RetentionJob, Integer> retentionJobDao;
+  private static Dao<RetentionJobValidation, Integer> retentionJobValidationDao;
+  private static Dao<RetentionExecution, Integer> retentionExecutionDao;
 
-  public static final Dao<RetentionJob, Integer> retentionJobDao =
-      new GenericDao<>(RetentionJob.class);
+  public static synchronized Dao<RetentionRule, Integer> getRetentionRuleDao() {
+    if (retentionRuleDao == null) {
+      retentionRuleDao = new GenericDao<>(RetentionRule.class);
+    }
+    return retentionRuleDao;
+  }
 
-  public static final Dao<RetentionJobValidation, Integer> retentionJobValidationDao =
-      new GenericDao<>(RetentionJobValidation.class);
+  public static synchronized Dao<RetentionJob, Integer> getRetentionJobDao() {
+    if (retentionJobDao == null) {
+      retentionJobDao = new GenericDao<>(RetentionJob.class);
+    }
+    return retentionJobDao;
+  }
 
-  public static final Dao<RetentionExecution, Integer> retentionExecutionDao =
-      new GenericDao<>(RetentionExecution.class);
+  public static synchronized Dao<RetentionJobValidation, Integer> getRetentionJobValidationDao() {
+    if (retentionJobValidationDao == null) {
+      retentionJobValidationDao = new GenericDao<>(RetentionJobValidation.class);
+    }
+    return retentionJobValidationDao;
+  }
+
+  public static synchronized Dao<RetentionExecution, Integer> getRetentionExecutionDao() {
+    if (retentionExecutionDao == null) {
+      retentionExecutionDao = new GenericDao<>(RetentionExecution.class);
+    }
+    return retentionExecutionDao;
+  }
 }

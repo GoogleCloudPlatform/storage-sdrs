@@ -23,6 +23,7 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import javax.ws.rs.core.Response;
@@ -180,20 +181,6 @@ public class RetentionRulesControllerTest {
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("dataStorageName"));
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("bucket"));
-  }
-
-  @Test
-  public void createDatasetRuleMissingDataStorageDatasetFails() {
-    RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
-    rule.setType(RetentionRuleType.DATASET);
-    rule.setDatasetName("datasetName");
-    rule.setDataStorageName("gs://bucket");
-    rule.setRetentionPeriod(123);
-    rule.setProjectId("projectId");
-    Response response = controller.create(rule);
-    assertEquals(response.getStatus(), 400);
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("dataStorageName"));
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("dataset"));
   }
 
   @Test

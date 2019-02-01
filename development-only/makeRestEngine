@@ -35,7 +35,8 @@ MAX_INSTANCES=10
 TARGET_UTILIZATION=0.6
 
 SERVICE=frontend-web-service
-JAR=restEngine-jar-with-dependencies.jar
+JAR=storage-sdrs-jar-with-dependencies.jar
+
 # [END useful]
 
 function print_usage() {

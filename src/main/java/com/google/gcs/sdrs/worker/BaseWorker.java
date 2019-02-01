@@ -28,37 +28,37 @@ import org.slf4j.LoggerFactory;
 /**
  * A Callable BaseWorker class
  */
-public abstract class BaseWorker implements Callable<WorkerLog> {
+public abstract class BaseWorker implements Callable<WorkerResult> {
 
-  public WorkerLog workerLog;
+  public WorkerResult workerResult;
   private static final Logger logger = LoggerFactory.getLogger(BaseWorker.class);
 
   /**
-   * BaseWorker constructor that instantiates the internal WorkerLog object
+   * BaseWorker constructor that instantiates the internal WorkerResult object
    */
   public BaseWorker(){
-    workerLog = new WorkerLog();
-    workerLog.setType(this.getClass().getName());
-    logger.debug("Worker created: " + this.workerLog.toString());
+    workerResult = new WorkerResult();
+    workerResult.setType(this.getClass().getName());
+    logger.debug("Worker created: " + this.workerResult.toString());
   }
 
   /**
    * The call method required to make this class Callable
-   * @return A basic populated WorkerLog object
+   * @return A basic populated WorkerResult object
    */
   @Override
-  public WorkerLog call() {
-    workerLog.setStartTime(DateTime.now(DateTimeZone.UTC));
-    logger.info("Worker processing begins: " + this.workerLog.toString());
-    workerLog.setStatus(WorkerLog.WorkerLogStatus.SUCCESS);
+  public WorkerResult call() {
+    workerResult.setStartTime(DateTime.now(DateTimeZone.UTC));
+    logger.info("Worker processing begins: " + this.workerResult.toString());
+    workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
 
-    workerLog.setEndTime(DateTime.now(DateTimeZone.UTC));
-    logger.info("Worker processing ends: " + this.workerLog.toString());
+    workerResult.setEndTime(DateTime.now(DateTimeZone.UTC));
+    logger.info("Worker processing ends: " + this.workerResult.toString());
 
-    return workerLog;
+    return workerResult;
   }
 
-  public WorkerLog getWorkerLog() {
-    return workerLog;
+  public WorkerResult getWorkerResult() {
+    return workerResult;
   }
 }
