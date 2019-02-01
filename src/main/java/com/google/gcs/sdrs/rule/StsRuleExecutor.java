@@ -22,7 +22,6 @@ import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.enums.RetentionRuleTypes;
 import com.google.gcs.sdrs.util.StsUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,39 +29,98 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.UUID;
 
 public class StsRuleExecutor implements RuleExecutor {
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
 
-  public void ExecuteRule(RetentionRule rule) {
-    // TODO load suffix from configuration
-    String suffix = "shadow";
+  public Collection<RetentionJob> executeDatasetRule(RetentionRule rule) {
 
+    String suffix = getSuffixFromConfig();
+
+    Collection<String> sourceBuckets = new ArrayList<>();
+
+    // TEST CODE START
+    sourceBuckets.add("gs://jk_test_bucket/2018/12/31/00");
+    // END TEST CODE
+
+    Collection<RetentionJob> jobRecords = new LinkedList<>();
     // TODO generate prefixes once Tom's code is merged
 
-    // TODO Transform rule values into STS job values for each prefix
+    for (String bucketName : sourceBuckets) {
 
-    String projectId = rule.getProjectId();
-    String name = UUID.randomUUID().toString();
-    String sourceBucket = buildSourceBucketName(rule);
-    String destinationBucket = buildDestinationBucketName(rule, suffix);
-    LocalDate startDate = LocalDate.now();
-    LocalTime startTime = LocalTime.now();
+      String projectId = rule.getProjectId();
+      String name = UUID.randomUUID().toString();
+      String sourceBucket = bucketName;
+      String destinationBucket = buildDestinationBucketName(rule, sourceBucket, suffix);
+      LocalDate startDate = LocalDate.now();
+      LocalTime startTime = LocalTime.now();
 
-    TransferJob job;
+      TransferJob job;
 
-    try {
-      Storagetransfer client = StsUtility.createStsClient();
-      job = StsUtility.createStsJob(
-          client, projectId, name, sourceBucket, destinationBucket, startDate, startTime);
-    } catch (IOException ex) {
-      logger.error("Couldn't connect to STS: " + ex.getCause());
-      // TODO save as error to DB. Add retry, caching?
+      try {
+        Storagetransfer client = StsUtility.createStsClient();
+        job = StsUtility.createStsJob(
+            client, projectId, name, sourceBucket, destinationBucket, startDate, startTime);
+
+        jobRecords.add(convertTransferJobToEntity(job, rule));
+      } catch (IOException ex) {
+        logger.error("Couldn't connect to STS: " + ex.getCause());
+        // TODO How do we want to handle failed STS jobs?
+      }
     }
 
-    // TODO Save retention_job object once job is submitted
+    return jobRecords;
+  }
+
+  public Collection<RetentionJob> executeDefaultRule(RetentionRule rule, Collection<RetentionRule> affectedDatasetRules) {
+
+    String suffix = getSuffixFromConfig();
+    Collection<RetentionJob> jobRecords = new LinkedList<>();
+
+    for (RetentionRule datasetRule : affectedDatasetRules) {
+
+      Collection<String> sourceBuckets = new ArrayList<>();
+      // TODO generate prefixes once Tom's code is merged
+
+      // TEST CODE START
+      sourceBuckets.add("gs://jk_test_bucket/2018/12/31/00");
+      // END TEST CODE
+
+      for (String bucketName : sourceBuckets) {
+
+        String projectId = datasetRule.getProjectId();
+        String name = UUID.randomUUID().toString();
+        String sourceBucket = bucketName;
+        String destinationBucket = buildDestinationBucketName(datasetRule, sourceBucket, suffix);
+        LocalDate startDate = LocalDate.now();
+        LocalTime startTime = LocalTime.now();
+
+        TransferJob job;
+
+        try {
+          Storagetransfer client = StsUtility.createStsClient();
+          job = StsUtility.createStsJob(
+              client, projectId, name, sourceBucket, destinationBucket, startDate, startTime);
+
+          jobRecords.add(convertTransferJobToEntity(job, rule, datasetRule));
+        } catch (IOException ex) {
+          logger.error("Couldn't connect to STS: " + ex.getCause());
+          // TODO How do we want to handle failed STS jobs?
+        }
+      }
+    }
+
+    return jobRecords;
+  }
+
+  private String getSuffixFromConfig(){
+    // TODO load suffix from configuration
+    return "shadow";
   }
 
   private RetentionJob convertTransferJobToEntity(TransferJob job, RetentionRule rule) {
@@ -77,32 +135,26 @@ public class StsRuleExecutor implements RuleExecutor {
     return retentionJob;
   }
 
-  private String buildSourceBucketName(RetentionRule rule) {
+  private RetentionJob convertTransferJobToEntity(
+      TransferJob job, RetentionRule defaultRule, RetentionRule affectedDatasetRule) {
+    RetentionJob retentionJob = new RetentionJob();
+    retentionJob.setName(job.getName());
+    retentionJob.setRetentionRuleId(defaultRule.getId());
+    retentionJob.setRetentionRuleProjectId(affectedDatasetRule.getProjectId());
+    retentionJob.setRetentionRuleDataStorageName(affectedDatasetRule.getDataStorageName());
+    retentionJob.setRetentionRuleType(defaultRule.getType().toString());
+    retentionJob.setRetentionRuleVersion(affectedDatasetRule.getVersion());
 
-    String bucketName;
-
-    if (rule.getType().equals(RetentionRuleTypes.DATASET)) {
-      bucketName = rule.getDataStorageName();
-    } else {
-      // TODO How to get the bucket to operate on in the default case?
-      bucketName = "default";
-    }
-
-    return bucketName;
+    return retentionJob;
   }
 
-  private String buildDestinationBucketName(RetentionRule rule, String suffix) {
+  private String buildDestinationBucketName(
+      RetentionRule rule, String sourceBucket, String suffix) {
 
-    String bucketName;
-    if (rule.getType().equals(RetentionRuleTypes.DATASET)) {
-      String dataStorageName = rule.getDataStorageName();
-      String datasetName = rule.getDatasetName();
-      bucketName = dataStorageName.replaceFirst("datasetName", datasetName + suffix);
-    } else {
-      // TODO How to get the bucket to operate on in the default case?
-      bucketName = "default";
-    }
+    String datasetName = rule.getDatasetName();
+    String destinationBucket = sourceBucket.replaceFirst(
+        datasetName, datasetName + suffix);
 
-    return bucketName;
+    return destinationBucket;
   }
 }

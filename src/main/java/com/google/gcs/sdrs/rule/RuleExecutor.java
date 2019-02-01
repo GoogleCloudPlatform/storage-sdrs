@@ -18,9 +18,14 @@
 
 package com.google.gcs.sdrs.rule;
 
+import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+
+import java.util.Collection;
 
 public interface RuleExecutor {
 
-  void ExecuteRule(RetentionRule rule);
+  Collection<RetentionJob> executeDatasetRule(RetentionRule rule);
+
+  Collection<RetentionJob> executeDefaultRule(RetentionRule rule, Collection<RetentionRule> affectedDatasetRules);
 }
