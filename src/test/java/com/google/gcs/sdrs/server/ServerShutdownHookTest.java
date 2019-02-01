@@ -23,9 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gcs.sdrs.server.ServerShutdownHook;
-
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Test class for the ServerShutdownHook
@@ -43,7 +41,7 @@ public class ServerShutdownHookTest {
     // start the server
     server = new HttpServer();
     server.start();
-    objectUnderTest = new ServerShutdownHook(server, 5);
+    objectUnderTest = new ServerShutdownHook(server, 5, true);
   }
 
   /**
@@ -60,6 +58,6 @@ public class ServerShutdownHookTest {
   @Test
   public void testServerShutdownHook() {
     objectUnderTest.run();
-    assertEquals(server.isStarted(), false);
+    assertFalse(server.isStarted());
   }
 }
