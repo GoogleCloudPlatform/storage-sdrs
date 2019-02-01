@@ -33,22 +33,22 @@ public class PrefixGeneratorUtility {
    * Generate a list of bucket name prefixes within a time interval.
    *
    * @param pattern indicating the base portion of the prefix.
-   * @param mostRecent indicating the time of the most recent prefix to generate (exclusive).
-   * @param leastRecent indicating the time of the least recent prefix to generate. This value must
-   *     be earlier than {@code mostRecent}. There is no guarantee that files older than this value
+   * @param startTime indicating the time of the least recent prefix to generate. This value must
+   *     be earlier than {@code endTime}. There is no guarantee that files older than this value
    *     will not be deleted.
+   * @param endTime indicating the time of the most recent prefix to generate.
    * @return a {@link Collection} of {@link String}s of the form `pattern/period` for every time
-   *     segment within the interval between mostRecent and leastRecent.
+   *     segment within the interval between endTime and startTime.
    */
   public static Collection<String> generateTimePrefixes(
-      String pattern, ZonedDateTime mostRecent, ZonedDateTime leastRecent) {
+      String pattern, ZonedDateTime startTime, ZonedDateTime endTime) {
 
-    if (mostRecent.isBefore(leastRecent)) {
+    if (endTime.isBefore(startTime)) {
       throw new IllegalArgumentException(
-          "mostRecent occurs before leastRecent; try swapping them.");
+          "endTime occurs before startTime; try swapping them.");
     }
 
-    mostRecent = mostRecent.truncatedTo(ChronoUnit.HOURS);
+    endTime = endTime.truncatedTo(ChronoUnit.HOURS);
 
     Collection<String> result = new HashSet<>();
 
@@ -58,14 +58,14 @@ public class PrefixGeneratorUtility {
     formatters.put(ChronoUnit.DAYS, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
     formatters.put(ChronoUnit.HOURS, DateTimeFormatter.ofPattern("yyyy/MM/dd/HH"));
 
-    ZonedDateTime currentTime = ZonedDateTime.from(leastRecent);
-    while (currentTime.isBefore(mostRecent)) {
+    ZonedDateTime currentTime = ZonedDateTime.from(startTime);
+    while (currentTime.isBefore(endTime)) {
       ChronoUnit increment;
-      if (!mostRecent.isBefore(currentTime.plus(1, ChronoUnit.YEARS))) {
+      if (!endTime.isBefore(currentTime.plus(1, ChronoUnit.YEARS))) {
         increment = ChronoUnit.YEARS;
-      } else if (!mostRecent.isBefore(currentTime.plus(1, ChronoUnit.MONTHS))) {
+      } else if (!endTime.isBefore(currentTime.plus(1, ChronoUnit.MONTHS))) {
         increment = ChronoUnit.MONTHS;
-      } else if (!mostRecent.isBefore(currentTime.plus(1, ChronoUnit.DAYS))) {
+      } else if (!endTime.isBefore(currentTime.plus(1, ChronoUnit.DAYS))) {
         increment = ChronoUnit.DAYS;
       } else {
         increment = ChronoUnit.HOURS;
