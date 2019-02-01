@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Google LLC. All rights reserved.
+ * Copyright 2019 Google LLC. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the “License”);
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,20 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.dao;
+package com.google.gcs.sdrs.service;
 
-import java.io.Serializable;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 
-/**
- * Interface for Data Access Object pattern
- *
- * @author salguerod
- *
- * @param <T>
- * @param <Id>
- */
-public interface Dao<T, Id extends Serializable> {
+/** Service implementation for managing retention rules. */
+public interface RetentionRulesService {
 
-  Id save(T entity);
-
-  void update(T entity);
-
-  T findById(Id id);
-
-  void delete(T entity);
-
+  /**
+   * Creates a retention rule and returns its ID
+   *
+   * @param rule the request object input by the user
+   * @return The identifier for the created rule
+   */
+  Integer createRetentionRule(RetentionRuleCreateRequest rule);
 }

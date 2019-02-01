@@ -51,13 +51,15 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
   }
 
   /* (non-Javadoc)
-   * @see com.google.gcs.sdrs.dao.impl.DAO#persist(T)
+   * @see com.google.gcs.sdrs.dao.impl.DAO#save(T)
    */
   @Override
-  public void save(final T entity) {
+  @SuppressWarnings("unchecked")
+  public Id save(final T entity) {
     openCurrentSessionWithTransaction();
-    getCurrentSession().save(entity);
+    Id result = (Id) getCurrentSession().save(entity);
     closeCurrentSessionwithTransaction();
+    return result;
   }
 
   /* (non-Javadoc)
@@ -77,9 +79,9 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
   @SuppressWarnings("unchecked")
   public T findById(Id id) {
     openCurrentSession(); // no transaction per se for a find
-    Object object = getCurrentSession().get(type, id);
+    Object entity = getCurrentSession().get(type, id);
     closeCurrentSession();
-    return (T) object;
+    return (T) entity;
   }
 
   /* (non-Javadoc)

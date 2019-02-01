@@ -23,6 +23,8 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateResponse;
 import com.google.gcs.sdrs.enums.RetentionRuleTypes;
+import com.google.gcs.sdrs.service.RetentionRulesService;
+import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -38,9 +40,13 @@ import org.slf4j.LoggerFactory;
 @Path("/retentionrules")
 public class RetentionRulesController extends BaseController {
 
+  public static final String STORAGE_PREFIX = "gs://";
+  public static final String STORAGE_SEPARATOR = "/";
+
   private static final Logger logger = LoggerFactory.getLogger(RetentionRulesController.class);
   private static final Integer RETENTION_MAX_VALUE = 200;
-  private static final String STORAGE_PREFIX = "gs://";
+
+  RetentionRulesService service = new RetentionRulesServiceImpl();
 
   /** CRUD create endpoint */
   @POST
@@ -52,13 +58,12 @@ public class RetentionRulesController extends BaseController {
     try {
       validateCreate(request);
 
-      // TODO: Perform business logic
+      int result = service.createRetentionRule(request);
 
       RetentionRuleCreateResponse response = new RetentionRuleCreateResponse();
       response.setRequestUuid(requestUuid);
+      response.setRuleId(result);
 
-      // TODO: Replace with real value
-      response.setRuleId(1);
       return Response.status(200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
@@ -116,20 +121,17 @@ public class RetentionRulesController extends BaseController {
           if (request.getDataStorageName() == null) {
             validation.addValidationError("dataStorageName must be provided if type is DATASET");
           } else {
+            // DataStorageName should match gs://<bucket_name> or gs://<bucket_name>/<dataset_name>
             if (!request.getDataStorageName().startsWith(STORAGE_PREFIX)) {
               validation.addValidationError(
                   String.format("dataStorageName must start with '%s'", STORAGE_PREFIX));
             } else {
-              // DataStorageName should match gs://<bucket_name>/<dataset_name>
               String bucketAndDataset =
                   request.getDataStorageName().substring(STORAGE_PREFIX.length());
-              String[] pathSegments = bucketAndDataset.split("/");
+              String[] pathSegments = bucketAndDataset.split(STORAGE_SEPARATOR);
 
               if (pathSegments[0].length() == 0) {
                 validation.addValidationError("dataStorageName must include a bucket name");
-              }
-              if (pathSegments.length < 2 || pathSegments[1].length() == 0) {
-                validation.addValidationError("dataStorageName must include a dataset name");
               }
             }
           }
