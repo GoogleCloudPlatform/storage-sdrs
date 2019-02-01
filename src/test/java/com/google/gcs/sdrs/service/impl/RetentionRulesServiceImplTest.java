@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -71,7 +70,7 @@ public class RetentionRulesServiceImplTest {
   @Test
   public void createRuleUsesBucketForDatasetWhenNoDataset() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleTypes.DATASET);
+    createRule.setType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDataStorageName("gs://b");
     createRule.setProjectId("projectId");
@@ -89,7 +88,7 @@ public class RetentionRulesServiceImplTest {
   @Test
   public void createRuleUsesDataStorageDatasetForDataset() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleTypes.DATASET);
+    createRule.setType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
