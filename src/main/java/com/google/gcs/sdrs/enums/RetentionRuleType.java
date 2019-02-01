@@ -24,8 +24,9 @@ import java.io.Serializable;
 /**
  * Supported types for Retention Rules
  *
- * JsonProperty values indicate the supported JSON input string.
- * Enum string values indicate how this value is serialized to the database.
+ * <p>JsonProperty values indicate the supported JSON input string.
+ *
+ * <p>Enum string values indicate how this value is serialized to the database.
  */
 public enum RetentionRuleType implements Serializable {
   @JsonProperty("GLOBAL")

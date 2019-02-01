@@ -17,19 +17,17 @@
 
 package com.google.gcs.sdrs.enums;
 
-/** Supported type for events sent to the execution endpoint */
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Supported type for events sent to the execution endpoint
+ *
+ * <p>JsonProperty values indicate the supported JSON input string.
+ */
 public enum ExecutionEventType {
-  POLICY("POLICY"),
-  USER_COMMANDED("USER");
+  @JsonProperty("POLICY")
+  POLICY,
 
-  private final String value;
-
-  ExecutionEventType(final String value) {
-    this.value = value;
-  }
-
-  @Override
-  public String toString() {
-    return this.value;
-  }
+  @JsonProperty("USER")
+  USER_COMMANDED
 }
