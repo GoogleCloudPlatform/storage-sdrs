@@ -64,7 +64,7 @@ resources:
       - network: {{ properties["network"] }}
         subnetwork: {{ properties["subnetwork"] }}
       serviceAccounts:
-        - email: 796804599574-compute@developer.gserviceaccount.com
+        - email: {{ properties["email"] }}
           scopes:
           - https://www.googleapis.com/auth/logging.write
           - https://www.googleapis.com/auth/monitoring.write

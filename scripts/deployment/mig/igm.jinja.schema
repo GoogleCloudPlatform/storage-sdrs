@@ -50,6 +50,10 @@ properties:
     type: boolean
     description: Whether or not to enable external access
 
+  email:
+    type: string
+    description: Email address of the service account.
+
   network:
     type: string
     description: The VPC network
