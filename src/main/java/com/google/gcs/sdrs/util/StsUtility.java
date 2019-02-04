@@ -24,10 +24,12 @@ import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.Preconditions;
+import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.StoragetransferScopes;
 import com.google.api.services.storagetransfer.v1.model.Date;
 import com.google.api.services.storagetransfer.v1.model.GcsData;
+import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
 import com.google.api.services.storagetransfer.v1.model.Schedule;
 import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
@@ -36,7 +38,10 @@ import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Manages the concrete integration with STS
@@ -58,35 +63,35 @@ public class StsUtility {
    * Submits a job to be executed by STS
    * @param client the storage transfer client to use
    * @param projectId the project ID of the target GCP project
-   * @param jobName a description of the STS job
    * @param sourceBucket the bucket from which you want to move
    * @param destinationBucket the destination bucket you want to move to
-   * @param startDate the date when you want the job to start
-   * @param startTime the time you want the job to start
+   * @param startDateTime the datetime when you want the job to start
+//   * @param startTime the time you want the job to start
    * @return the TransferJob object that is created
    * @throws IOException when the client or job cannot be created
    */
   public static TransferJob createStsJob(Storagetransfer client,
-                                          String projectId,
-                                          String jobName,
-                                          String sourceBucket,
-                                          String destinationBucket,
-                                          LocalDate startDate,
-                                          LocalTime startTime)
+                                         String projectId,
+                                         String sourceBucket,
+                                         String destinationBucket,
+                                         List<String> prefixes,
+                                         LocalDateTime startDateTime)
       throws IOException {
-    Date date = createDate(startDate);
-    TimeOfDay time = createTimeOfDay(startTime);
+    Date date = createDate(startDateTime.toLocalDate());
+    TimeOfDay time = createTimeOfDay(startDateTime.toLocalTime());
     TransferJob transferJob =
         new TransferJob()
-            .setName(jobName)
             .setProjectId(projectId)
             .setTransferSpec(
                 new TransferSpec()
                     .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
                     .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
+                    .setObjectConditions(
+                        new ObjectConditions().setIncludePrefixes(prefixes)
+                    )
                     .setTransferOptions(
                         new TransferOptions()
-                            .setDeleteObjectsFromSourceAfterTransfer(true)))
+                            .setDeleteObjectsFromSourceAfterTransfer(false)))
             .setSchedule(
                 new Schedule().setScheduleStartDate(date).setStartTimeOfDay(time))
             .setStatus("ENABLED");
@@ -101,8 +106,12 @@ public class StsUtility {
     Preconditions.checkNotNull(jsonFactory);
     Preconditions.checkNotNull(credential);
 
+    credential = credential.createScoped(StorageScopes.all());
+    credential = credential.createScoped(StoragetransferScopes.all());
+
     // In some cases, you need to add the scope explicitly.
     if (credential.createScopedRequired()) {
+      credential = credential.createScoped(StorageScopes.all());
       credential = credential.createScoped(StoragetransferScopes.all());
     }
 

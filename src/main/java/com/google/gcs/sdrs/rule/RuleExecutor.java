@@ -21,11 +21,12 @@ package com.google.gcs.sdrs.rule;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 
+import java.io.IOException;
 import java.util.Collection;
 
 public interface RuleExecutor {
 
-  Collection<RetentionJob> executeDatasetRule(RetentionRule rule);
+  RetentionJob executeDatasetRule(RetentionRule rule) throws IOException;
 
   Collection<RetentionJob> executeDefaultRule(RetentionRule rule, Collection<RetentionRule> affectedDatasetRules);
 }

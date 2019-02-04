@@ -28,53 +28,46 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 public class StsRuleExecutor implements RuleExecutor {
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
 
-  public Collection<RetentionJob> executeDatasetRule(RetentionRule rule) {
+  public RetentionJob executeDatasetRule(RetentionRule rule) throws IOException{
 
     String suffix = getSuffixFromConfig();
 
-    Collection<String> sourceBuckets = new ArrayList<>();
-
-    // TEST CODE START
-    sourceBuckets.add("gs://jk_test_bucket/2018/12/31/00");
-    // END TEST CODE
-
-    Collection<RetentionJob> jobRecords = new LinkedList<>();
+    // Prefix = datasetName + generated path i.e. dataset/2018/12/31/12
+    List<String> prefixes = new ArrayList<>();
+    prefixes.add("testDataset/2018/12/31/12");
     // TODO generate prefixes once Tom's code is merged
 
-    for (String bucketName : sourceBuckets) {
+    Collection<RetentionJob> jobRecords = new LinkedList<>();
 
-      String projectId = rule.getProjectId();
-      String name = UUID.randomUUID().toString();
-      String sourceBucket = bucketName;
-      String destinationBucket = buildDestinationBucketName(rule, sourceBucket, suffix);
-      LocalDate startDate = LocalDate.now();
-      LocalTime startTime = LocalTime.now();
+    String projectId = rule.getProjectId();
+    String name = UUID.randomUUID().toString();
+    String sourceBucket = formatDataStorageName(rule.getDataStorageName());
+    String destinationBucket = formatDataStorageName(rule.getDataStorageName(), suffix);
 
-      TransferJob job;
+    logger.debug(
+        String.format("Creating STS job with projectId: %s, name: %s, source: %s, destination: %s",
+            projectId,
+            name,
+            sourceBucket,
+            destinationBucket));
 
-      try {
-        Storagetransfer client = StsUtility.createStsClient();
-        job = StsUtility.createStsJob(
-            client, projectId, name, sourceBucket, destinationBucket, startDate, startTime);
+    Storagetransfer client = StsUtility.createStsClient();
+    TransferJob job = StsUtility.createStsJob(
+        client, projectId, sourceBucket, destinationBucket, prefixes, LocalDateTime.now());
 
-        jobRecords.add(convertTransferJobToEntity(job, rule));
-      } catch (IOException ex) {
-        logger.error("Couldn't connect to STS: " + ex.getCause());
-        // TODO How do we want to handle failed STS jobs?
-      }
-    }
-
-    return jobRecords;
+    return buildRetentionJobEntity(job.getName(), rule);
   }
 
   public Collection<RetentionJob> executeDefaultRule(RetentionRule rule, Collection<RetentionRule> affectedDatasetRules) {
@@ -82,38 +75,38 @@ public class StsRuleExecutor implements RuleExecutor {
     String suffix = getSuffixFromConfig();
     Collection<RetentionJob> jobRecords = new LinkedList<>();
 
-    for (RetentionRule datasetRule : affectedDatasetRules) {
-
-      Collection<String> sourceBuckets = new ArrayList<>();
-      // TODO generate prefixes once Tom's code is merged
-
-      // TEST CODE START
-      sourceBuckets.add("gs://jk_test_bucket/2018/12/31/00");
-      // END TEST CODE
-
-      for (String bucketName : sourceBuckets) {
-
-        String projectId = datasetRule.getProjectId();
-        String name = UUID.randomUUID().toString();
-        String sourceBucket = bucketName;
-        String destinationBucket = buildDestinationBucketName(datasetRule, sourceBucket, suffix);
-        LocalDate startDate = LocalDate.now();
-        LocalTime startTime = LocalTime.now();
-
-        TransferJob job;
-
-        try {
-          Storagetransfer client = StsUtility.createStsClient();
-          job = StsUtility.createStsJob(
-              client, projectId, name, sourceBucket, destinationBucket, startDate, startTime);
-
-          jobRecords.add(convertTransferJobToEntity(job, rule, datasetRule));
-        } catch (IOException ex) {
-          logger.error("Couldn't connect to STS: " + ex.getCause());
-          // TODO How do we want to handle failed STS jobs?
-        }
-      }
-    }
+//    for (RetentionRule datasetRule : affectedDatasetRules) {
+//
+//      Collection<String> sourceBuckets = new ArrayList<>();
+//      // TODO generate prefixes once Tom's code is merged
+//
+//      // TEST CODE START
+//      sourceBuckets.add("gs://jk_test_bucket/2018/12/31/00");
+//      // END TEST CODE
+//
+//      for (String bucketName : sourceBuckets) {
+//
+//        String projectId = datasetRule.getProjectId();
+//        String name = UUID.randomUUID().toString();
+//        String sourceBucket = bucketName;
+//        String destinationBucket = buildDestinationBucketName(datasetRule, sourceBucket, suffix);
+//        LocalDate startDate = LocalDate.now();
+//        LocalTime startTime = LocalTime.now();
+//
+//        TransferJob job;
+//
+//        try {
+//          Storagetransfer client = StsUtility.createStsClient();
+//          job = StsUtility.createStsJob(
+//              client, projectId, name, sourceBucket, destinationBucket, startDate, startTime);
+//
+//          jobRecords.add(buildRetentionJobEntity(job, rule, datasetRule));
+//        } catch (IOException ex) {
+//          logger.error("Couldn't connect to STS: " + ex.getCause());
+//          // TODO How do we want to handle failed STS jobs?
+//        }
+//      }
+//    }
 
     return jobRecords;
   }
@@ -123,9 +116,24 @@ public class StsRuleExecutor implements RuleExecutor {
     return "shadow";
   }
 
-  private RetentionJob convertTransferJobToEntity(TransferJob job, RetentionRule rule) {
+  private String formatDataStorageName(String dataStorageName) {
+
+    dataStorageName = dataStorageName.replaceFirst("gs://","");
+
+    if (dataStorageName.endsWith("/")) {
+      dataStorageName = dataStorageName.replaceAll("/", "");
+    }
+
+    return dataStorageName;
+  }
+
+  private String formatDataStorageName(String dataStorageName, String suffix) {
+    return formatDataStorageName(dataStorageName).concat(suffix);
+  }
+
+  private RetentionJob buildRetentionJobEntity(String jobName, RetentionRule rule) {
     RetentionJob retentionJob = new RetentionJob();
-    retentionJob.setName(job.getName());
+    retentionJob.setName(jobName);
     retentionJob.setRetentionRuleId(rule.getId());
     retentionJob.setRetentionRuleProjectId(rule.getProjectId());
     retentionJob.setRetentionRuleDataStorageName(rule.getDataStorageName());
@@ -135,10 +143,10 @@ public class StsRuleExecutor implements RuleExecutor {
     return retentionJob;
   }
 
-  private RetentionJob convertTransferJobToEntity(
-      TransferJob job, RetentionRule defaultRule, RetentionRule affectedDatasetRule) {
+  private RetentionJob buildRetentionJobEntity(
+      String jobName, RetentionRule defaultRule, RetentionRule affectedDatasetRule) {
     RetentionJob retentionJob = new RetentionJob();
-    retentionJob.setName(job.getName());
+    retentionJob.setName(jobName);
     retentionJob.setRetentionRuleId(defaultRule.getId());
     retentionJob.setRetentionRuleProjectId(affectedDatasetRule.getProjectId());
     retentionJob.setRetentionRuleDataStorageName(affectedDatasetRule.getDataStorageName());
@@ -146,15 +154,5 @@ public class StsRuleExecutor implements RuleExecutor {
     retentionJob.setRetentionRuleVersion(affectedDatasetRule.getVersion());
 
     return retentionJob;
-  }
-
-  private String buildDestinationBucketName(
-      RetentionRule rule, String sourceBucket, String suffix) {
-
-    String datasetName = rule.getDatasetName();
-    String destinationBucket = sourceBucket.replaceFirst(
-        datasetName, datasetName + suffix);
-
-    return destinationBucket;
   }
 }
