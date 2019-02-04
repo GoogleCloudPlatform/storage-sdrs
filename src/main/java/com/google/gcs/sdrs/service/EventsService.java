@@ -13,36 +13,15 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.enums;
+package com.google.gcs.sdrs.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
+import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 
-/**
- * Supported types for Retention Rules
- *
- * <p>JsonProperty values indicate the supported JSON input string.
- *
- * <p>Enum string values indicate how this value is serialized to the database.
- */
-public enum RetentionRuleType implements Serializable {
-  @JsonProperty("GLOBAL")
-  GLOBAL("global"),
+/** Interface exposing event behaviors. */
+public interface EventsService {
 
-  @JsonProperty("DATASET")
-  DATASET("dataset");
-
-  private final String value;
-
-  RetentionRuleType(final String value) {
-    this.value = value;
-  }
-
-  @Override
-  public String toString() {
-    return this.value;
-  }
+  /** Executes an execution event asynchronously */
+  void executeEvent(ExecutionEventRequest request);
 }

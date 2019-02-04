@@ -17,17 +17,15 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
+import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
-
-import static com.google.gcs.sdrs.controller.RetentionRulesController.STORAGE_SEPARATOR;
-import static com.google.gcs.sdrs.controller.RetentionRulesController.STORAGE_PREFIX;
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
@@ -62,7 +60,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setDataStorageName(pojo.getDataStorageName());
     entity.setProjectId(pojo.getProjectId());
     entity.setRetentionPeriodInDays(pojo.getRetentionPeriod());
-    entity.setType(pojo.getType());
+    entity.setType(pojo.getRetentionRuleType());
 
     String datasetName = pojo.getDatasetName();
     if (datasetName == null) {
@@ -102,8 +100,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       return null;
     }
 
-    String removedPrefix = dataStorageName.substring(STORAGE_PREFIX.length());
-    String[] bucketAndDataset = removedPrefix.split(STORAGE_SEPARATOR, 2);
+    String removedPrefix = dataStorageName.substring(FieldValidations.STORAGE_PREFIX.length());
+    String[] bucketAndDataset = removedPrefix.split(FieldValidations.STORAGE_SEPARATOR, 2);
 
     if (bucketAndDataset.length == 2) {
       return bucketAndDataset[1];
