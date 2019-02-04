@@ -17,19 +17,23 @@
 
 package com.google.gcs.sdrs.controller.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gcs.sdrs.enums.ExecutionEventType;
 
 public class ExecutionEventRequest {
-  private ExecutionEventType type;
+
+  @JsonProperty("type")
+  private ExecutionEventType executionEventType;
+
   private String projectId;
   private String target;
 
-  public ExecutionEventType getType() {
-    return type;
+  public ExecutionEventType getExecutionEventType() {
+    return executionEventType;
   }
 
-  public void setType(ExecutionEventType type) {
-    this.type = type;
+  public void setExecutionEventType(ExecutionEventType executionEventType) {
+    this.executionEventType = executionEventType;
   }
 
   public String getProjectId() {

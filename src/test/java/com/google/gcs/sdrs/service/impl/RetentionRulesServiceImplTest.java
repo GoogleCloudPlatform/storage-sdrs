@@ -45,7 +45,7 @@ public class RetentionRulesServiceImplTest {
   @Test
   public void createRulePersistsDatasetEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleType.DATASET);
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDatasetName("dataset");
     createRule.setDataStorageName("gs://b/d");
@@ -70,7 +70,7 @@ public class RetentionRulesServiceImplTest {
   @Test
   public void createRuleUsesBucketForDatasetWhenNoDataset() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleType.DATASET);
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDataStorageName("gs://b");
     createRule.setProjectId("projectId");
@@ -88,7 +88,7 @@ public class RetentionRulesServiceImplTest {
   @Test
   public void createRuleUsesDataStorageDatasetForDataset() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleType.DATASET);
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
@@ -106,7 +106,7 @@ public class RetentionRulesServiceImplTest {
   @Test
   public void createRulePersistsGlobalEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleType.GLOBAL);
+    createRule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
 
     service.createRetentionRule(createRule);

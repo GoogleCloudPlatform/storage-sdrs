@@ -102,10 +102,10 @@ public class RetentionRulesController extends BaseController {
 
     partialValidations.add(validateRetentionPeriod(request.getRetentionPeriod()));
 
-    if (request.getType() == null) {
+    if (request.getRetentionRuleType() == null) {
       partialValidations.add(ValidationResult.fromString("type must be provided"));
     } else {
-      switch (request.getType()) {
+      switch (request.getRetentionRuleType()) {
         case GLOBAL:
           break;
         case DATASET:

@@ -64,7 +64,7 @@ public class EventsControllerTest {
   @Test
   public void executeEventWhenSuccessfulIncludesResponseFields() {
     ExecutionEventRequest request = new ExecutionEventRequest();
-    request.setType(ExecutionEventType.POLICY);
+    request.setExecutionEventType(ExecutionEventType.POLICY);
 
     Response response = controller.executeEvent(request);
 
@@ -86,7 +86,7 @@ public class EventsControllerTest {
   @Test
   public void executePolicyWithValidFieldsSucceeds() {
     ExecutionEventRequest request = new ExecutionEventRequest();
-    request.setType(ExecutionEventType.POLICY);
+    request.setExecutionEventType(ExecutionEventType.POLICY);
 
     Response response = controller.executeEvent(request);
 
@@ -96,7 +96,7 @@ public class EventsControllerTest {
   @Test
   public void executeUserEventWithValidFieldsSucceeds() {
     ExecutionEventRequest request = new ExecutionEventRequest();
-    request.setType(ExecutionEventType.USER_COMMANDED);
+    request.setExecutionEventType(ExecutionEventType.USER_COMMANDED);
     request.setProjectId("projectId");
     request.setTarget("gs://b/s/t");
 
@@ -108,7 +108,7 @@ public class EventsControllerTest {
   @Test
   public void executeUserEventWithInvalidProjectIdFails() {
     ExecutionEventRequest request = new ExecutionEventRequest();
-    request.setType(ExecutionEventType.USER_COMMANDED);
+    request.setExecutionEventType(ExecutionEventType.USER_COMMANDED);
     request.setProjectId(null);
     request.setTarget("gs://b/s/t");
 

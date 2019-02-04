@@ -73,10 +73,10 @@ public class EventsController extends BaseController {
   private void validateExecutionEvent(ExecutionEventRequest request) throws ValidationException {
     Collection<ValidationResult> partialValidations = new HashSet<>();
 
-    if (request.getType() == null) {
+    if (request.getExecutionEventType() == null) {
       partialValidations.add(ValidationResult.fromString("type must be provided"));
     } else {
-      switch (request.getType()) {
+      switch (request.getExecutionEventType()) {
         case POLICY:
           break;
         case USER_COMMANDED:

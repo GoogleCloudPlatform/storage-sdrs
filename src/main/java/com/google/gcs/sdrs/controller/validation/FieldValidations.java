@@ -22,8 +22,8 @@ import java.util.HashSet;
 
 /** Exposes static methods for validation shared between controllers. */
 public class FieldValidations {
-  private static final String STORAGE_PREFIX = "gs://";
-  private static final String STORAGE_SEPARATOR = "/";
+  public static final String STORAGE_PREFIX = "gs://";
+  public static final String STORAGE_SEPARATOR = "/";
 
   private FieldValidations() {}
 
