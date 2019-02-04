@@ -49,13 +49,4 @@ public class FieldValidationsTest {
 
     assertTrue(result.validationMessages.contains("dataStorageName must include a bucket name"));
   }
-
-  @Test
-  public void createDatasetRuleMissingDataStorageDatasetFails() {
-    ValidationResult result =
-        FieldValidations.validateFieldFollowsBucketNamingStructure(
-            "dataStorageName", "gs://bucket");
-
-    assertTrue(result.validationMessages.contains("dataStorageName must include a dataset name"));
-  }
 }
