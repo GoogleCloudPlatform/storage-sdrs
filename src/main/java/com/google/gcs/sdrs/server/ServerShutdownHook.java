@@ -19,6 +19,8 @@
 package com.google.gcs.sdrs.server;
 
 import java.util.concurrent.TimeUnit;
+
+import com.google.gcs.sdrs.JobScheduler.JobScheduler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,19 +34,47 @@ public class ServerShutdownHook implements Runnable {
 
   private static HttpServer server;
   private static JobManager jobManager;
+  private static JobScheduler jobScheduler;
   private static long GRACE_PERIOD_IN_SECONDS;
+  private boolean isImmediateShutdown;
   private static final Logger logger = LoggerFactory.getLogger(ServerShutdownHook.class);
 
-  public ServerShutdownHook(HttpServer httpServer, long gracePeriodInSeconds) {
+  /**
+   *
+   * @param httpServer The server to shutdown
+   * @param gracePeriodInSeconds How long to wait until forcing the http server to shutdown
+   * @param isImmediateShutdown Immediately shuts down all threads if true
+   */
+  public ServerShutdownHook(HttpServer httpServer, long gracePeriodInSeconds,
+                            boolean isImmediateShutdown) {
     server = httpServer;
     GRACE_PERIOD_IN_SECONDS = gracePeriodInSeconds;
+    this.isImmediateShutdown = isImmediateShutdown;
   }
 
   @Override
   public void run() {
     logger.info("Running shutdown hook...");
+
+    logger.info("Shutting down Job Manager...");
     jobManager = JobManager.getInstance();
-    jobManager.shutDownJobManager();
+    if (isImmediateShutdown) {
+      jobManager.shutDownJobManagerNow();
+    } else {
+      jobManager.shutDownJobManager();
+    }
+    logger.info("Job Manager shutdown complete.");
+
+    logger.info("Shutting down Job Scheduler...");
+    jobScheduler = JobScheduler.getInstance();
+    if (isImmediateShutdown) {
+      jobScheduler.shutdownSchedulerNow();
+    } else {
+      jobScheduler.shutdownScheduler();
+    }
+    logger.info("Job Scheduler shutdown complete.");
+
+    logger.info("Shutting down web server...");
     server.shutdown(GRACE_PERIOD_IN_SECONDS, TimeUnit.SECONDS);
     logger.info("Server shutdown complete.");
   }

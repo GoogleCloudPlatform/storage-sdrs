@@ -24,9 +24,11 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +45,18 @@ public class JobManager {
   private ExecutorService executorService;
 
   private static JobManager instance;
+  private static JobScheduler scheduler;
   private static JobManagerMonitor monitor;
-  private static Thread monitorThread;
-  private static Configurations configs = new Configurations();
+  private static int DEFAULT_THREAD_POOL_SIZE = 10;
+  private static int DEFAULT_SLEEP_MINUTES = 5;
+  private static int DEFAULT_MONITOR_INITIAL_DELAY = 0;
+  private static int DEFAULT_MONITOR_FREQUENCY = 30;
+  private static TimeUnit DEFAULT_MONITOR_TIME_UNIT = TimeUnit.MINUTES;
   private static int THREAD_POOL_SIZE;
   private static int SLEEP_MINUTES;
-  private static int MONITOR_THREAD_SLEEP_IN_SECONDS;
-  private static final String MONITOR_THREAD_NAME = "monitoringThread";
+  private static int MONITOR_INITIAL_DELAY;
+  private static int MONITOR_FREQUENCY;
+  private static TimeUnit MONITOR_TIME_UNIT = TimeUnit.SECONDS;
   private static final Logger logger = LoggerFactory.getLogger(JobManager.class);
 
   /**
@@ -58,53 +65,48 @@ public class JobManager {
    */
   public static synchronized JobManager getInstance() {
     if (instance == null) {
-      try {
-        logger.info("JobManager not created. Creating...");
+      logger.info("JobManager not created. Creating...");
+      instance = new JobManager();
 
-        instance = new JobManager();
-
-        monitor = new JobManagerMonitor(instance, MONITOR_THREAD_SLEEP_IN_SECONDS);
-        monitorThread = new Thread(monitor, MONITOR_THREAD_NAME);
-        monitorThread.start();
-      } catch (ConfigurationException configEx) {
-        logger.error("Configurations couldn't be loaded from the file.", configEx.getCause());
-      } catch (Exception e) {
-        logger.error("An error occurred while retrieving the JobManager instance: ", e.getCause());
-      }
+      monitor = new JobManagerMonitor(instance);
+      scheduler = JobScheduler.getInstance();
+      scheduler.submitScheduledJob(monitor,
+          MONITOR_INITIAL_DELAY, MONITOR_FREQUENCY, MONITOR_TIME_UNIT);
     }
 
     return instance;
   }
 
   /**
-   * Gracefully shuts down the jobManager and associated threads
+   * Immediately shuts down the job manager and doesn't wait for threads to resolve
    */
-  public void shutDownJobManager(){
-    shutDownJobManager(false);
+  public void shutDownJobManagerNow(){
+    logger.info("Forcing shutdown now...");
+    executorService.shutdownNow();
+    scheduler.shutdownSchedulerNow();
+
+    // Ensure the job manager instance is destroyed
+    instance = null;
+
+    logger.info("JobManager shut down.");
   }
 
   /**
    * Gracefully shuts down the jobManager and associated threads
-   * @param shutdownNow Optionally allows the service to immediately shutdown rather than waiting for thread completion
    */
-  public void shutDownJobManager(boolean shutdownNow) {
+  public void shutDownJobManager() {
     logger.info("Shutting down JobManager.");
-    if(shutdownNow){
-      logger.info("Forcing shutdown now...");
-      executorService.shutdownNow();
-    } else {
-      // waits nicely for executing tasks to finish, and won't spawn new ones
-      logger.info("Attempting graceful shutdown...");
-      executorService.shutdown();
-      try {
-        if (!executorService.awaitTermination(SLEEP_MINUTES, TimeUnit.MINUTES)) {
-          executorService.shutdownNow();
-        }
-      } catch (InterruptedException e) {
+    // waits nicely for executing tasks to finish, and won't spawn new ones
+    logger.info("Attempting graceful shutdown...");
+    executorService.shutdown();
+    try {
+      if (!executorService.awaitTermination(SLEEP_MINUTES, TimeUnit.MINUTES)) {
         executorService.shutdownNow();
       }
+    } catch (InterruptedException e) {
+      executorService.shutdownNow();
     }
-    monitorThread.interrupt();
+    scheduler.shutdownScheduler();
 
     // Ensure the job manager instance is destroyed
     instance = null;
@@ -123,11 +125,22 @@ public class JobManager {
     logger.info("Job submitted: " + job.getWorkerResult().toString());
   }
 
-  private JobManager () throws ConfigurationException{
-    HierarchicalConfiguration config = configs.xml("default-applicationConfig.xml");
-    THREAD_POOL_SIZE = config.getInt("jobManager.threadPoolSize");
-    SLEEP_MINUTES = config.getInt("jobManager.shutdownSleepMinutes");
-    MONITOR_THREAD_SLEEP_IN_SECONDS = config.getInt("jobManager.monitorThreadSleepInSeconds");
+  private JobManager () {
+    try{
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      THREAD_POOL_SIZE = config.getInt("jobManager.threadPoolSize");
+      SLEEP_MINUTES = config.getInt("jobManager.shutdownSleepMinutes");
+      MONITOR_INITIAL_DELAY = config.getInt("jobManager.monitor.initialDelay");
+      MONITOR_FREQUENCY = config.getInt("jobManager.monitor.frequency");
+      MONITOR_TIME_UNIT = TimeUnit.valueOf(config.getString("jobManager.monitor.timeUnit"));
+    } catch (ConfigurationException ex) {
+      logger.error("Configuration file could not be read. Using defaults: " + ex.getMessage());
+      THREAD_POOL_SIZE = DEFAULT_THREAD_POOL_SIZE;
+      SLEEP_MINUTES = DEFAULT_SLEEP_MINUTES;
+      MONITOR_INITIAL_DELAY = DEFAULT_MONITOR_INITIAL_DELAY;
+      MONITOR_FREQUENCY = DEFAULT_MONITOR_FREQUENCY;
+      MONITOR_TIME_UNIT = DEFAULT_MONITOR_TIME_UNIT;
+    }
 
     executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     completionService = new ExecutorCompletionService<>(executorService);
