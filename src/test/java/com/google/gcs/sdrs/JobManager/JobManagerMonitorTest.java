@@ -21,13 +21,10 @@ package com.google.gcs.sdrs.JobManager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.util.Set;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.worker.DemoWorker;
 
 /**
@@ -35,7 +32,7 @@ import com.google.gcs.sdrs.worker.DemoWorker;
  */
 public class JobManagerMonitorTest {
 
-  private JobManager instance;
+  private JobManager jobManager;
   private JobManagerMonitor objectToTest;
 
   /**
@@ -43,8 +40,8 @@ public class JobManagerMonitorTest {
    */
   @Before
   public void setUp() {
-    instance = JobManager.getInstance();
-    objectToTest = new JobManagerMonitor(instance);
+    jobManager = JobManager.getJobManager();
+    objectToTest = new JobManagerMonitor(jobManager);
   }
 
   /**
@@ -52,7 +49,7 @@ public class JobManagerMonitorTest {
    */
   @After
   public void tearDown(){
-    instance.shutDownJobManagerNow();
+    jobManager.shutDownJobManagerNow();
   }
 
   /**
@@ -61,12 +58,12 @@ public class JobManagerMonitorTest {
    */
   @Test
   public void getWorkerResultTest(){
-    int activeWorkers = instance.activeWorkerCount.get();
-    instance.submitJob(new DemoWorker());
-    assertEquals(instance.activeWorkerCount.get(), activeWorkers + 1);
+    int activeWorkers = jobManager.activeWorkerCount.get();
+    jobManager.submitJob(new DemoWorker());
+    assertEquals(jobManager.activeWorkerCount.get(), activeWorkers + 1);
     try{
       objectToTest.getWorkerResults();
-      assertEquals(instance.activeWorkerCount.get(), activeWorkers);
+      assertEquals(jobManager.activeWorkerCount.get(), activeWorkers);
     } catch (InterruptedException ex){
       fail();
     }

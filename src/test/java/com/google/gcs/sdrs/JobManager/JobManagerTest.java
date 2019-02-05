@@ -22,7 +22,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.worker.BaseWorker;
 import com.google.gcs.sdrs.worker.DemoWorker;
 
@@ -33,14 +32,14 @@ import static org.junit.Assert.assertNotNull;
  * Test class for JobManager
  */
 public class JobManagerTest {
-  private JobManager instance;
+  private JobManager jobManager;
 
   /**
    * Set up steps before each test
    */
   @Before
   public void setUp(){
-    instance = JobManager.getInstance();
+    jobManager = JobManager.getJobManager();
   }
 
   /**
@@ -48,28 +47,28 @@ public class JobManagerTest {
    */
   @After
   public void tearDown(){
-    instance.shutDownJobManagerNow();
+    jobManager.shutDownJobManagerNow();
   }
 
   /**
-   * Test that a JobManager instance is created when a getInstance is called without an existing instance
+   * Test that a JobManager singleton is created when a getJobManager is called without an existing jobManager
    */
   @Test
   public void getInstanceWhenInstanceDoesNotExist() {
     // Instance created in test setup
-    assertNotNull(instance);
-    assertNotNull(instance.completionService);
-    assertEquals(instance.activeWorkerCount.get(), 0);
+    assertNotNull(jobManager);
+    assertNotNull(jobManager.completionService);
+    assertEquals(jobManager.activeWorkerCount.get(), 0);
   }
 
   /**
-   * Test that the same JobManager instance is returned when getInstance is called more than once
+   * Test that the same JobManager singleton is returned when getJobManager is called more than once
    */
   @Test
   public void getInstanceWhenInstanceAlreadyExists() {
-    assertNotNull(instance);
-    JobManager secondInstance = JobManager.getInstance();
-    assertEquals(instance, secondInstance);
+    assertNotNull(jobManager);
+    JobManager secondInstance = JobManager.getJobManager();
+    assertEquals(jobManager, secondInstance);
   }
 
   /**
@@ -77,10 +76,10 @@ public class JobManagerTest {
    */
   @Test
   public void testSubmitJob() {
-    assertNotNull(instance);
+    assertNotNull(jobManager);
     BaseWorker worker = new DemoWorker();
-    int currentActiveWorkers = instance.activeWorkerCount.get();
-    instance.submitJob(worker);
-    assertEquals(currentActiveWorkers + 1, instance.activeWorkerCount.get());
+    int currentActiveWorkers = jobManager.activeWorkerCount.get();
+    jobManager.submitJob(worker);
+    assertEquals(currentActiveWorkers + 1, jobManager.activeWorkerCount.get());
   }
 }
