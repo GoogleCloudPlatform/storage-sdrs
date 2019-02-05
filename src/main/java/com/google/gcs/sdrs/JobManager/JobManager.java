@@ -47,11 +47,16 @@ public class JobManager {
   private static JobManager jobManager;
   private static JobScheduler scheduler;
   private static JobManagerMonitor monitor;
-  private static int THREAD_POOL_SIZE = 10;
-  private static int SLEEP_MINUTES = 5;
-  private static int monitorInitialDelay = 0;
-  private static int monitorFrequency = 30;
-  private static TimeUnit monitorTimeUnit = TimeUnit.SECONDS;
+  private static int DEFAULT_THREAD_POOL_SIZE = 10;
+  private static int DEFAULT_SLEEP_MINUTES = 5;
+  private static int DEFAULT_MONITOR_INITIAL_DELAY = 0;
+  private static int DEFAULT_MONITOR_FREQUENCY = 30;
+  private static TimeUnit DEFAULT_MONITOR_TIME_UNIT = TimeUnit.MINUTES;
+  private static int THREAD_POOL_SIZE;
+  private static int SLEEP_MINUTES;
+  private static int MONITOR_INITIAL_DELAY;
+  private static int MONITOR_FREQUENCY;
+  private static TimeUnit MONITOR_TIME_UNIT = TimeUnit.SECONDS;
   private static final Logger logger = LoggerFactory.getLogger(JobManager.class);
 
   /**
@@ -60,19 +65,13 @@ public class JobManager {
    */
   public static synchronized JobManager getJobManager() {
     if (jobManager == null) {
-      try {
-        logger.info("JobManager not created. Creating...");
-
-        jobManager = new JobManager();
-
-      } catch (ConfigurationException configEx) {
-        logger.error("Configurations couldn't be loaded from the file. Applying defaults..."
-            , configEx.getCause());
-      }
+      logger.info("JobManager not created. Creating...");
+      jobManager = new JobManager();
 
       monitor = new JobManagerMonitor(jobManager);
       scheduler = JobScheduler.getInstance();
-      scheduler.submitScheduledJob(monitor, monitorInitialDelay, monitorFrequency, monitorTimeUnit);
+      scheduler.submitScheduledJob(monitor,
+          MONITOR_INITIAL_DELAY, MONITOR_FREQUENCY, MONITOR_TIME_UNIT);
     }
 
     return jobManager;
@@ -126,13 +125,22 @@ public class JobManager {
     logger.info("Job submitted: " + job.getWorkerResult().toString());
   }
 
-  private JobManager () throws ConfigurationException{
-    Configuration config = new Configurations().xml("applicationConfig.xml");
-    THREAD_POOL_SIZE = config.getInt("jobManager.threadPoolSize");
-    SLEEP_MINUTES = config.getInt("jobManager.shutdownSleepMinutes");
-    monitorInitialDelay = config.getInt("jobManager.monitor.initialDelay");
-    monitorFrequency = config.getInt("jobManager.monitor.frequency");
-    monitorTimeUnit = TimeUnit.valueOf(config.getString("jobManager.monitor.timeUnit"));
+  private JobManager () {
+    try{
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      THREAD_POOL_SIZE = config.getInt("jobManager.threadPoolSize");
+      SLEEP_MINUTES = config.getInt("jobManager.shutdownSleepMinutes");
+      MONITOR_INITIAL_DELAY = config.getInt("jobManager.monitor.initialDelay");
+      MONITOR_FREQUENCY = config.getInt("jobManager.monitor.frequency");
+      MONITOR_TIME_UNIT = TimeUnit.valueOf(config.getString("jobManager.monitor.timeUnit"));
+    } catch (ConfigurationException ex) {
+      logger.error("Configuration file could not be read. Using defaults: " + ex.getMessage());
+      THREAD_POOL_SIZE = DEFAULT_THREAD_POOL_SIZE;
+      SLEEP_MINUTES = DEFAULT_SLEEP_MINUTES;
+      MONITOR_INITIAL_DELAY = DEFAULT_MONITOR_INITIAL_DELAY;
+      MONITOR_FREQUENCY = DEFAULT_MONITOR_FREQUENCY;
+      MONITOR_TIME_UNIT = DEFAULT_MONITOR_TIME_UNIT;
+    }
 
     executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     completionService = new ExecutorCompletionService<>(executorService);
