@@ -38,7 +38,7 @@ import com.google.gcs.sdrs.worker.DemoWorker;
 public class MyResource {
 
   static final private Logger logger = LoggerFactory.getLogger(MyResource.class);
-  static final private JobManager jobManager = JobManager.getJobManager();
+  static final private JobManager jobManager = JobManager.getInstance();
 
   /**
    * Method handling HTTP GET requests. The returned object will be sent

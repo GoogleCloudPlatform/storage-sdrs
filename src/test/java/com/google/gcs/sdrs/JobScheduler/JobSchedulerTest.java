@@ -46,7 +46,7 @@ public class JobSchedulerTest {
   }
 
   /**
-   * Test that a JobManager instance is created when a getJobManager is called without an existing instance
+   * Test that a JobManager instance is created when a getInstance is called without an existing instance
    */
   @Test
   public void getInstanceWhenInstanceDoesNotExist() {
@@ -55,7 +55,7 @@ public class JobSchedulerTest {
   }
 
   /**
-   * Test that the same JobManager instance is returned when getJobManager is called more than once
+   * Test that the same JobManager instance is returned when getInstance is called more than once
    */
   @Test
   public void getInstanceWhenInstanceAlreadyExists() {

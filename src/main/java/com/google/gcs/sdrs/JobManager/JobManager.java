@@ -44,7 +44,7 @@ public class JobManager {
 
   private ExecutorService executorService;
 
-  private static JobManager jobManager;
+  private static JobManager instance;
   private static JobScheduler scheduler;
   private static JobManagerMonitor monitor;
   private static int DEFAULT_THREAD_POOL_SIZE = 10;
@@ -60,21 +60,35 @@ public class JobManager {
   private static final Logger logger = LoggerFactory.getLogger(JobManager.class);
 
   /**
-   * Gets the current JobManager singleton and creates one if it doesn't exist.
-   * @return The JobManager singleton.
+   * Gets the current JobManager instance and creates one if it doesn't exist.
+   * @return The JobManager instance.
    */
+<<<<<<< HEAD
   public static synchronized JobManager getJobManager() {
     if (jobManager == null) {
       logger.info("JobManager not created. Creating...");
       jobManager = new JobManager();
+=======
+  public static synchronized JobManager getInstance() {
+    if (instance == null) {
+      try {
+        logger.info("JobManager not created. Creating...");
 
-      monitor = new JobManagerMonitor(jobManager);
+        instance = new JobManager();
+
+      } catch (ConfigurationException configEx) {
+        logger.error("Configurations couldn't be loaded from the file. Applying defaults..."
+            , configEx.getCause());
+      }
+>>>>>>> parent of c04cb30... Renaming JobManager
+
+      monitor = new JobManagerMonitor(instance);
       scheduler = JobScheduler.getInstance();
       scheduler.submitScheduledJob(monitor,
           MONITOR_INITIAL_DELAY, MONITOR_FREQUENCY, MONITOR_TIME_UNIT);
     }
 
-    return jobManager;
+    return instance;
   }
 
   /**
@@ -85,14 +99,14 @@ public class JobManager {
     executorService.shutdownNow();
     scheduler.shutdownSchedulerNow();
 
-    // Ensure the job manager singleton is destroyed
-    jobManager = null;
+    // Ensure the job manager instance is destroyed
+    instance = null;
 
     logger.info("JobManager shut down.");
   }
 
   /**
-   * Gracefully shuts down the Job Manager and associated threads
+   * Gracefully shuts down the jobManager and associated threads
    */
   public void shutDownJobManager() {
     logger.info("Shutting down JobManager.");
@@ -108,8 +122,8 @@ public class JobManager {
     }
     scheduler.shutdownScheduler();
 
-    // Ensure the job manager singleton is destroyed
-    jobManager = null;
+    // Ensure the job manager instance is destroyed
+    instance = null;
 
     logger.info("JobManager shut down.");
   }
@@ -144,6 +158,6 @@ public class JobManager {
 
     executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     completionService = new ExecutorCompletionService<>(executorService);
-    logger.info("JobManager created.");
+    logger.info("JobManager instance created.");
   }
 }
