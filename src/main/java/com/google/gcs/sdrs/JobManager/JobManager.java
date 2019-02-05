@@ -63,24 +63,10 @@ public class JobManager {
    * Gets the current JobManager instance and creates one if it doesn't exist.
    * @return The JobManager instance.
    */
-<<<<<<< HEAD
-  public static synchronized JobManager getJobManager() {
-    if (jobManager == null) {
-      logger.info("JobManager not created. Creating...");
-      jobManager = new JobManager();
-=======
   public static synchronized JobManager getInstance() {
     if (instance == null) {
-      try {
-        logger.info("JobManager not created. Creating...");
-
-        instance = new JobManager();
-
-      } catch (ConfigurationException configEx) {
-        logger.error("Configurations couldn't be loaded from the file. Applying defaults..."
-            , configEx.getCause());
-      }
->>>>>>> parent of c04cb30... Renaming JobManager
+      logger.info("JobManager not created. Creating...");
+      instance = new JobManager();
 
       monitor = new JobManagerMonitor(instance);
       scheduler = JobScheduler.getInstance();
