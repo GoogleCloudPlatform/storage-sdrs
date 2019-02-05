@@ -13,44 +13,34 @@
 # limitations under the License.
 
 info:
-  title: Container instance group manager example
+  title: Container Managed Instance Group manager
   author: Google Inc.
-  description: Template to deploy an autoscaled instance group with a container image for each instance.
+  description: Creates an autoscaled instance group with a container image and ESP Proxy for each instance.
+  version: 0.1
 
-imports:
-- path: container_manifest.yaml
-  name: container_manifest.yaml
 
 required:
-- containerImage
-- containerManifest
 - targetSize
-- maxReplicas
+- maxNumReplicas
 - machineType
 - externalIp
 - region
+- network
+- subnetwork
 
 properties:
-  
+
   region:
     type: string
-    description: Zone in which this autoscaled instance group will run
-
-  containerImage:
-    type: string
-    description: The container image to be used
-
-  containerManifest:
-    type: string
-    description: The container manifest
+    description: Region in which this autoscaled instance group will run.
 
   targetSize:
     type: integer
     description: Initial size of the Managed Instance Group
 
-  maxReplicas:
+  maxNumReplicas:
     type: integer
-    description: Maximum size the Managed Instance Group will be autoscaled to
+    description: The maximum number of instances that the autoscaler can scale up to. This is required when creating or updating an autoscaler. The maximum number of replicas should not be lower than minimal number of replicas.
 
   machineType:
     type: string
@@ -60,3 +50,14 @@ properties:
     type: boolean
     description: Whether or not to enable external access
 
+  email:
+    type: string
+    description: Email address of the service account.
+
+  network:
+    type: string
+    description: The VPC network
+
+  subnetwork:
+    type: string
+    description: A subnetwork must be specified if the network is in custom subnet mode. Optional for auto subnet mode.
