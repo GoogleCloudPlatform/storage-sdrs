@@ -22,14 +22,18 @@ import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
 import com.google.gcs.sdrs.util.StsUtility;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,30 +44,51 @@ import java.util.List;
  */
 public class StsRuleExecutor implements RuleExecutor {
 
+  private final String DEFAULT_SUFFIX = "shadow";
+  private String suffix;
+
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
 
   /**
+   * STS Rule Executor constructor that reads the bucket suffix from the configuration file
+   */
+  public StsRuleExecutor() {
+    try {
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      suffix = config.getString("sts.suffix");
+    } catch (ConfigurationException ex) {
+      logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
+      suffix = DEFAULT_SUFFIX;
+    }
+  }
+
+  /**
    * Executes a dataset retention rule
-   * @param rule The retention rule to execute
-   * @return A RetentionJob object
+   * @param rule The {@link RetentionRule} to execute
+   * @return A {@link RetentionJob} object
    * @throws IOException when communication can't be established with STS
+   * @throws IllegalArgumentException when the rule is a global rule
    */
   @Override
-  public RetentionJob executeDatasetRule(RetentionRule rule) throws IOException{
+  public RetentionJob executeDatasetRule(RetentionRule rule)
+      throws IOException, IllegalArgumentException{
 
-    String suffix = getSuffixFromConfig();
+    if (rule.getType().equals(RetentionRuleType.GLOBAL)) {
+      throw new IllegalArgumentException("GLOBAL retention rule type is invalid for this function");
+    }
 
-    // Prefix = datasetName + generated path i.e. dataset/2018/12/31/12
-    List<String> prefixes = new ArrayList<>();
-    prefixes.add("testDataset/2018/12/31/12");
-    // TODO generate prefixes once Tom's code is merged
+    ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
+
+    List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(rule.getDatasetName(),
+        zonedDateTimeNow, zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()));
+    //prefixes.add("testDataset/2018/12/31/12");
 
     String projectId = rule.getProjectId();
     String sourceBucket = formatDataStorageName(rule.getDataStorageName());
     String destinationBucket = formatDataStorageName(rule.getDataStorageName(), suffix);
-    LocalDateTime dateTimeNow = LocalDateTime.now(Clock.systemUTC());
+
     String description = String.format(
-        "Rule %s %s", rule.getId().toString(), dateTimeNow.toString());
+        "Rule %s %s", rule.getId().toString(), zonedDateTimeNow.toString());
 
     logger.debug(
         String.format("Creating STS job with projectId: %s, " +
@@ -82,7 +107,7 @@ public class StsRuleExecutor implements RuleExecutor {
             destinationBucket,
             prefixes,
             description,
-            dateTimeNow);
+            zonedDateTimeNow);
 
     return buildRetentionJobEntity(job.getName(), rule);
   }
@@ -92,11 +117,10 @@ public class StsRuleExecutor implements RuleExecutor {
    * @param rule the default rule to execute
    * @param affectedDatasetRules any dataset rules that exist within the same bucket
    *                             as the default rule
-   * @return A collection of RetentionJob records
+   * @return A {@link Collection} of {@link RetentionJob} records
    */
   public Collection<RetentionJob> executeDefaultRule(RetentionRule rule, Collection<RetentionRule> affectedDatasetRules) {
 
-    String suffix = getSuffixFromConfig();
     Collection<RetentionJob> jobRecords = new LinkedList<>();
 
 //    for (RetentionRule datasetRule : affectedDatasetRules) {
@@ -133,11 +157,6 @@ public class StsRuleExecutor implements RuleExecutor {
 //    }
 
     return jobRecords;
-  }
-
-  private String getSuffixFromConfig(){
-    // TODO load suffix from configuration
-    return "shadow";
   }
 
   private String formatDataStorageName(String dataStorageName) {

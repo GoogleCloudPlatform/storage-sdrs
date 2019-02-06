@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -64,10 +66,10 @@ public class StsUtility {
    * @param projectId the project ID of the target GCP project
    * @param sourceBucket the bucket from which you want to move
    * @param destinationBucket the destination bucket you want to move to
-   * @param prefixes a list of all prefixes to include in the transfer job
+   * @param prefixes a {@link List} of all prefixes to include in the transfer job
    * @param description the description of the transfer job
-   * @param startDateTime the datetime when you want the job to start
-   * @return the TransferJob object that is created
+   * @param startDateTime the {@link ZonedDateTime} when you want the job to start
+   * @return the {@link TransferJob} object that is created
    * @throws IOException when the client or job cannot be created
    */
   public static TransferJob createStsJob(Storagetransfer client,
@@ -76,7 +78,7 @@ public class StsUtility {
                                          String destinationBucket,
                                          List<String> prefixes,
                                          String description,
-                                         LocalDateTime startDateTime)
+                                         ZonedDateTime startDateTime)
       throws IOException {
     Date date = createDate(startDateTime.toLocalDate());
     TimeOfDay time = createTimeOfDay(startDateTime.toLocalTime());
