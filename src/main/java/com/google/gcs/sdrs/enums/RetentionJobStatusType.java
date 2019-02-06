@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.enums;
 
-import com.google.gcs.sdrs.constants.DatabaseConstants;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import java.io.Serializable;
 
 /**
@@ -26,9 +26,9 @@ import java.io.Serializable;
  * <p>Enum string values indicate how this is serialized to the database.
  */
 public enum RetentionJobStatusType implements Serializable {
-  SUCCESS(DatabaseConstants.SUCCESS_VALUE),
-  PENDING(DatabaseConstants.PENDING_VALUE),
-  ERROR(DatabaseConstants.ERROR_VALUE);
+  SUCCESS(DatabaseConstants.STS_JOB_STATUS_SUCCESS),
+  PENDING(DatabaseConstants.STS_JOB_STATUS_PENDING),
+  ERROR(DatabaseConstants.STS_JOB_STATUS_ERROR);
 
   private final String databaseValue;
 

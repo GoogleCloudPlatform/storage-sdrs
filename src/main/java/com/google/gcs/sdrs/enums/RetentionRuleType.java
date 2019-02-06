@@ -19,8 +19,8 @@
 package com.google.gcs.sdrs.enums;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.constants.DatabaseConstants;
-import com.google.gcs.sdrs.constants.ValidationConstants;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import java.io.Serializable;
 
 /**
@@ -32,10 +32,10 @@ import java.io.Serializable;
  */
 public enum RetentionRuleType implements Serializable {
   @JsonProperty(ValidationConstants.GLOBAL_JSON_VALUE)
-  GLOBAL(ValidationConstants.GLOBAL_JSON_VALUE, DatabaseConstants.GLOBAL_VALUE),
+  GLOBAL(ValidationConstants.GLOBAL_JSON_VALUE, DatabaseConstants.POLICY_TYPE_GLOBAL),
 
   @JsonProperty(ValidationConstants.GLOBAL_JSON_VALUE)
-  DATASET(ValidationConstants.DATASET_JSON_VALUE, DatabaseConstants.DATASET_VALUE);
+  DATASET(ValidationConstants.DATASET_JSON_VALUE, DatabaseConstants.POLICY_TYPE_DATASET);
 
   private final String jsonValue;
   private final String databaseValue;

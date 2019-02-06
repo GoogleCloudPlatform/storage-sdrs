@@ -18,7 +18,7 @@
 package com.google.gcs.sdrs.enums;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.constants.ValidationConstants;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 
 /**
  * Supported type for events sent to the execution endpoint

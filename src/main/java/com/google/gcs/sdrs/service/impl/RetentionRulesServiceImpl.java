@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.constants.ValidationConstants;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;

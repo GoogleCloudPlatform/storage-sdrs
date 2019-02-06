@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.dao.converter;
 
-import com.google.gcs.sdrs.constants.DatabaseConstants;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import com.google.gcs.sdrs.enums.DataStorageType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -36,9 +36,9 @@ public class DataStorageTypeConverter implements AttributeConverter<DataStorageT
   @Override
   public DataStorageType convertToEntityAttribute(String databaseRepresentation) {
     switch (databaseRepresentation) {
-      case DatabaseConstants.GOOGLE_CLOUD_STORAGE_VALUE:
+      case DatabaseConstants.STORAGE_TYPE_GCS:
         return DataStorageType.GOOGLE_CLOUD_STORAGE;
-      case DatabaseConstants.BIG_QUERY_VALUE:
+      case DatabaseConstants.STORAGE_TYPE_BIG_QUERY:
         return DataStorageType.BIG_QUERY;
       default:
         throw new IllegalArgumentException(

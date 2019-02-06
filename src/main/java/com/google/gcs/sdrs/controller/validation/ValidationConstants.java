@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.constants;
+package com.google.gcs.sdrs.controller.validation;
 
 public class ValidationConstants {
   // 3 Years

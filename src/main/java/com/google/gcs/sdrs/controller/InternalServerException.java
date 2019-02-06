@@ -17,26 +17,24 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.constants.HttpConstants;
+import org.eclipse.jetty.http.HttpStatus;
 
-/**
- * Exception thrown when internal errors occur. Hides internal details.
- */
+/** Exception thrown when internal errors occur. Hides internal details. */
 public class InternalServerException extends HttpException {
 
   public InternalServerException(Exception exception) {
     this.initCause(exception);
   }
 
-  /** Gets the error message including all tracked errors */
+  /** Gets an error message hiding internal details */
   @Override
   public String getMessage() {
     return "Internal server error";
   }
 
-  /** Gets the validation error HTTP status code */
+  /** Gets the error HTTP status code */
   @Override
   public int getStatusCode() {
-    return HttpConstants.INTERNAL_SERVER_ERROR_CODE;
+    return HttpStatus.INTERNAL_SERVER_ERROR_500;
   }
 }

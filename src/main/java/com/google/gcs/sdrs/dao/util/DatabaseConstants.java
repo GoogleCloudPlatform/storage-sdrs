@@ -15,9 +15,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.constants;
+package com.google.gcs.sdrs.dao.util;
 
-public class HttpConstants {
-  public static final int VALIDATION_ERROR_CODE = 400;
-  public static final int INTERNAL_SERVER_ERROR_CODE = 500;
+public class DatabaseConstants {
+  public static final String STORAGE_TYPE_GCS = "GCS";
+  public static final String STORAGE_TYPE_BIG_QUERY = "BQ";
+
+  // this will be changed to "default" in the future
+  public static final String POLICY_TYPE_GLOBAL = "global";
+  public static final String POLICY_TYPE_DATASET = "dataset";
+  public static final String STS_JOB_STATUS_SUCCESS = "success";
+  public static final String STS_JOB_STATUS_PENDING = "pending";
+  public static final String STS_JOB_STATUS_ERROR = "error";
 }

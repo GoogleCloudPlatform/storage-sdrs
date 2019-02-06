@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.dao.converter;
 
-import com.google.gcs.sdrs.constants.DatabaseConstants;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import com.google.gcs.sdrs.enums.RetentionJobStatusType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -36,11 +36,11 @@ public class RetentionJobStatusTypeConverter implements AttributeConverter<Reten
   @Override
   public RetentionJobStatusType convertToEntityAttribute(String databaseRepresentation) {
     switch (databaseRepresentation) {
-      case DatabaseConstants.SUCCESS_VALUE:
+      case DatabaseConstants.STS_JOB_STATUS_SUCCESS:
         return RetentionJobStatusType.SUCCESS;
-      case DatabaseConstants.PENDING_VALUE:
+      case DatabaseConstants.STS_JOB_STATUS_PENDING:
         return RetentionJobStatusType.PENDING;
-      case DatabaseConstants.ERROR_VALUE:
+      case DatabaseConstants.STS_JOB_STATUS_ERROR:
         return RetentionJobStatusType.ERROR;
       default:
         throw new IllegalArgumentException(

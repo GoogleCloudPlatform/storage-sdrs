@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.dao.converter;
 
-import com.google.gcs.sdrs.constants.DatabaseConstants;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -39,9 +39,9 @@ public class RetentionRuleTypeConverter implements AttributeConverter<RetentionR
   @Override
   public RetentionRuleType convertToEntityAttribute(String databaseRepresentation) {
     switch (databaseRepresentation) {
-      case DatabaseConstants.GLOBAL_VALUE:
+      case DatabaseConstants.POLICY_TYPE_GLOBAL:
         return GLOBAL;
-      case DatabaseConstants.DATASET_VALUE:
+      case DatabaseConstants.POLICY_TYPE_DATASET:
         return DATASET;
       default:
         throw new IllegalArgumentException(

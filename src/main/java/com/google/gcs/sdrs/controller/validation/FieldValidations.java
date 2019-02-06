@@ -17,7 +17,6 @@
 
 package com.google.gcs.sdrs.controller.validation;
 
-import com.google.gcs.sdrs.constants.ValidationConstants;
 import java.util.Collection;
 import java.util.HashSet;
 

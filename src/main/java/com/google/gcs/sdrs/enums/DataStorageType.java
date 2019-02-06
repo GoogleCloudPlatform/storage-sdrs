@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.enums;
 
-import com.google.gcs.sdrs.constants.DatabaseConstants;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import java.io.Serializable;
 
 /**
@@ -26,8 +26,8 @@ import java.io.Serializable;
  * <p>Enum string values indicate how it is serialized to the database.
  */
 public enum DataStorageType implements Serializable {
-  GOOGLE_CLOUD_STORAGE(DatabaseConstants.GOOGLE_CLOUD_STORAGE_VALUE),
-  BIG_QUERY(DatabaseConstants.BIG_QUERY_VALUE);
+  GOOGLE_CLOUD_STORAGE(DatabaseConstants.STORAGE_TYPE_GCS),
+  BIG_QUERY(DatabaseConstants.STORAGE_TYPE_BIG_QUERY);
 
   private final String databaseValue;
 
