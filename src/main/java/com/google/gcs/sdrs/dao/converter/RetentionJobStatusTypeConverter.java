@@ -29,7 +29,7 @@ public class RetentionJobStatusTypeConverter implements AttributeConverter<Reten
   /** Convert RetentionJobStatusType to a String */
   @Override
   public String convertToDatabaseColumn(RetentionJobStatusType type) {
-    return type.toString();
+    return type.toDatabaseRepresentation();
   }
 
   /** Convert a database string representation to a RetentionJobStatusType */

@@ -23,21 +23,20 @@ import java.io.Serializable;
 /**
  * Supported types for retention job statuses
  *
- * <p>Enum string values indicate how this value is serialized to the database.
+ * <p>Enum string values indicate how this is serialized to the database.
  */
 public enum RetentionJobStatusType implements Serializable {
   SUCCESS(DatabaseConstants.SUCCESS_VALUE),
   PENDING(DatabaseConstants.PENDING_VALUE),
   ERROR(DatabaseConstants.ERROR_VALUE);
 
-  private final String value;
+  private final String databaseValue;
 
-  RetentionJobStatusType(final String value) {
-    this.value = value;
+  RetentionJobStatusType(final String databaseValue) {
+    this.databaseValue = databaseValue;
   }
 
-  @Override
-  public String toString() {
-    return this.value;
+  public String toDatabaseRepresentation() {
+    return databaseValue;
   }
 }

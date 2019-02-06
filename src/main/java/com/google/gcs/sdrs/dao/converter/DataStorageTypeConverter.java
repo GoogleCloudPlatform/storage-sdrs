@@ -29,7 +29,7 @@ public class DataStorageTypeConverter implements AttributeConverter<DataStorageT
   /** Convert DataStorageType to a String */
   @Override
   public String convertToDatabaseColumn(DataStorageType type) {
-    return type.toString();
+    return type.toDatabaseRepresentation();
   }
 
   /** Convert a database string representation to a DataStorageType */
@@ -43,8 +43,7 @@ public class DataStorageTypeConverter implements AttributeConverter<DataStorageT
       default:
         throw new IllegalArgumentException(
             String.format(
-                "%s is not representable as a %s",
-                databaseRepresentation, DataStorageType.class));
+                "%s is not representable as a %s", databaseRepresentation, DataStorageType.class));
     }
   }
 }

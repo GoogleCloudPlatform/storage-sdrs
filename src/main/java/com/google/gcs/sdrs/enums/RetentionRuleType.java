@@ -20,6 +20,7 @@ package com.google.gcs.sdrs.enums;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gcs.sdrs.constants.DatabaseConstants;
+import com.google.gcs.sdrs.constants.ValidationConstants;
 import java.io.Serializable;
 
 /**
@@ -30,20 +31,28 @@ import java.io.Serializable;
  * <p>Enum string values indicate how this value is serialized to the database.
  */
 public enum RetentionRuleType implements Serializable {
-  @JsonProperty("GLOBAL")
-  GLOBAL(DatabaseConstants.GLOBAL_VALUE),
+  @JsonProperty(ValidationConstants.GLOBAL_JSON_VALUE)
+  GLOBAL(ValidationConstants.GLOBAL_JSON_VALUE, DatabaseConstants.GLOBAL_VALUE),
 
-  @JsonProperty("DATASET")
-  DATASET(DatabaseConstants.DATASET_VALUE);
+  @JsonProperty(ValidationConstants.GLOBAL_JSON_VALUE)
+  DATASET(ValidationConstants.DATASET_JSON_VALUE, DatabaseConstants.DATASET_VALUE);
 
-  private final String value;
+  private final String jsonValue;
+  private final String databaseValue;
 
-  RetentionRuleType(final String value) {
-    this.value = value;
+  RetentionRuleType(final String jsonValue, final String databaseValue) {
+    this.jsonValue = jsonValue;
+    this.databaseValue = databaseValue;
   }
 
+  /** This will return the JSON representation */
   @Override
   public String toString() {
-    return this.value;
+    return this.jsonValue;
+  }
+
+  /** This will return the database representation */
+  public String toDatabaseRepresentation() {
+    return this.databaseValue;
   }
 }

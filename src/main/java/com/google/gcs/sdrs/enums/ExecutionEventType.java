@@ -18,6 +18,7 @@
 package com.google.gcs.sdrs.enums;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gcs.sdrs.constants.ValidationConstants;
 
 /**
  * Supported type for events sent to the execution endpoint
@@ -25,9 +26,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * <p>JsonProperty values indicate the supported JSON input string.
  */
 public enum ExecutionEventType {
-  @JsonProperty("POLICY")
-  POLICY,
+  @JsonProperty(ValidationConstants.POLICY_JSON_VALUE)
+  POLICY(ValidationConstants.POLICY_JSON_VALUE),
 
-  @JsonProperty("USER")
-  USER_COMMANDED
+  @JsonProperty(ValidationConstants.USER_JSON_VALUE)
+  USER_COMMANDED(ValidationConstants.USER_JSON_VALUE);
+
+  private final String jsonValue;
+
+  ExecutionEventType(String jsonValue) {
+    this.jsonValue = jsonValue;
+  }
+
+  /** This will return the JSON representation */
+  @Override
+  public String toString() {
+    return jsonValue;
+  }
 }

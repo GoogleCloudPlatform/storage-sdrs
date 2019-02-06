@@ -32,7 +32,7 @@ public class RetentionRuleTypeConverter implements AttributeConverter<RetentionR
   /** Convert RetentionRuleType to a String */
   @Override
   public String convertToDatabaseColumn(RetentionRuleType type) {
-    return type.toString();
+    return type.toDatabaseRepresentation();
   }
 
   /** Convert a database string representation to a RetentionRuleType */

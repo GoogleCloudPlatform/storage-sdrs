@@ -23,20 +23,19 @@ import java.io.Serializable;
 /**
  * Supported types for Data Storage
  *
- * <p>Enum string values indicate how this value is serialized to the database.
+ * <p>Enum string values indicate how it is serialized to the database.
  */
 public enum DataStorageType implements Serializable {
   GOOGLE_CLOUD_STORAGE(DatabaseConstants.GOOGLE_CLOUD_STORAGE_VALUE),
   BIG_QUERY(DatabaseConstants.BIG_QUERY_VALUE);
 
-  private final String value;
+  private final String databaseValue;
 
-  DataStorageType(final String value) {
-    this.value = value;
+  DataStorageType(final String databaseValue) {
+    this.databaseValue = databaseValue;
   }
 
-  @Override
-  public String toString() {
-    return this.value;
+  public String toDatabaseRepresentation() {
+    return databaseValue;
   }
 }
