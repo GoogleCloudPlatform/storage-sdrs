@@ -17,10 +17,10 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.gcs.sdrs.constants.ValidationConstants;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
-import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -100,8 +100,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       return null;
     }
 
-    String removedPrefix = dataStorageName.substring(FieldValidations.STORAGE_PREFIX.length());
-    String[] bucketAndDataset = removedPrefix.split(FieldValidations.STORAGE_SEPARATOR, 2);
+    String removedPrefix = dataStorageName.substring(ValidationConstants.STORAGE_PREFIX.length());
+    String[] bucketAndDataset = removedPrefix.split(ValidationConstants.STORAGE_SEPARATOR, 2);
 
     if (bucketAndDataset.length == 2) {
       return bucketAndDataset[1];

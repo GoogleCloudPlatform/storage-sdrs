@@ -13,38 +13,31 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.resource;
+package com.google.gcs.sdrs.enums;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.gcs.sdrs.constants.DatabaseConstants;
+import java.io.Serializable;
 
 /**
- * Root resource (exposed at "myresource" path)
+ * Supported types for retention job statuses
  *
- * @deprecated
+ * <p>Enum string values indicate how this value is serialized to the database.
  */
-@Path("/myresource")
-public class MyResource {
+public enum RetentionJobStatusType implements Serializable {
+  SUCCESS(DatabaseConstants.SUCCESS_VALUE),
+  PENDING(DatabaseConstants.PENDING_VALUE),
+  ERROR(DatabaseConstants.ERROR_VALUE);
 
-  static final private Logger logger = LoggerFactory.getLogger(MyResource.class);
+  private final String value;
 
-  /**
-   * Method handling HTTP GET requests. The returned object will be sent
-   * to the client as "text/plain" media type.
-   *
-   * @return String that will be returned as a text/plain response.
-   */
-  @GET
-  @Produces(MediaType.TEXT_PLAIN)
-  public String getIt() {
-    logger.debug("Get Got Gotten");
-    return "Got it good!";
+  RetentionJobStatusType(final String value) {
+    this.value = value;
+  }
+
+  @Override
+  public String toString() {
+    return this.value;
   }
 }

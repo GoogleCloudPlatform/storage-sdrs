@@ -62,6 +62,9 @@ public class EventsController extends BaseController {
       return Response.status(200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
+    } catch (Exception exception) {
+      logger.error(exception.getMessage());
+      return generateExceptionResponse(new InternalServerException(exception), requestUuid);
     }
   }
 

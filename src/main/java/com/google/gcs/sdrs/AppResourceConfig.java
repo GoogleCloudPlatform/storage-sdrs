@@ -18,26 +18,20 @@
 
 package com.google.gcs.sdrs;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.ws.rs.ApplicationPath;
-
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.ws.rs.ApplicationPath;
 import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
-/**
- * 
- * Resource Configuration for Grizzly Http Server
- *
- */
+/** Resource Configuration for Grizzly Http Server */
 @ApplicationPath("resources")
 public class AppResourceConfig extends ResourceConfig {
   public AppResourceConfig() {
-    packages("com.google.pso", "com.google.gcs.sdrs");
+    packages("com.google.gcs.sdrs");
 
     register(
         new LoggingFeature(

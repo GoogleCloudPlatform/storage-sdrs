@@ -19,6 +19,7 @@
 package com.google.gcs.sdrs.enums;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gcs.sdrs.constants.DatabaseConstants;
 import java.io.Serializable;
 
 /**
@@ -30,10 +31,10 @@ import java.io.Serializable;
  */
 public enum RetentionRuleType implements Serializable {
   @JsonProperty("GLOBAL")
-  GLOBAL("global"),
+  GLOBAL(DatabaseConstants.GLOBAL_VALUE),
 
   @JsonProperty("DATASET")
-  DATASET("dataset");
+  DATASET(DatabaseConstants.DATASET_VALUE);
 
   private final String value;
 

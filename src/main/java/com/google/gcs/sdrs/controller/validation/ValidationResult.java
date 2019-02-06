@@ -34,8 +34,9 @@ public class ValidationResult {
 
   /** Creates a ValidationResult */
   public ValidationResult(Collection<String> validationMessages) {
-    this.validationMessages = Collections.unmodifiableCollection(validationMessages);
-    this.isValid = validationMessages.size() == 0;
+    Collection<String> collection = new LinkedList<>(validationMessages);
+    this.validationMessages = Collections.unmodifiableCollection(collection);
+    this.isValid = collection.size() == 0;
   }
 
   /** Create a ValidationResult from a composite of partial results. */

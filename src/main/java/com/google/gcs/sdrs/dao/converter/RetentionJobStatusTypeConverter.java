@@ -18,36 +18,35 @@
 package com.google.gcs.sdrs.dao.converter;
 
 import com.google.gcs.sdrs.constants.DatabaseConstants;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.enums.RetentionJobStatusType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
-import static com.google.gcs.sdrs.enums.RetentionRuleType.DATASET;
-import static com.google.gcs.sdrs.enums.RetentionRuleType.GLOBAL;
-
-/** Supports converting a RetentionRuleType between the database and application representations */
+/** Supports converting a RetentionJobStatusType between the database and application representations */
 @Converter
-public class RetentionRuleTypeConverter implements AttributeConverter<RetentionRuleType, String> {
+public class RetentionJobStatusTypeConverter implements AttributeConverter<RetentionJobStatusType, String> {
 
-  /** Convert RetentionRuleType to a String */
+  /** Convert RetentionJobStatusType to a String */
   @Override
-  public String convertToDatabaseColumn(RetentionRuleType type) {
+  public String convertToDatabaseColumn(RetentionJobStatusType type) {
     return type.toString();
   }
 
-  /** Convert a database string representation to a RetentionRuleType */
+  /** Convert a database string representation to a RetentionJobStatusType */
   @Override
-  public RetentionRuleType convertToEntityAttribute(String databaseRepresentation) {
+  public RetentionJobStatusType convertToEntityAttribute(String databaseRepresentation) {
     switch (databaseRepresentation) {
-      case DatabaseConstants.GLOBAL_VALUE:
-        return GLOBAL;
-      case DatabaseConstants.DATASET_VALUE:
-        return DATASET;
+      case DatabaseConstants.SUCCESS_VALUE:
+        return RetentionJobStatusType.SUCCESS;
+      case DatabaseConstants.PENDING_VALUE:
+        return RetentionJobStatusType.PENDING;
+      case DatabaseConstants.ERROR_VALUE:
+        return RetentionJobStatusType.ERROR;
       default:
         throw new IllegalArgumentException(
             String.format(
                 "%s is not representable as a %s",
-                databaseRepresentation, RetentionRuleType.class));
+                databaseRepresentation, RetentionJobStatusType.class));
     }
   }
 }

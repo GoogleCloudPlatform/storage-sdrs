@@ -17,13 +17,12 @@
 
 package com.google.gcs.sdrs.controller.validation;
 
+import com.google.gcs.sdrs.constants.ValidationConstants;
 import java.util.Collection;
 import java.util.HashSet;
 
 /** Exposes static methods for validation shared between controllers. */
 public class FieldValidations {
-  public static final String STORAGE_PREFIX = "gs://";
-  public static final String STORAGE_SEPARATOR = "/";
 
   private FieldValidations() {}
 
@@ -42,11 +41,13 @@ public class FieldValidations {
       validationMessages.add(String.format("%s must be provided", fieldName));
     } else {
       // Field value should match gs://<bucket_name>/<dataset_name>
-      if (!fieldValue.startsWith(STORAGE_PREFIX)) {
-        validationMessages.add(String.format("%s must start with '%s'", fieldName, STORAGE_PREFIX));
+      if (!fieldValue.startsWith(ValidationConstants.STORAGE_PREFIX)) {
+        validationMessages.add(
+            String.format(
+                "%s must start with '%s'", fieldName, ValidationConstants.STORAGE_PREFIX));
       } else {
-        String bucketAndDataset = fieldValue.substring(STORAGE_PREFIX.length());
-        String[] pathSegments = bucketAndDataset.split(STORAGE_SEPARATOR);
+        String bucketAndDataset = fieldValue.substring(ValidationConstants.STORAGE_PREFIX.length());
+        String[] pathSegments = bucketAndDataset.split(ValidationConstants.STORAGE_SEPARATOR);
 
         if (pathSegments[0].length() == 0) {
           validationMessages.add(String.format("%s must include a bucket name", fieldName));

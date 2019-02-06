@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.constants.HttpConstants;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import java.util.Collection;
 
@@ -43,6 +44,6 @@ public class ValidationException extends HttpException {
   /** Gets the validation error HTTP status code */
   @Override
   public int getStatusCode() {
-    return 400;
+    return HttpConstants.VALIDATION_ERROR_CODE;
   }
 }

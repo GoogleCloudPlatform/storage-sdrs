@@ -18,16 +18,24 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.dao.converter.RetentionRuleTypeConverter;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 import java.sql.Timestamp;
-
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.AbstractSingleColumnStandardBasicType;
+import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
+import org.hibernate.type.descriptor.java.CharacterTypeDescriptor;
+import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 
 /** Note - coding to JPA specification, not Hibernate specific annotations */
 @Entity
@@ -48,9 +56,9 @@ public class RetentionJob {
   @Column(name = "retention_rule_version")
   private Integer retentionRuleVersion;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "retention_rule_type")
-  private String retentionRuleType;
+  @Convert(converter = RetentionRuleTypeConverter.class)
+  @Column(name = "type")
+  private RetentionRuleType retentionRuleType;
 
   @Column(name = "retention_rule_data_storage_name")
   private String retentionRuleDataStorageName;
@@ -87,13 +95,13 @@ public class RetentionJob {
     this.retentionRuleId = retentionRuleId;
   }
 
-  public String getRetentionRuleType() {
-    return retentionRuleType;
-  }
-
-  public void setRetentionRuleType(String retentionRuleType) {
-    this.retentionRuleType = retentionRuleType;
-  }
+//  public String getRetentionRuleType() {
+//    return retentionRuleType;
+//  }
+//
+//  public void setRetentionRuleType(String retentionRuleType) {
+//    this.retentionRuleType = retentionRuleType;
+//  }
 
   public String getRetentionRuleDataStorageName() {
     return retentionRuleDataStorageName;
@@ -127,3 +135,4 @@ public class RetentionJob {
     this.retentionRuleVersion = retentionRuleVersion;
   }
 }
+
