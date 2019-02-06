@@ -18,23 +18,20 @@
 
 package com.google.gcs.sdrs.JobManager;
 
+import com.google.gcs.sdrs.JobScheduler.JobScheduler;
 import com.google.gcs.sdrs.worker.Worker;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.google.gcs.sdrs.worker.WorkerResult;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gcs.sdrs.worker.BaseWorker;
-import com.google.gcs.sdrs.worker.WorkerResult;
 
 /**
  * JobManager for creating and managing worker threads.

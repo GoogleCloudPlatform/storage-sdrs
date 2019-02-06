@@ -18,19 +18,8 @@
 
 package com.google.gcs.sdrs.dao.impl;
 
-import com.google.gcs.sdrs.dao.Dao;
-import com.google.gcs.sdrs.dao.model.RetentionExecution;
-import com.google.gcs.sdrs.dao.model.RetentionJob;
-import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.dao.BaseDao;
 import java.io.Serializable;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.boot.Metadata;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,19 +29,12 @@ import org.slf4j.LoggerFactory;
  * @param <T>
  * @param <Id>
  */
-public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
+public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
 
   private static final Logger logger = LoggerFactory.getLogger(GenericDao.class);
-  private final Class<T> type;
-
-  private static StandardServiceRegistry registry;
-  private static SessionFactory sessionFactory;
-
-  protected Session currentSession;
-  protected Transaction currentTransaction;
 
   public GenericDao(final Class<T> type) {
-    this.type = type;
+    super(type);
   }
 
   /* (non-Javadoc)
@@ -96,68 +78,5 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
     openCurrentSessionWithTransaction();
     getCurrentSession().delete(entity);
     closeCurrentSessionWithTransaction();
-  }
-
-  public Session openCurrentSession() {
-    currentSession = getSessionFactory().openSession();
-    return currentSession;
-  }
-
-  public Session openCurrentSessionWithTransaction() {
-    currentSession = getSessionFactory().openSession();
-    currentTransaction = currentSession.beginTransaction();
-    return currentSession;
-  }
-
-  public void closeCurrentSession() {
-    currentSession.close();
-  }
-
-  public void closeCurrentSessionWithTransaction() {
-    currentTransaction.commit();
-    currentSession.close();
-  }
-
-  public static SessionFactory getSessionFactory() {
-    if (sessionFactory == null) {
-      try {
-        // Create registry
-        registry = new StandardServiceRegistryBuilder().configure().build();
-
-        // Create Metadata
-        Metadata metadata = new MetadataSources(registry)
-            .addAnnotatedClass(RetentionRule.class)
-            .addAnnotatedClass(RetentionExecution.class)
-            .addAnnotatedClass(RetentionJob.class)
-            .addAnnotatedClass(RetentionJobValidation.class)
-            .getMetadataBuilder().build();
-
-        // Create SessionFactory
-        sessionFactory = metadata.getSessionFactoryBuilder().build();
-
-      } catch (Exception e) {
-        e.printStackTrace();
-        if (registry != null) {
-          StandardServiceRegistryBuilder.destroy(registry);
-        }
-      }
-    }
-    return sessionFactory;
-  }
-
-  public Session getCurrentSession() {
-    return currentSession;
-  }
-
-  public void setCurrentSession(Session currentSession) {
-    this.currentSession = currentSession;
-  }
-
-  public Transaction getCurrentTransaction() {
-    return currentTransaction;
-  }
-
-  public void setCurrentTransaction(Transaction currentTransaction) {
-    this.currentTransaction = currentTransaction;
   }
 }

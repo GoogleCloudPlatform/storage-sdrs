@@ -15,13 +15,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.worker;
+package com.google.gcs.sdrs.dao;
 
-import java.util.concurrent.Callable;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
+import java.util.List;
 
-public interface Worker extends Callable<WorkerResult> {
+/** Defines available persistence operations for RetentionRule entities */
+public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
 
-  void doWork();
-
-  WorkerResult getWorkerResult();
+  List<RetentionRule> getAllByDataStorageAndDataset(String dataStorage, String dataset);
 }
