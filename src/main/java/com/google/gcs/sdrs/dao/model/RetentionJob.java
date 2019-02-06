@@ -28,14 +28,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import org.hibernate.annotations.Type;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
-import org.hibernate.type.descriptor.java.CharacterTypeDescriptor;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
-import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 
 /** Note - coding to JPA specification, not Hibernate specific annotations */
 @Entity
@@ -95,13 +87,13 @@ public class RetentionJob {
     this.retentionRuleId = retentionRuleId;
   }
 
-//  public String getRetentionRuleType() {
-//    return retentionRuleType;
-//  }
-//
-//  public void setRetentionRuleType(String retentionRuleType) {
-//    this.retentionRuleType = retentionRuleType;
-//  }
+  public RetentionRuleType getRetentionRuleType() {
+    return retentionRuleType;
+  }
+
+  public void setRetentionRuleType(RetentionRuleType retentionRuleType) {
+    this.retentionRuleType = retentionRuleType;
+  }
 
   public String getRetentionRuleDataStorageName() {
     return retentionRuleDataStorageName;
@@ -135,4 +127,3 @@ public class RetentionJob {
     this.retentionRuleVersion = retentionRuleVersion;
   }
 }
-
