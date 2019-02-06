@@ -18,6 +18,6 @@
 package com.google.gcs.sdrs.constants;
 
 public class HttpConstants {
-  public static int VALIDATION_ERROR_CODE = 400;
-  public static int INTERNAL_SERVER_ERROR_CODE = 500;
+  public static final int VALIDATION_ERROR_CODE = 400;
+  public static final int INTERNAL_SERVER_ERROR_CODE = 500;
 }
