@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.JobManager;
 
+import com.google.gcs.sdrs.worker.Worker;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
@@ -118,7 +119,7 @@ public class JobManager {
    * Submits a callable worker for execution
    * @param job A callable that returns a WorkerResult record.
    */
-  public void submitJob(BaseWorker job) {
+  public void submitJob(Worker job) {
     completionService.submit(job);
     activeWorkerCount.incrementAndGet();
     logger.debug("Active Workers after submission: " + activeWorkerCount.get());

@@ -15,20 +15,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service.impl;
+package com.google.gcs.sdrs.worker;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
-import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
-import com.google.gcs.sdrs.service.EventsService;
-import com.google.gcs.sdrs.worker.Worker;
-import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
+import org.junit.Before;
 
-/** Service implementation for event related behaviors. */
-public class EventsServiceImpl implements EventsService {
+public class RetentionWorkerTest {
 
-  @Override
-  public void executeEvent(ExecutionEventRequest request) {
-    Worker worker = new ExecuteRetentionWorker(request);
-    JobManager.getInstance().submitJob(worker);
-  }
+  @Before
+  public void setup() {}
+
 }

@@ -13,12 +13,20 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.worker;
+package com.google.gcs.sdrs.worker.impl;
 
-// TODO Remove this class and replace usages after a
-//  concrete worker implementation is written
-public class DemoWorker extends BaseWorker {
+import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import com.google.gcs.sdrs.worker.BaseWorker;
+
+public class ExecuteRetentionWorker extends BaseWorker {
+
+  public ExecuteRetentionWorker(ExecutionEventRequest request) {}
+
+  @Override
+  public void doWork() {
+    // query db
+    // fire off some RuleExecutions
+  }
 }
