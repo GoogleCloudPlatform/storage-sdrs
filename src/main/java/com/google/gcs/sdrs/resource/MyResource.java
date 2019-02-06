@@ -63,7 +63,7 @@ public class MyResource {
 //    BaseWorker worker = new DemoWorker();
 //    jobManager.submitJob(worker);
 
-    Dao<RetentionRule, Integer> ruleDao = SingletonDao.retentionRuleDao;
+    Dao<RetentionRule, Integer> ruleDao = SingletonDao.getRetentionRuleDao();
 
     RetentionRule rule = ruleDao.findById(1);
 
