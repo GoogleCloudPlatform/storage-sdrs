@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -65,8 +64,9 @@ public class StsUtility {
    * @param projectId the project ID of the target GCP project
    * @param sourceBucket the bucket from which you want to move
    * @param destinationBucket the destination bucket you want to move to
+   * @param prefixes a list of all prefixes to include in the transfer job
+   * @param description the description of the transfer job
    * @param startDateTime the datetime when you want the job to start
-//   * @param startTime the time you want the job to start
    * @return the TransferJob object that is created
    * @throws IOException when the client or job cannot be created
    */
@@ -75,6 +75,7 @@ public class StsUtility {
                                          String sourceBucket,
                                          String destinationBucket,
                                          List<String> prefixes,
+                                         String description,
                                          LocalDateTime startDateTime)
       throws IOException {
     Date date = createDate(startDateTime.toLocalDate());
@@ -82,18 +83,21 @@ public class StsUtility {
     TransferJob transferJob =
         new TransferJob()
             .setProjectId(projectId)
+            .setDescription(description)
             .setTransferSpec(
                 new TransferSpec()
                     .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
                     .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
-                    .setObjectConditions(
-                        new ObjectConditions().setIncludePrefixes(prefixes)
-                    )
+                    .setObjectConditions(new ObjectConditions().setIncludePrefixes(prefixes))
                     .setTransferOptions(
                         new TransferOptions()
-                            .setDeleteObjectsFromSourceAfterTransfer(false)))
+                            .setDeleteObjectsFromSourceAfterTransfer(false)
+                            .setOverwriteObjectsAlreadyExistingInSink(true)))
             .setSchedule(
-                new Schedule().setScheduleStartDate(date).setStartTimeOfDay(time))
+                new Schedule()
+                    .setScheduleStartDate(date)
+                    .setStartTimeOfDay(time)
+                    .setScheduleEndDate(date))
             .setStatus("ENABLED");
 
     return client.transferJobs().create(transferJob).execute();

@@ -27,19 +27,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.LocalDate;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
+
+/**
+ * An implementation of the Rule Executor interface that uses STS
+ */
 public class StsRuleExecutor implements RuleExecutor {
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
 
+  /**
+   * Executes a dataset retention rule
+   * @param rule The retention rule to execute
+   * @return A RetentionJob object
+   * @throws IOException when communication can't be established with STS
+   */
+  @Override
   public RetentionJob executeDatasetRule(RetentionRule rule) throws IOException{
 
     String suffix = getSuffixFromConfig();
@@ -49,27 +58,42 @@ public class StsRuleExecutor implements RuleExecutor {
     prefixes.add("testDataset/2018/12/31/12");
     // TODO generate prefixes once Tom's code is merged
 
-    Collection<RetentionJob> jobRecords = new LinkedList<>();
-
     String projectId = rule.getProjectId();
-    String name = UUID.randomUUID().toString();
     String sourceBucket = formatDataStorageName(rule.getDataStorageName());
     String destinationBucket = formatDataStorageName(rule.getDataStorageName(), suffix);
+    LocalDateTime dateTimeNow = LocalDateTime.now(Clock.systemUTC());
+    String description = String.format(
+        "Rule %s %s", rule.getId().toString(), dateTimeNow.toString());
 
     logger.debug(
-        String.format("Creating STS job with projectId: %s, name: %s, source: %s, destination: %s",
+        String.format("Creating STS job with projectId: %s, " +
+                "description: %s, source: %s, destination: %s",
             projectId,
-            name,
+            description,
             sourceBucket,
             destinationBucket));
 
     Storagetransfer client = StsUtility.createStsClient();
-    TransferJob job = StsUtility.createStsJob(
-        client, projectId, sourceBucket, destinationBucket, prefixes, LocalDateTime.now());
+    TransferJob job =
+        StsUtility.createStsJob(
+            client,
+            projectId,
+            sourceBucket,
+            destinationBucket,
+            prefixes,
+            description,
+            dateTimeNow);
 
     return buildRetentionJobEntity(job.getName(), rule);
   }
 
+  /**
+   * NOT IMPLEMENTED! Executes a default retention rule.
+   * @param rule the default rule to execute
+   * @param affectedDatasetRules any dataset rules that exist within the same bucket
+   *                             as the default rule
+   * @return A collection of RetentionJob records
+   */
   public Collection<RetentionJob> executeDefaultRule(RetentionRule rule, Collection<RetentionRule> affectedDatasetRules) {
 
     String suffix = getSuffixFromConfig();
