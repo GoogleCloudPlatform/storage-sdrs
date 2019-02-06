@@ -19,6 +19,10 @@
 package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.Dao;
+import com.google.gcs.sdrs.dao.model.RetentionExecution;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
 import java.io.Serializable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -59,7 +63,7 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
   public Id save(final T entity) {
     openCurrentSessionWithTransaction();
     Id result = (Id) getCurrentSession().save(entity);
-    closeCurrentSessionwithTransaction();
+    closeCurrentSessionWithTransaction();
     return result;
   }
 
@@ -70,7 +74,7 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
   public void update(final T entity) {
     openCurrentSessionWithTransaction();
     getCurrentSession().update(entity);
-    closeCurrentSessionwithTransaction();
+    closeCurrentSessionWithTransaction();
   }
 
   /* (non-Javadoc)
@@ -91,7 +95,7 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
   public void delete(final T entity) {
     openCurrentSessionWithTransaction();
     getCurrentSession().delete(entity);
-    closeCurrentSessionwithTransaction();
+    closeCurrentSessionWithTransaction();
   }
 
   public Session openCurrentSession() {
@@ -109,7 +113,7 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
     currentSession.close();
   }
 
-  public void closeCurrentSessionwithTransaction() {
+  public void closeCurrentSessionWithTransaction() {
     currentTransaction.commit();
     currentSession.close();
   }
@@ -120,11 +124,13 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
         // Create registry
         registry = new StandardServiceRegistryBuilder().configure().build();
 
-        // Create MetadataSources
-        MetadataSources sources = new MetadataSources(registry);
-
         // Create Metadata
-        Metadata metadata = sources.getMetadataBuilder().build();
+        Metadata metadata = new MetadataSources(registry)
+            .addAnnotatedClass(RetentionRule.class)
+            .addAnnotatedClass(RetentionExecution.class)
+            .addAnnotatedClass(RetentionJob.class)
+            .addAnnotatedClass(RetentionJobValidation.class)
+            .getMetadataBuilder().build();
 
         // Create SessionFactory
         sessionFactory = metadata.getSessionFactoryBuilder().build();

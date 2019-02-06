@@ -18,9 +18,12 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.dao.converter.RetentionJobStatusTypeConverter;
+import com.google.gcs.sdrs.enums.RetentionJobStatusType;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -45,9 +48,9 @@ public class RetentionJobValidation {
   @Column(name = "job_operation_name")
   private String jobOperationName;
 
-  @Enumerated(EnumType.STRING)
+  @Convert(converter = RetentionJobStatusTypeConverter.class)
   @Column(name = "status")
-  private Enum<?> status;
+  private RetentionJobStatusType status;
 
   @Column(name = "created_at")
   private Timestamp createdAt;
@@ -81,11 +84,11 @@ public class RetentionJobValidation {
     this.jobOperationName = jobOperationName;
   }
 
-  public Enum<?> getStatus() {
+  public RetentionJobStatusType getStatus() {
     return status;
   }
 
-  public void setStatus(Enum<?> status) {
+  public void setStatus(RetentionJobStatusType status) {
     this.status = status;
   }
 

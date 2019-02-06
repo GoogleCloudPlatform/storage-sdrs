@@ -13,38 +13,28 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.resource;
+package com.google.gcs.sdrs.controller;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.jetty.http.HttpStatus;
 
-/**
- * Root resource (exposed at "myresource" path)
- *
- * @deprecated
- */
-@Path("/myresource")
-public class MyResource {
+/** Exception thrown when internal errors occur. Hides internal details. */
+public class InternalServerException extends HttpException {
 
-  static final private Logger logger = LoggerFactory.getLogger(MyResource.class);
+  public InternalServerException(Exception exception) {
+    this.initCause(exception);
+  }
 
-  /**
-   * Method handling HTTP GET requests. The returned object will be sent
-   * to the client as "text/plain" media type.
-   *
-   * @return String that will be returned as a text/plain response.
-   */
-  @GET
-  @Produces(MediaType.TEXT_PLAIN)
-  public String getIt() {
-    logger.debug("Get Got Gotten");
-    return "Got it good!";
+  /** Gets an error message hiding internal details */
+  @Override
+  public String getMessage() {
+    return "Internal server error";
+  }
+
+  /** Gets the error HTTP status code */
+  @Override
+  public int getStatusCode() {
+    return HttpStatus.INTERNAL_SERVER_ERROR_500;
   }
 }

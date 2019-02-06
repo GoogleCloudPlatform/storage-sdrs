@@ -1,27 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE hibernate-configuration SYSTEM 
-"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<!DOCTYPE hibernate-configuration SYSTEM "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 
 <hibernate-configuration>
-	<session-factory>
-		<property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
-		<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
-		<property name="hibernate.connection.url">jdbc:mysql://35.185.192.218:3306/sdrs_schema</property>
-		<property name="hibernate.connection.username">root</property>
-		<property name="hibernate.connection.password">sdrsGrt</property>
-		<property name="hibernate.hbm2ddl.auto">update</property>
-		<property name="hibernate.c3p0.min_size">7</property>
-		<property name="hibernate.c3p0.max_size">21</property>
-		<property name="hibernate.c3p0.timeout">300</property>
-		<property name="hibernate.c3p0.max_statements">50</property>
-		<property name="hibernate.c3p0.idle_test_period">3000</property>
-		<property name="show_sql">false</property>
-		<property name="hibernate.current_session_context_class">thread</property>
-		<property name="hibernate.id.new_generator_mappings">false</property>
-		<!-- mappings for annotated classes -->
-		<mapping class="com.google.gcs.sdrs.dao.model.RetentionRule" />
-		<mapping class="com.google.gcs.sdrs.dao.model.RetentionJob" />
-		<mapping class="com.google.gcs.sdrs.dao.model.RetentionJobValidation" />
-		<mapping class="com.google.gcs.sdrs.dao.model.RetentionExecution" />
-	</session-factory>
+    <session-factory>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://35.185.192.218:3306/sdrs_schema</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">sdrsGrt</property>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="hibernate.c3p0.min_size">7</property>
+        <property name="hibernate.c3p0.max_size">21</property>
+        <property name="hibernate.c3p0.timeout">300</property>
+        <property name="hibernate.c3p0.max_statements">50</property>
+        <property name="hibernate.c3p0.idle_test_period">3000</property>
+        <property name="show_sql">false</property>
+        <property name="hibernate.current_session_context_class">thread</property>
+        <property name="hibernate.id.new_generator_mappings">false</property>
+    </session-factory>
 </hibernate-configuration>

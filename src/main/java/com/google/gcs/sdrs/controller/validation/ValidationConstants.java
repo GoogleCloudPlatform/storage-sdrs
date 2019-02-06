@@ -13,38 +13,17 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.resource;
+package com.google.gcs.sdrs.controller.validation;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-/**
- * Root resource (exposed at "myresource" path)
- *
- * @deprecated
- */
-@Path("/myresource")
-public class MyResource {
-
-  static final private Logger logger = LoggerFactory.getLogger(MyResource.class);
-
-  /**
-   * Method handling HTTP GET requests. The returned object will be sent
-   * to the client as "text/plain" media type.
-   *
-   * @return String that will be returned as a text/plain response.
-   */
-  @GET
-  @Produces(MediaType.TEXT_PLAIN)
-  public String getIt() {
-    logger.debug("Get Got Gotten");
-    return "Got it good!";
-  }
+public class ValidationConstants {
+  // 3 Years
+  public static final Integer RETENTION_MAX_VALUE = 1095;
+  public static final String STORAGE_PREFIX = "gs://";
+  public static final String STORAGE_SEPARATOR = "/";
+  public static final String GLOBAL_JSON_VALUE = "GLOBAL";
+  public static final String DATASET_JSON_VALUE = "DATASET";
+  public static final String POLICY_JSON_VALUE = "POLICY";
+  public static final String USER_JSON_VALUE = "USER";
 }
