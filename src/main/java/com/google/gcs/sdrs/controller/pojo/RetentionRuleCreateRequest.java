@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.controller.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 import com.google.gcs.sdrs.enums.RetentionRuleType;
@@ -30,7 +31,9 @@ public class RetentionRuleCreateRequest implements Serializable {
   private Integer retentionPeriod;
   private String dataStorageName;
   private String projectId;
-  private RetentionRuleType type;
+
+  @JsonProperty("type")
+  private RetentionRuleType retentionRuleType;
 
   public String getDatasetName() {
     return datasetName;
@@ -64,11 +67,11 @@ public class RetentionRuleCreateRequest implements Serializable {
     this.projectId = projectId;
   }
 
-  public RetentionRuleType getType() {
-    return type;
+  public RetentionRuleType getRetentionRuleType() {
+    return retentionRuleType;
   }
 
-  public void setType(RetentionRuleType type) {
-    this.type = type;
+  public void setRetentionRuleType(RetentionRuleType retentionRuleType) {
+    this.retentionRuleType = retentionRuleType;
   }
 }

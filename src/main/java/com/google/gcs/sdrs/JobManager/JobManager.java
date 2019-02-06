@@ -33,13 +33,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gcs.sdrs.worker.BaseWorker;
-import com.google.gcs.sdrs.worker.WorkerLog;
+import com.google.gcs.sdrs.worker.WorkerResult;
 
 /**
  * JobManager for creating and managing worker threads.
  */
 public class JobManager {
-  CompletionService<WorkerLog> completionService;
+  CompletionService<WorkerResult> completionService;
   AtomicInteger activeWorkerCount = new AtomicInteger(0);
 
   private ExecutorService executorService;
@@ -47,11 +47,16 @@ public class JobManager {
   private static JobManager instance;
   private static JobScheduler scheduler;
   private static JobManagerMonitor monitor;
-  private static int THREAD_POOL_SIZE = 10;
-  private static int SLEEP_MINUTES = 5;
-  private static int monitorInitialDelay = 0;
-  private static int monitorFrequency = 30;
-  private static TimeUnit monitorTimeUnit = TimeUnit.SECONDS;
+  private static int DEFAULT_THREAD_POOL_SIZE = 10;
+  private static int DEFAULT_SLEEP_MINUTES = 5;
+  private static int DEFAULT_MONITOR_INITIAL_DELAY = 0;
+  private static int DEFAULT_MONITOR_FREQUENCY = 30;
+  private static TimeUnit DEFAULT_MONITOR_TIME_UNIT = TimeUnit.MINUTES;
+  private static int THREAD_POOL_SIZE;
+  private static int SLEEP_MINUTES;
+  private static int MONITOR_INITIAL_DELAY;
+  private static int MONITOR_FREQUENCY;
+  private static TimeUnit MONITOR_TIME_UNIT = TimeUnit.SECONDS;
   private static final Logger logger = LoggerFactory.getLogger(JobManager.class);
 
   /**
@@ -60,19 +65,13 @@ public class JobManager {
    */
   public static synchronized JobManager getInstance() {
     if (instance == null) {
-      try {
-        logger.info("JobManager not created. Creating...");
-
-        instance = new JobManager();
-
-      } catch (ConfigurationException configEx) {
-        logger.error("Configurations couldn't be loaded from the file. Applying defaults..."
-            , configEx.getCause());
-      }
+      logger.info("JobManager not created. Creating...");
+      instance = new JobManager();
 
       monitor = new JobManagerMonitor(instance);
       scheduler = JobScheduler.getInstance();
-      scheduler.submitScheduledJob(monitor, monitorInitialDelay, monitorFrequency, monitorTimeUnit);
+      scheduler.submitScheduledJob(monitor,
+          MONITOR_INITIAL_DELAY, MONITOR_FREQUENCY, MONITOR_TIME_UNIT);
     }
 
     return instance;
@@ -117,22 +116,31 @@ public class JobManager {
 
   /**
    * Submits a callable worker for execution
-   * @param job A callable that returns a WorkerLog record.
+   * @param job A callable that returns a WorkerResult record.
    */
   public void submitJob(BaseWorker job) {
     completionService.submit(job);
     activeWorkerCount.incrementAndGet();
     logger.debug("Active Workers after submission: " + activeWorkerCount.get());
-    logger.info("Job submitted: " + job.getWorkerLog().toString());
+    logger.info("Job submitted: " + job.getWorkerResult().toString());
   }
 
-  private JobManager () throws ConfigurationException{
-    Configuration config = new Configurations().xml("applicationConfig.xml");
-    THREAD_POOL_SIZE = config.getInt("jobManager.threadPoolSize");
-    SLEEP_MINUTES = config.getInt("jobManager.shutdownSleepMinutes");
-    monitorInitialDelay = config.getInt("jobManager.monitor.initialDelay");
-    monitorFrequency = config.getInt("jobManager.monitor.frequency");
-    monitorTimeUnit = TimeUnit.valueOf(config.getString("jobManager.monitor.timeUnit"));
+  private JobManager () {
+    try{
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      THREAD_POOL_SIZE = config.getInt("jobManager.threadPoolSize");
+      SLEEP_MINUTES = config.getInt("jobManager.shutdownSleepMinutes");
+      MONITOR_INITIAL_DELAY = config.getInt("jobManager.monitor.initialDelay");
+      MONITOR_FREQUENCY = config.getInt("jobManager.monitor.frequency");
+      MONITOR_TIME_UNIT = TimeUnit.valueOf(config.getString("jobManager.monitor.timeUnit"));
+    } catch (ConfigurationException ex) {
+      logger.error("Configuration file could not be read. Using defaults: " + ex.getMessage());
+      THREAD_POOL_SIZE = DEFAULT_THREAD_POOL_SIZE;
+      SLEEP_MINUTES = DEFAULT_SLEEP_MINUTES;
+      MONITOR_INITIAL_DELAY = DEFAULT_MONITOR_INITIAL_DELAY;
+      MONITOR_FREQUENCY = DEFAULT_MONITOR_FREQUENCY;
+      MONITOR_TIME_UNIT = DEFAULT_MONITOR_TIME_UNIT;
+    }
 
     executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     completionService = new ExecutorCompletionService<>(executorService);

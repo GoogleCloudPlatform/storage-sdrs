@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Google LLC. All rights reserved.
+ * Copyright 2019 Google LLC. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the “License”);
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,19 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.dao;
+package com.google.gcs.sdrs.controller.pojo;
 
-import java.io.Serializable;
+/** Standard response for event endpoints. */
+public class EventResponse extends BaseHttpResponse {
+  private String message;
 
-/**
- * Interface for Data Access Object pattern
- *
- * @author salguerod
- *
- * @param <T>
- * @param <Id>
- */
-public interface Dao<T, Id extends Serializable> {
+  public String getMessage() {
+    return message;
+  }
 
-  Id save(T entity);
-
-  void update(T entity);
-
-  T findById(Id id);
-
-  void delete(T entity);
-
+  public void setMessage(String message) {
+    this.message = message;
+  }
 }

@@ -3,7 +3,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.google.gcs</groupId>
-    <artifactId>restEngine</artifactId>
+    <artifactId>storage-sdrs</artifactId>
     <packaging>jar</packaging>
     <version>0.0.1-SNAPSHOT</version>
     <name>1</name>

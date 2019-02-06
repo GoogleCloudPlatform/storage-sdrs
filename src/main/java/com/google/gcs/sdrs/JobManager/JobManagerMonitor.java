@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gcs.sdrs.worker.WorkerLog;
+import com.google.gcs.sdrs.worker.WorkerResult;
 
 /**
  * A Runnable background monitoring thread for the results of workers managed by the JobManager.
@@ -64,14 +64,14 @@ class JobManagerMonitor implements Runnable {
     logger.debug("Starting examining futures, there are " + jobManager.activeWorkerCount.get() + " workers in flight.");
     while(jobManager.activeWorkerCount.get() > 0) {
       // block until a callable completes
-      Future<WorkerLog> callResult = jobManager.completionService.take();
+      Future<WorkerResult> callResult = jobManager.completionService.take();
       jobManager.activeWorkerCount.decrementAndGet();
       logger.debug("Active Workers after result poll: " + jobManager.activeWorkerCount.get());
-      WorkerLog result;
+      WorkerResult result;
       // get the underlying callable's result, if the Callable was able to create it
       try {
         result = callResult.get();
-        if(result.getStatus().equals(WorkerLog.WorkerLogStatus.FAILED)){
+        if(result.getStatus().equals(WorkerResult.WorkerResultStatus.FAILED)){
           logger.error("Worker failed: ", result);
         } else {
           logger.info("Worker " + result.getStatus().name() + ": " + result.toString());

@@ -17,26 +17,26 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
+import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
-import java.sql.Timestamp;
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
 
-  Dao<RetentionRule, Integer> dao = SingletonDao.retentionRuleDao;
+  Dao<RetentionRule, Integer> dao = SingletonDao.getRetentionRuleDao();
 
   @Override()
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
-    return dao.persist(entity);
+    return dao.save(entity);
   }
 
   @Override
@@ -57,20 +57,22 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     RetentionRule entity = new RetentionRule();
 
     // Map over input values
-    entity.setDatasetName(pojo.getDatasetName());
     entity.setDataStorageName(pojo.getDataStorageName());
     entity.setProjectId(pojo.getProjectId());
     entity.setRetentionPeriodInDays(pojo.getRetentionPeriod());
-    entity.setType(pojo.getType());
+    entity.setType(pojo.getRetentionRuleType());
+
+    String datasetName = pojo.getDatasetName();
+    if (datasetName == null) {
+      datasetName = extractDatasetNameFromDataStorage(pojo.getDataStorageName());
+    }
+    entity.setDatasetName(datasetName);
 
     if (entity.getType() == RetentionRuleType.GLOBAL) {
       entity.setProjectId(DEFAULT_PROJECT_ID);
     }
 
     // Generate metadata
-    Timestamp now = new Timestamp(System.currentTimeMillis());
-    entity.setCreatedAt(now);
-    entity.setUpdatedAt(now);
     entity.setIsActive(true);
     entity.setVersion(1);
 
@@ -91,5 +93,20 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     response.setType(rule.getType());
 
     return response;
+  }
+
+  private String extractDatasetNameFromDataStorage(String dataStorageName) {
+    if (dataStorageName == null) {
+      return null;
+    }
+
+    String removedPrefix = dataStorageName.substring(FieldValidations.STORAGE_PREFIX.length());
+    String[] bucketAndDataset = removedPrefix.split(FieldValidations.STORAGE_SEPARATOR, 2);
+
+    if (bucketAndDataset.length == 2) {
+      return bucketAndDataset[1];
+    } else {
+      return bucketAndDataset[0];
+    }
   }
 }

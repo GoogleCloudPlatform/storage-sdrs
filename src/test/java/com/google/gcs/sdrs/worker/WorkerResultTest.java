@@ -25,25 +25,23 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gcs.sdrs.worker.WorkerLog;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Test class for WorkerLog
+ * Test class for WorkerResult
  */
-public class WorkerLogTest {
-  private WorkerLog objectUnderTest;
+public class WorkerResultTest {
+  private WorkerResult objectUnderTest;
 
   /**
    * Set up steps before each test
    */
   @Before
   public void setUp() {
-    objectUnderTest = new WorkerLog();
+    objectUnderTest = new WorkerResult();
   }
 
   /**
@@ -58,12 +56,12 @@ public class WorkerLogTest {
    * Tests that the constructor sets the ID as a UUID
    */
   @Test
-  public void workerLogConstructorTest() {
+  public void workerResultConstructorTest() {
     try{
-      UUID workerLogId = UUID.fromString(objectUnderTest.getId());
-      assertNotNull(workerLogId);
+      UUID workerResultId = UUID.fromString(objectUnderTest.getId());
+      assertNotNull(workerResultId);
     } catch (IllegalArgumentException ex) {
-      fail("The generated WorkerLog ID is not a UUID.");
+      fail("The generated WorkerResult ID is not a UUID.");
     }
   }
 
@@ -71,8 +69,8 @@ public class WorkerLogTest {
    * Tests that properties read back correctly after being set
    */
   @Test
-  public void workerLogPropertiesTest() {
-    WorkerLog.WorkerLogStatus testStatus = WorkerLog.WorkerLogStatus.RUNNING;
+  public void workerResultPropertiesTest() {
+    WorkerResult.WorkerResultStatus testStatus = WorkerResult.WorkerResultStatus.RUNNING;
     String testType = "testType";
     DateTime testStartTime = DateTime.now().minusHours(1);
     DateTime testEndTime = DateTime.now();
@@ -92,7 +90,7 @@ public class WorkerLogTest {
    * Tests the toString method to ensure null values display properly
    */
   @Test
-  public void workerLogToStringTest() {
+  public void workerResultToStringTest() {
     assertNotNull(objectUnderTest.toString());
     assertTrue(objectUnderTest.toString().length() > 0);
 
@@ -100,7 +98,7 @@ public class WorkerLogTest {
     assertNotNull(objectUnderTest.toString());
     assertTrue(objectUnderTest.toString().length() > 0);
 
-    objectUnderTest.setStatus(WorkerLog.WorkerLogStatus.RUNNING);
+    objectUnderTest.setStatus(WorkerResult.WorkerResultStatus.RUNNING);
     assertNotNull(objectUnderTest.toString());
     assertTrue(objectUnderTest.toString().length() > 0);
 

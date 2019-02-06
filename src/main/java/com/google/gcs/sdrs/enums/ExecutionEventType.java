@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Google LLC. All rights reserved.
+ * Copyright 2019 Google LLC. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the “License”);
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,21 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.dao;
+package com.google.gcs.sdrs.enums;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Interface for Data Access Object pattern
+ * Supported type for events sent to the execution endpoint
  *
- * @author salguerod
- *
- * @param <T>
- * @param <Id>
+ * <p>JsonProperty values indicate the supported JSON input string.
  */
-public interface Dao<T, Id extends Serializable> {
+public enum ExecutionEventType {
+  @JsonProperty("POLICY")
+  POLICY,
 
-  Id save(T entity);
-
-  void update(T entity);
-
-  T findById(Id id);
-
-  void delete(T entity);
-
+  @JsonProperty("USER")
+  USER_COMMANDED
 }

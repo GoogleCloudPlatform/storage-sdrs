@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -46,7 +45,7 @@ public class RetentionRulesServiceImplTest {
   @Test
   public void createRulePersistsDatasetEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleType.DATASET);
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDatasetName("dataset");
     createRule.setDataStorageName("gs://b/d");
@@ -56,14 +55,12 @@ public class RetentionRulesServiceImplTest {
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).persist(captor.capture());
+    verify(service.dao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
     assertEquals(RetentionRuleType.DATASET, input.getType());
     assertEquals(123, (int) input.getRetentionPeriodInDays());
     assertEquals(true, input.getIsActive());
-    assertNotNull(input.getUpdatedAt());
-    assertNotNull(input.getCreatedAt());
     assertEquals(input.getProjectId(), "projectId");
     assertEquals(input.getDataStorageName(), "gs://b/d");
     assertEquals(input.getDatasetName(), "dataset");
@@ -71,23 +68,57 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
+  public void createRuleUsesBucketForDatasetWhenNoDataset() {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDataStorageName("gs://b");
+    createRule.setProjectId("projectId");
+
+    service.createRetentionRule(createRule);
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+
+    verify(service.dao).save(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertEquals("gs://b", input.getDataStorageName());
+    assertEquals("b", input.getDatasetName());
+  }
+
+  @Test
+  public void createRuleUsesDataStorageDatasetForDataset() {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDataStorageName("gs://b/d");
+    createRule.setProjectId("projectId");
+
+    service.createRetentionRule(createRule);
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+
+    verify(service.dao).save(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertEquals("gs://b/d", input.getDataStorageName());
+    assertEquals("d", input.getDatasetName());
+  }
+
+  @Test
   public void createRulePersistsGlobalEntity() {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
-    createRule.setType(RetentionRuleType.GLOBAL);
+    createRule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
 
     service.createRetentionRule(createRule);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).persist(captor.capture());
+    verify(service.dao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
     assertEquals(RetentionRuleType.GLOBAL, input.getType());
     assertEquals(123, (int) input.getRetentionPeriodInDays());
     assertEquals(true, input.getIsActive());
-    assertNotNull(input.getUpdatedAt());
-    assertNotNull(input.getCreatedAt());
     assertEquals(input.getProjectId(), "global-default");
     assertEquals(1, (int) input.getVersion());
     assertNull(input.getDataStorageName());

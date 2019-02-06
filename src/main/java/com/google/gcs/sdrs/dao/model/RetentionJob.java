@@ -29,108 +29,101 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-/**
- * 
- * Note - coding to JPA specification, not Hibernate specific annotations 
- *
- */
+/** Note - coding to JPA specification, not Hibernate specific annotations */
 @Entity
-@Table(name ="retention_job")
+@Table(name = "retention_job")
 public class RetentionJob {
-	
-	
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "id", updatable = false, nullable = false)
-	private Integer id;
-	
-	@Column(name = "name")
-	private String name;
-	
-	@Column(name = "retention_rule_id")
-	private Integer retentionRuleId;
-	
-	@Column(name = "retention_rule_version")
-	private Integer retentionRuleVersion;
-	
-	@Enumerated(EnumType.STRING)
-	@Column(name = "retention_rule_type")
-	private String retentionRuleType;
-	
-	@Column(name = "retention_rule_data_storage_name")
-	private String retentionRuleDataStorageName;
-	
-	@Column(name = "retention_rule_project_id")
-	private String retentionRuleProjectId;
-	
-	@Column(name = "created_at")
-	private Timestamp createdAt;
-	
-	public RetentionJob () {
-	}
 
-	public Integer getId() {
-		return id;
-	}
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(name = "id", updatable = false, nullable = false)
+  private Integer id;
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+  @Column(name = "name")
+  private String name;
 
-	public String getName() {
-		return name;
-	}
+  @Column(name = "retention_rule_id")
+  private Integer retentionRuleId;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  @Column(name = "retention_rule_version")
+  private Integer retentionRuleVersion;
 
-	public Integer getRetentionRuleId() {
-		return retentionRuleId;
-	}
+  @Enumerated(EnumType.STRING)
+  @Column(name = "retention_rule_type")
+  private String retentionRuleType;
 
-	public void setRetentionRuleId(Integer retentionRuleId) {
-		this.retentionRuleId = retentionRuleId;
-	}
+  @Column(name = "retention_rule_data_storage_name")
+  private String retentionRuleDataStorageName;
 
-	public String getRetentionRuleType() {
-		return retentionRuleType;
-	}
+  @Column(name = "retention_rule_project_id")
+  private String retentionRuleProjectId;
 
-	public void setRetentionRuleType(String retentionRuleType) {
-		this.retentionRuleType = retentionRuleType;
-	}
+  @Column(name = "created_at")
+  private Timestamp createdAt;
 
-	public String getRetentionRuleDataStorageName() {
-		return retentionRuleDataStorageName;
-	}
+  public RetentionJob() {}
 
-	public void setRetentionRuleDataStorageName(String retentionRuleDataStorageName) {
-		this.retentionRuleDataStorageName = retentionRuleDataStorageName;
-	}
+  public Integer getId() {
+    return id;
+  }
 
-	public String getRetentionRuleProjectId() {
-		return retentionRuleProjectId;
-	}
+  public void setId(Integer id) {
+    this.id = id;
+  }
 
-	public void setRetentionRuleProjectId(String retentionRuleProjectId) {
-		this.retentionRuleProjectId = retentionRuleProjectId;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public Timestamp getCreatedAt() {
-		return createdAt;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public void setCreatedAt(Timestamp createdAt) {
-		this.createdAt = createdAt;
-	}
+  public Integer getRetentionRuleId() {
+    return retentionRuleId;
+  }
 
-	public Integer getRetentionRuleVersion() {
-		return retentionRuleVersion;
-	}
+  public void setRetentionRuleId(Integer retentionRuleId) {
+    this.retentionRuleId = retentionRuleId;
+  }
 
-	public void setRetentionRuleVersion(Integer retentionRuleVersion) {
-		this.retentionRuleVersion = retentionRuleVersion;
-	}
-	
+  public String getRetentionRuleType() {
+    return retentionRuleType;
+  }
+
+  public void setRetentionRuleType(String retentionRuleType) {
+    this.retentionRuleType = retentionRuleType;
+  }
+
+  public String getRetentionRuleDataStorageName() {
+    return retentionRuleDataStorageName;
+  }
+
+  public void setRetentionRuleDataStorageName(String retentionRuleDataStorageName) {
+    this.retentionRuleDataStorageName = retentionRuleDataStorageName;
+  }
+
+  public String getRetentionRuleProjectId() {
+    return retentionRuleProjectId;
+  }
+
+  public void setRetentionRuleProjectId(String retentionRuleProjectId) {
+    this.retentionRuleProjectId = retentionRuleProjectId;
+  }
+
+  public Timestamp getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Timestamp createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public Integer getRetentionRuleVersion() {
+    return retentionRuleVersion;
+  }
+
+  public void setRetentionRuleVersion(Integer retentionRuleVersion) {
+    this.retentionRuleVersion = retentionRuleVersion;
+  }
 }

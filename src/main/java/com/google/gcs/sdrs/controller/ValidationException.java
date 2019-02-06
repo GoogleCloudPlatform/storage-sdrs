@@ -13,53 +13,34 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
 package com.google.gcs.sdrs.controller;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.gcs.sdrs.controller.validation.ValidationResult;
+import java.util.Collection;
 
 /**
- * Exception thrown in case of validation errors.
- * Supports messages including multiple identified errors.
+ * Exception thrown in case of validation errors. Supports messages including multiple identified
+ * errors.
  */
 public class ValidationException extends HttpException {
 
-  /**
-	 * 
-	 */
-	private static final long serialVersionUID = 4259932995060606783L;
-private List<String> validationErrors = new ArrayList<>();
+  private Collection<String> validationMessages;
 
-  /**
-   * Adds a validation error message
-   * @param message indicates how a user might address the error
-   */
-  public void addValidationError(String message) {
-    validationErrors.add(message);
+  /** Constructs a ValidationException based off of values within a ValidationResult object */
+  public ValidationException(ValidationResult validationResult) {
+    validationMessages = validationResult.validationMessages;
   }
 
-  /**
-   * Gets the count of the tracked validation errors
-   */
-  public int getValidationErrorCount() {
-    return validationErrors.size();
-  }
-
-  /**
-   * Gets the error message including all tracked errors
-   */
+  /** Gets the error message including all tracked errors */
   @Override
   public String getMessage() {
-    String messages = String.join(", ", validationErrors);
+    String messages = String.join(", ", validationMessages);
     return String.format("Invalid input: %s", messages);
   }
 
-  /**
-   * Gets the validation error HTTP status code
-   */
+  /** Gets the validation error HTTP status code */
   @Override
   public int getStatusCode() {
     return 400;

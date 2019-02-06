@@ -121,7 +121,7 @@ public class RetentionRule {
 		this.type = type;
 	}
 
-	public Integer getVersion() {
+  public Integer getVersion() {
     return version;
   }
 

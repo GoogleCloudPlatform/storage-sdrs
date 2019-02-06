@@ -52,11 +52,11 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
   }
 
   /* (non-Javadoc)
-   * @see com.google.gcs.sdrs.dao.impl.DAO#persist(T)
+   * @see com.google.gcs.sdrs.dao.impl.DAO#save(T)
    */
   @Override
   @SuppressWarnings("unchecked")
-  public Id persist(final T entity) {
+  public Id save(final T entity) {
     openCurrentSessionWithTransaction();
     Id result = (Id) getCurrentSession().save(entity);
     closeCurrentSessionwithTransaction();
@@ -67,9 +67,9 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
    * @see com.google.gcs.sdrs.dao.impl.DAO#update(T)
    */
   @Override
-  public void update(final T object) {
+  public void update(final T entity) {
     openCurrentSessionWithTransaction();
-    getCurrentSession().update(object);
+    getCurrentSession().update(entity);
     closeCurrentSessionwithTransaction();
   }
 
@@ -79,18 +79,18 @@ public class GenericDao<T, Id extends Serializable> implements Dao<T, Id> {
   @Override
   public T findById(Id id) {
     openCurrentSession(); // no transaction per se for a find
-    T result = getCurrentSession().get(type, id);
+    T entity = getCurrentSession().get(type, id);
     closeCurrentSession();
-    return result;
+    return entity;
   }
 
   /* (non-Javadoc)
    * @see com.google.gcs.sdrs.dao.impl.DAO#delete(T)
    */
   @Override
-  public void delete(final T object) {
+  public void delete(final T entity) {
     openCurrentSessionWithTransaction();
-    getCurrentSession().delete(object);
+    getCurrentSession().delete(entity);
     closeCurrentSessionwithTransaction();
   }
 

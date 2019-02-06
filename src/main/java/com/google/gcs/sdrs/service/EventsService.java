@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Google LLC. All rights reserved.
+ * Copyright 2019 Google LLC. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the “License”);
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,15 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
-package com.google.gcs.sdrs.dao;
+package com.google.gcs.sdrs.service;
 
-import java.io.Serializable;
+import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 
-/**
- * Interface for Data Access Object pattern
- *
- * @author salguerod
- *
- * @param <T>
- * @param <Id>
- */
-public interface Dao<T, Id extends Serializable> {
+/** Interface exposing event behaviors. */
+public interface EventsService {
 
-  Id save(T entity);
-
-  void update(T entity);
-
-  T findById(Id id);
-
-  void delete(T entity);
-
+  /** Executes an execution event asynchronously */
+  void executeEvent(ExecutionEventRequest request);
 }
