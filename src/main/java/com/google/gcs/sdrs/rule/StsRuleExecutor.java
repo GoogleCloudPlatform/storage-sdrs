@@ -34,9 +34,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -113,50 +114,82 @@ public class StsRuleExecutor implements RuleExecutor {
   }
 
   /**
-   * NOT IMPLEMENTED! Executes a default retention rule.
-   * @param rule the default rule to execute
-   * @param affectedDatasetRules any dataset rules that exist within the same bucket
+   * @param defaultRule the default rule to execute
+   * @param bucketDatasetRules any dataset rules that exist within the same bucket
    *                             as the default rule
+   * @param scheduledTime the recurring time at which you want the default rule to execute
    * @return A {@link Collection} of {@link RetentionJob} records
    */
-  public Collection<RetentionJob> executeDefaultRule(RetentionRule rule, Collection<RetentionRule> affectedDatasetRules) {
+  @Override
+  public RetentionJob executeDefaultRule(
+      RetentionRule defaultRule,
+      Collection<RetentionRule> bucketDatasetRules,
+      ZonedDateTime scheduledTime)
+      throws IOException, IllegalArgumentException {
 
-    Collection<RetentionJob> jobRecords = new LinkedList<>();
+    if (defaultRule.getType().equals(RetentionRuleType.DATASET)) {
+      String message = "DATASET retention rule type is invalid for this function";
+      logger.error(message);
+      throw new IllegalArgumentException(message);
+    }
 
-//    for (RetentionRule datasetRule : affectedDatasetRules) {
-//
-//      Collection<String> sourceBuckets = new ArrayList<>();
-//      // TODO generate prefixes once Tom's code is merged
-//
-//      // TEST CODE START
-//      sourceBuckets.add("gs://jk_test_bucket/2018/12/31/00");
-//      // END TEST CODE
-//
-//      for (String bucketName : sourceBuckets) {
-//
-//        String projectId = datasetRule.getProjectId();
-//        String name = UUID.randomUUID().toString();
-//        String sourceBucket = bucketName;
-//        String destinationBucket = buildDestinationBucketName(datasetRule, sourceBucket, suffix);
-//        LocalDate startDate = LocalDate.now();
-//        LocalTime startTime = LocalTime.now();
-//
-//        TransferJob job;
-//
-//        try {
-//          Storagetransfer client = StsUtility.createStsClient();
-//          job = StsUtility.createStsJob(
-//              client, projectId, name, sourceBucket, destinationBucket, startDate, startTime);
-//
-//          jobRecords.add(buildRetentionJobEntity(job, rule, datasetRule));
-//        } catch (IOException ex) {
-//          logger.error("Couldn't connect to STS: " + ex.getCause());
-//          // TODO How do we want to handle failed STS jobs?
-//        }
-//      }
-//    }
+    List<String> prefixesToExclude = new ArrayList<>();
+    for (RetentionRule datasetRule : bucketDatasetRules) {
+      // Adds the dataset folder to the exclude list as the retention is already being handled
+      // by the dataset rule. No need to generate the full prefix here.
+      prefixesToExclude.add(datasetRule.getDatasetName());
+    }
 
-    return jobRecords;
+    // STS has a restriction of 1000 values in any prefix collection
+    if (prefixesToExclude.size() > 1000) {
+      String message = "There are too many dataset rules associated with this bucket. " +
+          "A maximum of 1000 rules are allowed.";
+      logger.error(message);
+      throw new IllegalArgumentException(message);
+    }
+
+    String projectId = defaultRule.getProjectId();
+    // if the default rule doesn't have a projectId, get it from a child dataset rule
+    if (defaultRule.getProjectId().isEmpty()) {
+      Optional<RetentionRule> childRuleWithProject =
+          bucketDatasetRules.stream().filter(r -> !r.getProjectId().isEmpty()).findFirst();
+      if (childRuleWithProject.isPresent()) {
+        projectId = childRuleWithProject.get().getProjectId();
+      } else {
+        String message = "STS job could not be created. No projectId found.";
+        logger.error(message);
+        throw new IllegalArgumentException(message);
+      }
+    }
+
+    String sourceBucket = formatDataStorageName(defaultRule.getDataStorageName());
+    String destinationBucket = formatDataStorageName(defaultRule.getDataStorageName(), suffix);
+
+    String description = String.format(
+        "Rule %s %s", defaultRule.getId().toString(), scheduledTime.toString());
+
+    logger.debug(
+        String.format("Creating STS job with for rule %s, projectId: %s, " +
+                "description: %s, source: %s, destination: %s",
+            defaultRule.getId(),
+            projectId,
+            description,
+            sourceBucket,
+            destinationBucket));
+
+    Storagetransfer client = StsUtility.createStsClient();
+    TransferJob job =
+        StsUtility.createDefaultStsJob(
+            client,
+            projectId,
+            sourceBucket,
+            destinationBucket,
+            prefixesToExclude,
+            description,
+            scheduledTime,
+            defaultRule.getRetentionPeriodInDays());
+
+    return buildRetentionJobEntity(job.getName(), defaultRule);
   }
 
   private String formatDataStorageName(String dataStorageName) {
@@ -182,19 +215,6 @@ public class StsRuleExecutor implements RuleExecutor {
     retentionJob.setRetentionRuleDataStorageName(rule.getDataStorageName());
     retentionJob.setRetentionRuleType(rule.getType().toString());
     retentionJob.setRetentionRuleVersion(rule.getVersion());
-
-    return retentionJob;
-  }
-
-  private RetentionJob buildRetentionJobEntity(
-      String jobName, RetentionRule defaultRule, RetentionRule affectedDatasetRule) {
-    RetentionJob retentionJob = new RetentionJob();
-    retentionJob.setName(jobName);
-    retentionJob.setRetentionRuleId(defaultRule.getId());
-    retentionJob.setRetentionRuleProjectId(affectedDatasetRule.getProjectId());
-    retentionJob.setRetentionRuleDataStorageName(affectedDatasetRule.getDataStorageName());
-    retentionJob.setRetentionRuleType(defaultRule.getType().toString());
-    retentionJob.setRetentionRuleVersion(affectedDatasetRule.getVersion());
 
     return retentionJob;
   }

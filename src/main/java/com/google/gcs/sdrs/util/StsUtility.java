@@ -38,10 +38,8 @@ import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,7 +60,7 @@ public class StsUtility {
 
   /**
    * Submits a job to be executed by STS
-   * @param client the storage transfer client to use
+   * @param client the {@link Storagetransfer} client to use
    * @param projectId the project ID of the target GCP project
    * @param sourceBucket the bucket from which you want to move
    * @param destinationBucket the destination bucket you want to move to
@@ -105,6 +103,55 @@ public class StsUtility {
     return client.transferJobs().create(transferJob).execute();
   }
 
+  /**
+   * Creates a recurring scheduled STS job
+   * @param client the {@link Storagetransfer} client to use
+   * @param projectId the project ID of the target GCP project
+   * @param sourceBucket the name of the bucket from which you want to move
+   * @param destinationBucket the name of the bucket to which you want to move
+   * @param prefixesToExclude a {@link List} of prefixes to exclude from the job
+   * @param description the description of the job as it will appear in the STS console
+   * @param startDateTime a {@link ZonedDateTime} of when you would like the job to begin
+   * @return the {@link TransferJob} object that is created
+   * @throws IOException when the client or job cannot be created
+   */
+  public static TransferJob createDefaultStsJob(Storagetransfer client,
+                                                  String projectId,
+                                                  String sourceBucket,
+                                                  String destinationBucket,
+                                                  List<String> prefixesToExclude,
+                                                  String description,
+                                                  ZonedDateTime startDateTime,
+                                                  int retentionInDays)
+      throws IOException{
+    Date date = createDate(startDateTime.toLocalDate());
+    TimeOfDay time = createTimeOfDay(startDateTime.toLocalTime());
+    TransferJob transferJob =
+        new TransferJob()
+            .setProjectId(projectId)
+            .setDescription(description)
+            .setTransferSpec(
+                new TransferSpec()
+                    .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
+                    .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
+                    .setObjectConditions(
+                        new ObjectConditions()
+                            .setExcludePrefixes(prefixesToExclude)
+                            .setMinTimeElapsedSinceLastModification(
+                                convertRetentionInDaysToDuration(retentionInDays)))
+                    .setTransferOptions(
+                        new TransferOptions()
+                            .setDeleteObjectsFromSourceAfterTransfer(false)
+                            .setOverwriteObjectsAlreadyExistingInSink(true)))
+            .setSchedule(
+                new Schedule()
+                    .setScheduleStartDate(date)
+                    .setStartTimeOfDay(time))
+            .setStatus("ENABLED");
+
+    return client.transferJobs().create(transferJob).execute();
+  }
+
   private static Storagetransfer createStorageTransferClient(
       HttpTransport httpTransport, JsonFactory jsonFactory, GoogleCredential credential) {
 
@@ -125,6 +172,11 @@ public class StsUtility {
     return new Storagetransfer.Builder(httpTransport, jsonFactory, initializer)
         .setApplicationName("sdrs")
         .build();
+  }
+
+  private static String convertRetentionInDaysToDuration(int retentionInDays) {
+    int ONE_DAY_IN_SECS = 3600 * 24;
+    return (retentionInDays * ONE_DAY_IN_SECS) + "s";
   }
 
   private static Date createDate(LocalDate startDate) {

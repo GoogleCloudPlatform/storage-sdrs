@@ -22,11 +22,16 @@ import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 
 public interface RuleExecutor {
 
-  RetentionJob executeDatasetRule(RetentionRule rule) throws IOException;
+  RetentionJob executeDatasetRule(RetentionRule rule) throws IOException, IllegalArgumentException;
 
-  Collection<RetentionJob> executeDefaultRule(RetentionRule rule, Collection<RetentionRule> affectedDatasetRules);
+  RetentionJob executeDefaultRule(
+      RetentionRule defaultRule,
+      Collection<RetentionRule> bucketDatasetRules,
+      ZonedDateTime scheduledTime)
+      throws IOException, IllegalArgumentException;
 }
