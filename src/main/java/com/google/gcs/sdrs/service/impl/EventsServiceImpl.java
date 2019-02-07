@@ -32,6 +32,9 @@ public class EventsServiceImpl implements EventsService {
   @Override
   public void executeEvent(ExecutionEventRequest request) {}
 
+  /**
+   * Submits a validation job to the JobManager.
+   */
   @Override
   public void validateEvent() {
     JobManager jobManager = JobManager.getInstance();
