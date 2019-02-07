@@ -47,16 +47,19 @@ public class StsRuleExecutor implements RuleExecutor {
 
   private final String DEFAULT_SUFFIX = "shadow";
   private String suffix;
+  Storagetransfer client;
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
 
   /**
    * STS Rule Executor constructor that reads the bucket suffix from the configuration file
+   * @throws IOException when the STS Client cannot be instantiated
    */
-  public StsRuleExecutor() {
+  public StsRuleExecutor() throws IOException {
     try {
       Configuration config = new Configurations().xml("applicationConfig.xml");
       suffix = config.getString("sts.suffix");
+      client = StsUtility.createStsClient();
     } catch (ConfigurationException ex) {
       logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
       suffix = DEFAULT_SUFFIX;
@@ -99,7 +102,6 @@ public class StsRuleExecutor implements RuleExecutor {
             sourceBucket,
             destinationBucket));
 
-    Storagetransfer client = StsUtility.createStsClient();
     TransferJob job =
         StsUtility.createStsJob(
             client,
@@ -177,7 +179,6 @@ public class StsRuleExecutor implements RuleExecutor {
             sourceBucket,
             destinationBucket));
 
-    Storagetransfer client = StsUtility.createStsClient();
     TransferJob job =
         StsUtility.createDefaultStsJob(
             client,
@@ -192,7 +193,7 @@ public class StsRuleExecutor implements RuleExecutor {
     return buildRetentionJobEntity(job.getName(), defaultRule);
   }
 
-  private String formatDataStorageName(String dataStorageName) {
+  String formatDataStorageName(String dataStorageName) {
 
     dataStorageName = dataStorageName.replaceFirst("gs://","");
 
@@ -203,11 +204,11 @@ public class StsRuleExecutor implements RuleExecutor {
     return dataStorageName;
   }
 
-  private String formatDataStorageName(String dataStorageName, String suffix) {
+  String formatDataStorageName(String dataStorageName, String suffix) {
     return formatDataStorageName(dataStorageName).concat(suffix);
   }
 
-  private RetentionJob buildRetentionJobEntity(String jobName, RetentionRule rule) {
+  RetentionJob buildRetentionJobEntity(String jobName, RetentionRule rule) {
     RetentionJob retentionJob = new RetentionJob();
     retentionJob.setName(jobName);
     retentionJob.setRetentionRuleId(rule.getId());

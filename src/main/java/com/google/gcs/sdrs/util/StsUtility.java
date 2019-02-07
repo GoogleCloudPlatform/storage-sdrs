@@ -78,8 +78,8 @@ public class StsUtility {
                                          String description,
                                          ZonedDateTime startDateTime)
       throws IOException {
-    Date date = createDate(startDateTime.toLocalDate());
-    TimeOfDay time = createTimeOfDay(startDateTime.toLocalTime());
+    Date date = convertToDate(startDateTime.toLocalDate());
+    TimeOfDay time = convertToTimeOfDay(startDateTime.toLocalTime());
     TransferJob transferJob =
         new TransferJob()
             .setProjectId(projectId)
@@ -124,8 +124,8 @@ public class StsUtility {
                                                   ZonedDateTime startDateTime,
                                                   int retentionInDays)
       throws IOException{
-    Date date = createDate(startDateTime.toLocalDate());
-    TimeOfDay time = createTimeOfDay(startDateTime.toLocalTime());
+    Date date = convertToDate(startDateTime.toLocalDate());
+    TimeOfDay time = convertToTimeOfDay(startDateTime.toLocalTime());
     TransferJob transferJob =
         new TransferJob()
             .setProjectId(projectId)
@@ -159,9 +159,6 @@ public class StsUtility {
     Preconditions.checkNotNull(jsonFactory);
     Preconditions.checkNotNull(credential);
 
-    credential = credential.createScoped(StorageScopes.all());
-    credential = credential.createScoped(StoragetransferScopes.all());
-
     // In some cases, you need to add the scope explicitly.
     if (credential.createScopedRequired()) {
       credential = credential.createScoped(StorageScopes.all());
@@ -174,12 +171,12 @@ public class StsUtility {
         .build();
   }
 
-  private static String convertRetentionInDaysToDuration(int retentionInDays) {
+  static String convertRetentionInDaysToDuration(int retentionInDays) {
     int ONE_DAY_IN_SECS = 3600 * 24;
     return (retentionInDays * ONE_DAY_IN_SECS) + "s";
   }
 
-  private static Date createDate(LocalDate startDate) {
+  static Date convertToDate(LocalDate startDate) {
     Date googleDate = new Date();
     googleDate.setYear(startDate.getYear());
     googleDate.setMonth(startDate.getMonthValue());
@@ -188,7 +185,7 @@ public class StsUtility {
     return googleDate;
   }
 
-  private static TimeOfDay createTimeOfDay(LocalTime startTime) {
+  static TimeOfDay convertToTimeOfDay(LocalTime startTime) {
     TimeOfDay timeOfDay = new TimeOfDay();
     timeOfDay.setHours(startTime.getHour());
     timeOfDay.setMinutes(startTime.getMinute());
