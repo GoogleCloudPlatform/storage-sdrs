@@ -1,0 +1,5 @@
+/target/
+/.settings/
+/logs/
+credentials.json
+/bin/

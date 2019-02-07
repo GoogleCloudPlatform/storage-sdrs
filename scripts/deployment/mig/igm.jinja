@@ -1,0 +1,122 @@
+{#
+Copyright 2019 Google Inc. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+
+{% set INSTANCE_TEMPLATE = env["deployment"] + "-it" %}
+{% set IGM = env["deployment"] + "-igm" %}
+{% set BACK_END = env["deployment"] + "-bes" %}
+{% set HEALTH_CHECK = env["deployment"] + "-hc" %}
+{% set FWARD_RULE = env["deployment"] + "-fr" %}
+{% set COMPUTE_URL_BASE = 'https://www.googleapis.com/compute/v1/' %}
+
+resources:
+- name: {{ env["deployment"] }}-as
+  type: compute.v1.regionAutoscaler
+  properties:
+    region: {{ properties["region"] }}
+    target: $(ref.{{ IGM }}.selfLink)
+    autoscalingPolicy:
+      maxNumReplicas: {{ properties["maxNumReplicas"] }}
+      cpuUtilization:
+        utilizationTarget: 0.7
+      coolDownPeriodSec: 90
+- name: {{ IGM }}
+  type: compute.v1.regionInstanceGroupManagers
+  properties:
+    baseInstanceName: {{ env["deployment"] }}-vm
+    instanceTemplate: $(ref.{{ INSTANCE_TEMPLATE }}.selfLink)
+    targetSize: {{ properties["targetSize"] }}
+    region: {{ properties["region"] }}
+- name: {{ INSTANCE_TEMPLATE }}
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      disks:
+      - deviceName: boot
+        type: PERSISTENT
+        boot: true
+        autoDelete: true
+        initializeParams:
+          sourceImage: {{ COMPUTE_URL_BASE }}projects/{{ env['project'] }}/global/images/docker-start
+      machineType: {{ properties["machineType"] }}
+      metadata:
+        items:
+        - key: startup-script
+          value: |
+            #!/bin/bash
+            gcloud auth configure-docker
+            sleep 5
+            docker network create --driver bridge esp_network
+            sleep 5
+            docker run --detach --name=sdrs --net=esp_network gcr.io/sdrs-server/sdrs:pc-60
+            sleep 30
+            docker run --name=esp --detach --publish=80:8080 --net=esp_network gcr.io/endpoints-release/endpoints-runtime:1 --service=sdrs-api.endpoints.sdrs-server.cloud.goog --rollout_strategy=managed --backend=sdrs:8080
+      networkInterfaces:
+      - network: {{ properties["network"] }}
+        subnetwork: {{ properties["subnetwork"] }}
+      serviceAccounts:
+        - email: {{ properties["email"] }}
+          scopes:
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring.write
+          - https://www.googleapis.com/auth/source.read_write
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/servicecontrol
+          - https://www.googleapis.com/auth/service.management.readonly
+          - https://www.googleapis.com/auth/trace.append
+
+        {% if properties["externalIp"] %}
+        accessConfigs:
+        - name: External-IP
+          type: ONE_TO_ONE_NAT
+        {% endif %}
+- name: {{ BACK_END }}
+  type: compute.v1.regionBackendService
+  properties:
+    protocol: "TCP"
+    backends: {{ properties["instance-groups"] }}
+    - name: {{ IGM }}-{{ properties["service"] }}
+      group: $(ref.{{ IGM }}.instanceGroup)
+    loadBalancingScheme: INTERNAL
+    region: {{ properties["region"] }}
+    healthChecks: [$(ref.{{ HEALTH_CHECK }}.selfLink)]
+- name: {{ HEALTH_CHECK }}
+  type: compute.v1.healthCheck
+  properties:
+    type: "TCP"
+    tcpHealthCheck:
+      port: 80
+- name: {{ FWARD_RULE }}
+  type: compute.v1.forwardingRule
+  properties:
+    ports: [80]
+    network: {{ properties["network"] }}
+    subnetwork: {{ properties["subnetwork"] }}
+    region: {{ properties["region"] }}
+    backendService: $(ref.{{ BACK_END }}.selfLink)
+    loadBalancingScheme: INTERNAL
+- name: {{ env["deployment"] }}-allow-health-check-firewall-rule
+  type: compute.v1.firewall
+  properties:
+    network: {{ properties["network"] }}
+    sourceRanges: ['130.211.0.0/22','35.191.0.0/16']
+    allowed:
+    - IPProtocol: 'TCP'
+
+- name: {{ env["deployment"] }}-allow-internal-lb-firewall-rule
+  type: compute.v1.firewall
+  properties:
+    network: {{ properties["network"] }}
+    sourceRanges: ['10.10.20.0/22']
+    allowed:
+    - IPProtocol: 'TCP'
+      ports: ['80', '443']
