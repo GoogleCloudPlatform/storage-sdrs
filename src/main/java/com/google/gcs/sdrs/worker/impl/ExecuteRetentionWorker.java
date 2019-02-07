@@ -25,64 +25,83 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
-import com.google.gcs.sdrs.service.RuleExecutor;
-import com.google.gcs.sdrs.service.impl.StsRuleExecutor;
+import com.google.gcs.sdrs.rule.RuleExecutor;
+import com.google.gcs.sdrs.rule.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.BaseWorker;
 import com.google.gcs.sdrs.worker.WorkerResult;
+import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExecuteRetentionWorker extends BaseWorker {
 
   private final ExecutionEventRequest executionEvent;
+  private final Logger logger = LoggerFactory.getLogger(ExecuteRetentionWorker.class);
 
   RetentionRuleDao retentionRuleDao = SingletonDao.getRetentionRuleDao();
   Dao<RetentionJob, Integer> retentionJobDao = SingletonDao.getRetentionJobDao();
-  // TODO: dependency injection -- but there isn't a pressing need to use singletons here yet
-  RuleExecutor ruleExecutor = new StsRuleExecutor();
+  RuleExecutor ruleExecutor;
 
   public ExecuteRetentionWorker(ExecutionEventRequest executionEvent) {
+    super();
+
     this.executionEvent = executionEvent;
+
+    try {
+      // TODO: dependency injection -- but there isn't a pressing need to avoid instantiation here.
+      ruleExecutor = new StsRuleExecutor();
+    } catch (IOException exception) {
+      logger.error("Unable to create StsRuleExecutor");
+      workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
+    }
   }
 
   @Override
   public void doWork() {
-    Collection<RetentionRule> rulesToExecute = new HashSet<>();
-    switch (executionEvent.getExecutionEventType()) {
-      case USER_COMMANDED:
-        rulesToExecute.add(getEventDefinedRule());
-        break;
-      case POLICY:
-        if (executionEvent.getProjectId() == null) {
+
+    RetentionRule eventDefinedRule = getEventDefinedRule();
+    try {
+      RetentionJob job;
+      switch (eventDefinedRule.getType()) {
+        case DATASET:
+          job = ruleExecutor.executeDatasetRule(eventDefinedRule);
+          break;
+        case GLOBAL:
           String[] dataStorageAndDataset = extractDataStorageAndDataset();
-          rulesToExecute.addAll(
+          Collection<RetentionRule> rules =
               retentionRuleDao.getAllByDataStorageAndDataset(
-                  dataStorageAndDataset[0], dataStorageAndDataset[1]));
-        } else {
-          rulesToExecute.add(getEventDefinedRule());
-        }
-        break;
-      default:
-        throw new UnsupportedOperationException("Unknown execution event type");
-    }
+                  dataStorageAndDataset[0], dataStorageAndDataset[1]);
 
-    for (RetentionRule rule : rulesToExecute) {
-      RetentionJob job = ruleExecutor.execute(rule);
+          // TODO: scheduled time unknown
+          job = ruleExecutor.executeDefaultRule(eventDefinedRule, rules, null);
+          break;
+        default:
+          workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
+          throw new UnsupportedOperationException("Unknown retention rule type");
+      }
       retentionJobDao.save(job);
+      workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
+    } catch (IOException exception) {
+      logger.error(String.format("Error executing rule %s", eventDefinedRule.getId()));
+      workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
     }
-
-    workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
   }
 
   private RetentionRule getEventDefinedRule() {
     RetentionRule rule = new RetentionRule();
 
     String[] dataStorageAndDataset = extractDataStorageAndDataset();
-
     rule.setDataStorageName(dataStorageAndDataset[0]);
     rule.setDatasetName(dataStorageAndDataset[1]);
+
     rule.setProjectId(executionEvent.getProjectId());
-    rule.setType(RetentionRuleType.DATASET);
+
+    RetentionRuleType ruleType =
+        executionEvent.getProjectId() == null
+            ? RetentionRuleType.DATASET
+            : RetentionRuleType.GLOBAL;
+    rule.setType(ruleType);
 
     return rule;
   }

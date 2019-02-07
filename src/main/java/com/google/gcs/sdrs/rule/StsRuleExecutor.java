@@ -214,7 +214,7 @@ public class StsRuleExecutor implements RuleExecutor {
     retentionJob.setRetentionRuleId(rule.getId());
     retentionJob.setRetentionRuleProjectId(rule.getProjectId());
     retentionJob.setRetentionRuleDataStorageName(rule.getDataStorageName());
-    retentionJob.setRetentionRuleType(rule.getType().toString());
+    retentionJob.setRetentionRuleType(rule.getType());
     retentionJob.setRetentionRuleVersion(rule.getVersion());
 
     return retentionJob;
