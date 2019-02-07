@@ -22,8 +22,21 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import com.google.gcs.sdrs.dao.Dao;
+import com.google.gcs.sdrs.dao.SingletonDao;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.rule.RuleExecutor;
+import com.google.gcs.sdrs.rule.StsRuleExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gcs.sdrs.JobManager.JobManager;
+import com.google.gcs.sdrs.worker.BaseWorker;
+import com.google.gcs.sdrs.worker.DemoWorker;
+
+import java.io.IOException;
 
 /**
  * Root resource (exposed at "myresource" path)
@@ -34,6 +47,7 @@ import org.slf4j.LoggerFactory;
 public class MyResource {
 
   static final private Logger logger = LoggerFactory.getLogger(MyResource.class);
+  static final private JobManager jobManager = JobManager.getInstance();
 
   /**
    * Method handling HTTP GET requests. The returned object will be sent
@@ -45,6 +59,22 @@ public class MyResource {
   @Produces(MediaType.TEXT_PLAIN)
   public String getIt() {
     logger.debug("Get Got Gotten");
+//    BaseWorker worker = new DemoWorker();
+//    jobManager.submitJob(worker);
+
+    // The following is test code to execute the STS utility. This assumes a retention rule
+    // with ID = 1 exists in the database
+    Dao<RetentionRule, Integer> ruleDao = SingletonDao.getRetentionRuleDao();
+
+    RetentionRule rule = ruleDao.findById(1);
+
+    try{
+      RuleExecutor executor = new StsRuleExecutor();
+      RetentionJob job = executor.executeDatasetRule(rule);
+    } catch (IOException ex) {
+      logger.error("Couldn't submit rule for execution: " + ex.getMessage());
+    }
+
     return "Got it good!";
   }
 }
