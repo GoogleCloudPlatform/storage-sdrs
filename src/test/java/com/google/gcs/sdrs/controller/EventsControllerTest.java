@@ -117,4 +117,11 @@ public class EventsControllerTest {
     assertEquals(response.getStatus(), 400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("projectId"));
   }
+
+  @Test
+  public void executeValidationSucceeds() {
+    Response response = controller.executeValidation();
+
+    assertEquals(response.getStatus(), 200);
+  }
 }

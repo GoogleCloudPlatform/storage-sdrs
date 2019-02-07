@@ -65,6 +65,22 @@ public class EventsController extends BaseController {
     }
   }
 
+  /** Accepts a request to invoke a validation service run */
+  @POST
+  @Path("/validation")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response executeValidation() {
+    String requestUuid = generateRequestUuid();
+
+    service.executeValidationService();
+
+    EventResponse response = new EventResponse();
+    response.setRequestUuid(requestUuid);
+    response.setMessage("Validation service run request registered.");
+
+    return Response.status(200).entity(response).build();
+  }
+
   /**
    * Runs validation checks against the "Execution" event request type
    *
@@ -77,8 +93,6 @@ public class EventsController extends BaseController {
       partialValidations.add(ValidationResult.fromString("type must be provided"));
     } else {
       switch (request.getExecutionEventType()) {
-        case POLICY:
-          break;
         case USER_COMMANDED:
           if (request.getProjectId() == null) {
             partialValidations.add(
@@ -88,6 +102,7 @@ public class EventsController extends BaseController {
               FieldValidations.validateFieldFollowsBucketNamingStructure(
                   "target", request.getTarget()));
           break;
+        case POLICY:
         default:
           break;
       }
