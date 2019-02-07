@@ -45,14 +45,15 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    * @return a {@link List} of {@link RetentionRule}s
    */
   public List<RetentionRule> getAllByDataStorageAndDataset(String dataStorage, String dataset) {
-    CriteriaBuilder builder = getCurrentSession().getCriteriaBuilder();
+    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
     CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
     Root<RetentionRule> root = query.from(RetentionRule.class);
 
     query
         .select(root)
-        .where(builder.equal(root.get("dataStorage"), dataStorage))
-        .where(builder.equal(root.get("dataset"), dataset));
+        // These string values correspond to the entity field names
+        .where(builder.equal(root.get("dataStorageName"), dataStorage))
+        .where(builder.equal(root.get("datasetName"), dataset));
 
     Query<RetentionRule> result = getCurrentSession().createQuery(query);
     return result.getResultList();
