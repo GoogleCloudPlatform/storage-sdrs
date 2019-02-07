@@ -37,4 +37,7 @@
         <frequency>30</frequency>
         <timeUnit>MINUTES</timeUnit>
     </ruleExecution>
+    <sts>
+        <suffix>shadow</suffix>
+    </sts>
 </appConfiguration>
