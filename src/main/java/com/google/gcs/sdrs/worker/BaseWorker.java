@@ -54,9 +54,7 @@ public abstract class BaseWorker implements Worker {
     return workerResult;
   }
 
-  public void doWork() {
-    workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
-  }
+  public abstract void doWork();
 
   public WorkerResult getWorkerResult() {
     return workerResult;

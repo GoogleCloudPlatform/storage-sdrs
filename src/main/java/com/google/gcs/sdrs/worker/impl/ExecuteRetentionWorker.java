@@ -36,9 +36,10 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
   private final ExecutionEventRequest executionEvent;
 
-  private RuleExecutor ruleExecutor = new StsRuleExecutor();
-  private RetentionRuleDao retentionRuleDao = SingletonDao.getRetentionRuleDao();
-  private Dao<RetentionJob, Integer> retentionJobDao = SingletonDao.getRetentionJobDao();
+  RetentionRuleDao retentionRuleDao = SingletonDao.getRetentionRuleDao();
+  Dao<RetentionJob, Integer> retentionJobDao = SingletonDao.getRetentionJobDao();
+  // TODO: dependency injection -- but there isn't a pressing need to use singletons here yet
+  RuleExecutor ruleExecutor = new StsRuleExecutor();
 
   public ExecuteRetentionWorker(ExecutionEventRequest executionEvent) {
     this.executionEvent = executionEvent;

@@ -20,11 +20,16 @@ package com.google.gcs.sdrs.service.impl;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.RuleExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StsRuleExecutor implements RuleExecutor {
 
+  private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
+
   @Override
   public RetentionJob execute(RetentionRule rule) {
-    return null;
+    logger.info(String.format("Executing rule %d", rule.getId()));
+    return new RetentionJob();
   }
 }
