@@ -33,7 +33,7 @@ public class EventsServiceImpl implements EventsService {
   public void executeEvent(ExecutionEventRequest request) {}
 
   @Override
-  public void executeValidationService() {
+  public void validateEvent() {
     JobManager jobManager = JobManager.getInstance();
     jobManager.submitJob(new ValidationWorker());
     logger.info("ValidationWorker submitted to JobManager.");

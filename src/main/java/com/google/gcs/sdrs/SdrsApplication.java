@@ -20,7 +20,7 @@ package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.JobScheduler.JobScheduler;
 import com.google.gcs.sdrs.runners.RuleExecutionRunner;
-import com.google.gcs.sdrs.runners.ValidationServiceRunner;
+import com.google.gcs.sdrs.runners.ValidationRunner;
 import com.google.gcs.sdrs.server.ServerShutdownHook;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -120,7 +120,7 @@ public class SdrsApplication {
     int frequency = xmlConfig.getInt("scheduler.task.validationService.frequency");
     TimeUnit timeUnit = TimeUnit.valueOf(xmlConfig.getString("scheduler.task.validationService.timeUnit"));
 
-    scheduler.submitScheduledJob(new ValidationServiceRunner(), initialDelay, frequency, timeUnit);
+    scheduler.submitScheduledJob(new ValidationRunner(), initialDelay, frequency, timeUnit);
     logger.info("Validation service scheduled successfully.");
   }
 

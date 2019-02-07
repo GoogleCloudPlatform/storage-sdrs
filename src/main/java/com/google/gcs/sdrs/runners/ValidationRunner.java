@@ -9,9 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Calls the Validation service endpoint when run */
-public class ValidationServiceRunner implements Runnable {
+public class ValidationRunner implements Runnable {
 
-  private static final Logger logger = LoggerFactory.getLogger(ValidationServiceRunner.class);
+  private static final Logger logger = LoggerFactory.getLogger(ValidationRunner.class);
 
   /** Calls the validate job execution status endpoint */
   public void run() {

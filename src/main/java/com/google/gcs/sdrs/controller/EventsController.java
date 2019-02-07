@@ -72,7 +72,7 @@ public class EventsController extends BaseController {
   public Response executeValidation() {
     String requestUuid = generateRequestUuid();
 
-    service.executeValidationService();
+    service.validateEvent();
 
     EventResponse response = new EventResponse();
     response.setRequestUuid(requestUuid);
@@ -102,7 +102,7 @@ public class EventsController extends BaseController {
               FieldValidations.validateFieldFollowsBucketNamingStructure(
                   "target", request.getTarget()));
           break;
-        case POLICY:
+        case POLICY: // fall through
         default:
           break;
       }
