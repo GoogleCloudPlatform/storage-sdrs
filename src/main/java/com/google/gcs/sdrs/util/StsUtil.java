@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * Manages the concrete integration with STS
  */
-public class StsUtility {
+public class StsUtil {
 
   /**
    * Creates an instance of the STS Client

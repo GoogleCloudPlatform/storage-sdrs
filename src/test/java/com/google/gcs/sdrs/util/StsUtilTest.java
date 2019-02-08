@@ -28,14 +28,14 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class StsUtilityTest {
+public class StsUtilTest {
 
   @Test
   public void intDaysToDurationStringTest(){
     int days = 1;
     // hours * minutes * seconds
     String duration = (days * 24 * 60 * 60) + "s";
-    String result = StsUtility.convertRetentionInDaysToDuration(days);
+    String result = StsUtil.convertRetentionInDaysToDuration(days);
 
     assertEquals(duration, result);
   }
@@ -43,7 +43,7 @@ public class StsUtilityTest {
   @Test
   public void createDateFromLocalDate(){
     LocalDate now = ZonedDateTime.now(Clock.systemUTC()).toLocalDate();
-    Date convertedDate = StsUtility.convertToDate(now);
+    Date convertedDate = StsUtil.convertToDate(now);
 
     assertEquals((int)convertedDate.getYear(), now.getYear());
     assertEquals((int)convertedDate.getMonth(), now.getMonthValue());
@@ -53,7 +53,7 @@ public class StsUtilityTest {
   @Test
   public void createTimeOfDayFromLocalDate(){
     LocalTime now = ZonedDateTime.now(Clock.systemUTC()).toLocalTime();
-    TimeOfDay timeOfDay = StsUtility.convertToTimeOfDay(now);
+    TimeOfDay timeOfDay = StsUtil.convertToTimeOfDay(now);
 
     assertEquals((int)timeOfDay.getHours(), now.getHour());
     assertEquals((int)timeOfDay.getMinutes(), now.getMinute());
