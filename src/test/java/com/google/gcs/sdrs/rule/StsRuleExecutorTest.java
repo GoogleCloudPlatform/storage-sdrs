@@ -103,18 +103,18 @@ public class StsRuleExecutorTest {
     }
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void globalRuleExecutionNoProjectId() throws IOException {
-    testRule.setType(RetentionRuleType.GLOBAL);
-    testRule.setProjectId(null);
-    ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
-
-    Collection<RetentionRule> bucketRules = new HashSet<>();
-    RetentionRule bucketRule = new RetentionRule();
-    bucketRule.setProjectId("sdrs-server");
-    bucketRules.add(bucketRule);
-    objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-  }
+//  @Test(expected = IllegalArgumentException.class)
+//  public void globalRuleExecutionNoProjectId() throws IOException {
+//    testRule.setType(RetentionRuleType.GLOBAL);
+//    testRule.setProjectId(null);
+//    ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
+//
+//    Collection<RetentionRule> bucketRules = new HashSet<>();
+//    RetentionRule bucketRule = new RetentionRule();
+//    bucketRule.setProjectId("sdrs-server");
+//    bucketRules.add(bucketRule);
+//    objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
+//  }
 
   @Test
   public void formatDataStorageName(){

@@ -36,6 +36,7 @@
         <initialDelay>0</initialDelay>
         <frequency>30</frequency>
         <timeUnit>MINUTES</timeUnit>
+        <timezone>America/Los_Angeles</timezone>
     </ruleExecution>
     <sts>
         <suffix>shadow</suffix>

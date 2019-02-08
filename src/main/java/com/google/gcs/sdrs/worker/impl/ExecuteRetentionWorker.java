@@ -31,10 +31,12 @@ import com.google.gcs.sdrs.worker.BaseWorker;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,8 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
   private final ExecutionEventRequest executionEvent;
   private final Logger logger = LoggerFactory.getLogger(ExecuteRetentionWorker.class);
+  private final ZoneId DEFAULT_TIMEZONE = ZoneId.of("America/Los_Angeles");
+  private ZoneId executionTimezone;
 
   RetentionRuleDao retentionRuleDao = SingletonDao.getRetentionRuleDao();
   Dao<RetentionJob, Integer> retentionJobDao = SingletonDao.getRetentionJobDao();
@@ -51,6 +55,16 @@ public class ExecuteRetentionWorker extends BaseWorker {
     super();
 
     this.executionEvent = executionEvent;
+
+    try {
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      executionTimezone = ZoneId.of(config.getString("ruleExecution.timezone"));
+    } catch (ConfigurationException ex) {
+      logger.error(
+          String.format(
+              "Configuration could not be read. Using default values: %s", ex.getMessage()));
+      executionTimezone = DEFAULT_TIMEZONE;
+    }
 
     try {
       // TODO: dependency injection -- but there isn't a pressing need to avoid instantiation here.
@@ -94,8 +108,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
         LocalDate.now()
             .atStartOfDay()
             .plusDays(1)
-            // TODO: make this timezone configurable
-            .atZone(ZoneId.of("America/Los_Angeles"));
+            .atZone(executionTimezone);
     return midnight;
   }
 
