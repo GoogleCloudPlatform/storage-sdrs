@@ -30,6 +30,10 @@ import com.google.gcs.sdrs.rule.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.BaseWorker;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +63,6 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
   @Override
   public void doWork() {
-
     RetentionRule eventDefinedRule = getEventDefinedRule();
     try {
       RetentionJob job;
@@ -68,13 +71,11 @@ public class ExecuteRetentionWorker extends BaseWorker {
           job = ruleExecutor.executeDatasetRule(eventDefinedRule);
           break;
         case GLOBAL:
-          String[] dataStorageAndDataset = extractDataStorageAndDataset();
+          String[] dataStorageAndDataset = extractDataStorage();
           Collection<RetentionRule> rules =
-              retentionRuleDao.getAllByDataStorageAndDataset(
-                  dataStorageAndDataset[0], dataStorageAndDataset[1]);
+              retentionRuleDao.getAllDatasetRulesInDataStorage(dataStorageAndDataset[0]);
 
-          // TODO: scheduled time unknown
-          job = ruleExecutor.executeDefaultRule(eventDefinedRule, rules, null);
+          job = ruleExecutor.executeDefaultRule(eventDefinedRule, rules, atMidnight());
           break;
         default:
           workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
@@ -88,25 +89,36 @@ public class ExecuteRetentionWorker extends BaseWorker {
     }
   }
 
+  private ZonedDateTime atMidnight() {
+    ZonedDateTime midnight =
+        LocalDate.now()
+            .atStartOfDay()
+            .plusDays(1)
+            // TODO: make this timezone configurable
+            .atZone(ZoneId.of("America/Los_Angeles"));
+    return midnight;
+  }
+
   private RetentionRule getEventDefinedRule() {
     RetentionRule rule = new RetentionRule();
 
-    String[] dataStorageAndDataset = extractDataStorageAndDataset();
+    String[] dataStorageAndDataset = extractDataStorage();
     rule.setDataStorageName(dataStorageAndDataset[0]);
     rule.setDatasetName(dataStorageAndDataset[1]);
 
+    rule.setRetentionPeriodInDays(0);
     rule.setProjectId(executionEvent.getProjectId());
 
     RetentionRuleType ruleType =
-        executionEvent.getProjectId() == null
-            ? RetentionRuleType.DATASET
-            : RetentionRuleType.GLOBAL;
+        rule.getProjectId() == null || rule.getDatasetName() == null
+            ? RetentionRuleType.GLOBAL
+            : RetentionRuleType.DATASET;
     rule.setType(ruleType);
 
     return rule;
   }
 
-  private String[] extractDataStorageAndDataset() {
+  private String[] extractDataStorage() {
     String target = executionEvent.getTarget();
     String removedPrefix = target.substring(ValidationConstants.STORAGE_PREFIX.length());
     String[] dataStorageAndDataset = removedPrefix.split(ValidationConstants.STORAGE_SEPARATOR, 2);

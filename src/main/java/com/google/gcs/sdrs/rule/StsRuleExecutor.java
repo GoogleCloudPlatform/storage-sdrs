@@ -92,7 +92,7 @@ public class StsRuleExecutor implements RuleExecutor {
     String destinationBucket = formatDataStorageName(rule.getDataStorageName(), suffix);
 
     String description = String.format(
-        "Rule %s %s", rule.getId().toString(), zonedDateTimeNow.toString());
+        "Rule %s %s", rule.getId(), zonedDateTimeNow.toString());
 
     logger.debug(
         String.format("Creating STS job with projectId: %s, " +
@@ -152,7 +152,7 @@ public class StsRuleExecutor implements RuleExecutor {
 
     String projectId = defaultRule.getProjectId();
     // if the default rule doesn't have a projectId, get it from a child dataset rule
-    if (defaultRule.getProjectId().isEmpty()) {
+    if (defaultRule.getProjectId() == null) {
       Optional<RetentionRule> childRuleWithProject =
           bucketDatasetRules.stream().filter(r -> !r.getProjectId().isEmpty()).findFirst();
       if (childRuleWithProject.isPresent()) {

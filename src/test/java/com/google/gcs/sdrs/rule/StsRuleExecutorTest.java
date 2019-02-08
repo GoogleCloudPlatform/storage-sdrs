@@ -20,15 +20,14 @@ package com.google.gcs.sdrs.rule;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.HashSet;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -104,23 +103,17 @@ public class StsRuleExecutorTest {
     }
   }
 
-  @Test
-  public void globalRuleExecutionNoProjectId(){
-    try {
-      testRule.setType(RetentionRuleType.GLOBAL);
-      testRule.setProjectId("");
-      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
+  @Test(expected = IllegalArgumentException.class)
+  public void globalRuleExecutionNoProjectId() throws IOException {
+    testRule.setType(RetentionRuleType.GLOBAL);
+    testRule.setProjectId(null);
+    ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
 
-      Collection<RetentionRule> bucketRules = new HashSet<>();
-      RetentionRule bucketRule = new RetentionRule();
-      bucketRule.setProjectId("");
-      bucketRules.add(bucketRule);
-      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-    } catch (IllegalArgumentException ex) {
-      assertTrue(true);
-    } catch (IOException ex) {
-      Assert.fail();
-    }
+    Collection<RetentionRule> bucketRules = new HashSet<>();
+    RetentionRule bucketRule = new RetentionRule();
+    bucketRule.setProjectId("sdrs-server");
+    bucketRules.add(bucketRule);
+    objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
   }
 
   @Test
@@ -162,7 +155,7 @@ public class StsRuleExecutorTest {
     assertEquals(result.getName(), jobName);
     assertEquals((int)result.getRetentionRuleId(), (int)testRule.getId());
     assertEquals(result.getRetentionRuleDataStorageName(), testRule.getDataStorageName());
-    assertEquals(result.getRetentionRuleType(), testRule.getType().toString());
+    assertEquals(result.getRetentionRuleType(), testRule.getType());
     assertEquals((int)result.getRetentionRuleVersion(), (int)testRule.getVersion());
   }
 }

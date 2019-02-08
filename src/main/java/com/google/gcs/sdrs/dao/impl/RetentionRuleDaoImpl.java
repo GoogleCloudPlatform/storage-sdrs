@@ -19,6 +19,7 @@ package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -41,10 +42,9 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    * Get a {@link List} of {@link RetentionRule}s with the provided dataStorage and dataSet
    *
    * @param dataStorage a {@link String} of the form 'gs://bucketName'
-   * @param dataset a {@link String} defining the location within the bucket
    * @return a {@link List} of {@link RetentionRule}s
    */
-  public List<RetentionRule> getAllByDataStorageAndDataset(String dataStorage, String dataset) {
+  public List<RetentionRule> getAllDatasetRulesInDataStorage(String dataStorage) {
     CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
     CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
     Root<RetentionRule> root = query.from(RetentionRule.class);
@@ -53,7 +53,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
         .select(root)
         // These string values correspond to the entity field names
         .where(builder.equal(root.get("dataStorageName"), dataStorage))
-        .where(builder.equal(root.get("datasetName"), dataset));
+        .where(builder.equal(root.get("type"), RetentionRuleType.DATASET));
 
     Query<RetentionRule> result = getCurrentSession().createQuery(query);
     return result.getResultList();

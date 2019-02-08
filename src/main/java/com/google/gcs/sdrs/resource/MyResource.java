@@ -18,26 +18,20 @@
 
 package com.google.gcs.sdrs.resource;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
+import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.rule.RuleExecutor;
 import com.google.gcs.sdrs.rule.StsRuleExecutor;
+import java.io.IOException;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gcs.sdrs.JobManager.JobManager;
-import com.google.gcs.sdrs.worker.BaseWorker;
-import com.google.gcs.sdrs.worker.DemoWorker;
-
-import java.io.IOException;
-import java.lang.annotation.Retention;
 
 /**
  * Root resource (exposed at "myresource" path)
@@ -60,8 +54,6 @@ public class MyResource {
   @Produces(MediaType.TEXT_PLAIN)
   public String getIt() {
     logger.debug("Get Got Gotten");
-//    BaseWorker worker = new DemoWorker();
-//    jobManager.submitJob(worker);
 
     Dao<RetentionRule, Integer> ruleDao = SingletonDao.getRetentionRuleDao();
 

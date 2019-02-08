@@ -21,8 +21,9 @@ import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.impl.GenericDao;
 import com.google.gcs.sdrs.enums.ExecutionEventType;
-import com.google.gcs.sdrs.service.impl.StsRuleExecutor;
+import com.google.gcs.sdrs.rule.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.WorkerResult;
+import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,11 +41,11 @@ public class ExecuteRetentionWorkerTest {
   private GenericDao retentionJobDaoMock;
 
   @Before
-  public void setup() {
+  public void setup() throws IOException {
     retentionRuleDaoMock = mock(RetentionRuleDao.class);
     retentionJobDaoMock = mock(GenericDao.class);
     ruleExecutorMock = mock(StsRuleExecutor.class);
-    when(ruleExecutorMock.execute(any())).thenReturn(null);
+    when(ruleExecutorMock.executeDatasetRule(any())).thenReturn(null);
   }
 
   @Test
