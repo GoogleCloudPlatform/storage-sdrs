@@ -43,20 +43,16 @@ public class StsRuleExecutorTest {
 
   @Before
   public void initialize(){
-    try {
-      testRule = new RetentionRule();
-      testRule.setId(1);
-      testRule.setProjectId("sdrs-test");
-      testRule.setDatasetName("test");
-      testRule.setRetentionPeriodInDays(30);
-      testRule.setDataStorageName(dataStorageName);
-      testRule.setType(RetentionRuleType.DATASET);
-      testRule.setVersion(2);
+    testRule = new RetentionRule();
+    testRule.setId(1);
+    testRule.setProjectId("sdrs-test");
+    testRule.setDatasetName("test");
+    testRule.setRetentionPeriodInDays(30);
+    testRule.setDataStorageName(dataStorageName);
+    testRule.setType(RetentionRuleType.DATASET);
+    testRule.setVersion(2);
 
-      objectUnderTest = new StsRuleExecutor();
-    } catch (IOException ex) {
-      Assert.fail();
-    }
+    objectUnderTest = StsRuleExecutor.getInstance();
   }
 
   @Test

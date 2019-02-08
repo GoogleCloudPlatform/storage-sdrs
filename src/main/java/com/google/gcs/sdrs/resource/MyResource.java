@@ -69,7 +69,7 @@ public class MyResource {
     RetentionRule rule = ruleDao.findById(1);
 
     try{
-      RuleExecutor executor = new StsRuleExecutor();
+      RuleExecutor executor = StsRuleExecutor.getInstance();
       RetentionJob job = executor.executeDatasetRule(rule);
     } catch (IOException ex) {
       logger.error("Couldn't submit rule for execution: " + ex.getMessage());

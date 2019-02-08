@@ -40,12 +40,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-
 /**
  * An implementation of the Rule Executor interface that uses STS
  */
-public class StsRuleExecutor implements RuleExecutor {
+public class StsRuleExecutor implements RuleExecutor{
 
+  public static StsRuleExecutor instance;
   private final String DEFAULT_SUFFIX = "shadow";
   private final String DEFAULT_PROJECT_ID = "global-default";
   private final int DEFAULT_MAX_PREFIX_COUNT = 1000;
@@ -56,11 +56,23 @@ public class StsRuleExecutor implements RuleExecutor {
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
 
+  public static StsRuleExecutor getInstance() {
+    if (instance == null) {
+      try {
+        instance = new StsRuleExecutor();
+      } catch (IOException ex) {
+        logger.error("Could not establish connection with STS: ", ex.getMessage());
+      }
+    }
+
+    return instance;
+  }
+
   /**
    * STS Rule Executor constructor that reads the bucket suffix from the configuration file
    * @throws IOException when the STS Client cannot be instantiated
    */
-  public StsRuleExecutor() throws IOException {
+  private StsRuleExecutor() throws IOException {
     try {
       Configuration config = new Configurations().xml("applicationConfig.xml");
       suffix = config.getString("sts.suffix");
