@@ -168,7 +168,7 @@ public class StsRuleExecutor implements RuleExecutor {
     String destinationBucket = formatDataStorageName(defaultRule.getDataStorageName(), suffix);
 
     String description = String.format(
-        "Rule %s %s", defaultRule.getId().toString(), scheduledTime.toString());
+        "Rule %s %s", defaultRule.getId(), scheduledTime.toString());
 
     logger.debug(
         String.format("Creating STS job with for rule %s, projectId: %s, " +

@@ -84,7 +84,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
       retentionJobDao.save(job);
       workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
     } catch (IOException exception) {
-      logger.error(String.format("Error executing rule %s", eventDefinedRule.getId()));
+      logger.error(String.format("Error executing rule: %s", exception.getMessage()));
       workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
     }
   }
