@@ -32,10 +32,6 @@ import com.google.gcs.sdrs.rule.StsRuleExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
-import com.google.gcs.sdrs.worker.BaseWorker;
-import com.google.gcs.sdrs.worker.DemoWorker;
-
 import java.io.IOException;
 
 /**
@@ -47,7 +43,6 @@ import java.io.IOException;
 public class MyResource {
 
   static final private Logger logger = LoggerFactory.getLogger(MyResource.class);
-  static final private JobManager jobManager = JobManager.getInstance();
 
   /**
    * Method handling HTTP GET requests. The returned object will be sent
@@ -59,8 +54,6 @@ public class MyResource {
   @Produces(MediaType.TEXT_PLAIN)
   public String getIt() {
     logger.debug("Get Got Gotten");
-//    BaseWorker worker = new DemoWorker();
-//    jobManager.submitJob(worker);
 
     // The following is test code to execute the STS utility. This assumes a retention rule
     // with ID = 1 exists in the database
