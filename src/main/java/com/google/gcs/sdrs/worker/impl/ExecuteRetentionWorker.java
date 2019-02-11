@@ -93,6 +93,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
         }
 
         if (rule == null) {
+          workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
           throw new UnsupportedOperationException("No rule found matching description");
         }
         break;
