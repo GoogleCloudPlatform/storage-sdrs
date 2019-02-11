@@ -15,32 +15,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.enums;
+package com.google.gcs.sdrs.dao.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+public class DatabaseConstants {
+  public static final String STORAGE_TYPE_GCS = "GCS";
+  public static final String STORAGE_TYPE_BIG_QUERY = "BQ";
 
-/**
- * Supported type for events sent to the execution endpoint
- *
- * <p>JsonProperty values indicate the supported JSON input string.
- */
-public enum ExecutionEventType {
-  @JsonProperty(ValidationConstants.POLICY_JSON_VALUE)
-  POLICY(ValidationConstants.POLICY_JSON_VALUE),
-
-  @JsonProperty(ValidationConstants.USER_JSON_VALUE)
-  USER_COMMANDED(ValidationConstants.USER_JSON_VALUE);
-
-  private final String jsonValue;
-
-  ExecutionEventType(String jsonValue) {
-    this.jsonValue = jsonValue;
-  }
-
-  /** This will return the JSON representation */
-  @Override
-  public String toString() {
-    return jsonValue;
-  }
+  // this will be changed to "default" in the future
+  public static final String POLICY_TYPE_GLOBAL = "global";
+  public static final String POLICY_TYPE_DATASET = "dataset";
+  public static final String STS_JOB_STATUS_SUCCESS = "success";
+  public static final String STS_JOB_STATUS_PENDING = "pending";
+  public static final String STS_JOB_STATUS_ERROR = "error";
 }

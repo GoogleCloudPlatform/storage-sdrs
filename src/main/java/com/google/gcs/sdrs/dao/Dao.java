@@ -23,8 +23,6 @@ import java.io.Serializable;
 /**
  * Interface for Data Access Object pattern
  *
- * @author salguerod
- *
  * @param <T>
  * @param <Id>
  */
@@ -37,5 +35,4 @@ public interface Dao<T, Id extends Serializable> {
   T findById(Id id);
 
   void delete(T entity);
-
 }

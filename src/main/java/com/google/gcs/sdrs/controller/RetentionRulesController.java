@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
@@ -44,7 +45,6 @@ import org.slf4j.LoggerFactory;
 public class RetentionRulesController extends BaseController {
 
   private static final Logger logger = LoggerFactory.getLogger(RetentionRulesController.class);
-  private static final Integer RETENTION_MAX_VALUE = 200;
 
   RetentionRulesService service = new RetentionRulesServiceImpl();
 
@@ -67,6 +67,9 @@ public class RetentionRulesController extends BaseController {
       return Response.status(200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
+    } catch (Exception exception) {
+      logger.error(exception.getMessage());
+      return generateExceptionResponse(new InternalServerException(exception), requestUuid);
     }
   }
 
@@ -88,6 +91,9 @@ public class RetentionRulesController extends BaseController {
       return Response.status(200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
+    } catch (Exception exception) {
+      logger.error(exception.getMessage());
+      return generateExceptionResponse(new InternalServerException(exception), requestUuid);
     }
   }
 
@@ -146,9 +152,11 @@ public class RetentionRulesController extends BaseController {
       if (retentionPeriod < 0) {
         messages.add("retentionPeriod must be at least 0");
       }
-      if (retentionPeriod > RETENTION_MAX_VALUE) {
+      if (retentionPeriod > ValidationConstants.RETENTION_MAX_VALUE) {
         messages.add(
-            String.format("retentionPeriod exceeds maximum value of %d", RETENTION_MAX_VALUE));
+            String.format(
+                "retentionPeriod exceeds maximum value of %d",
+                ValidationConstants.RETENTION_MAX_VALUE));
       }
     }
     return new ValidationResult(messages);

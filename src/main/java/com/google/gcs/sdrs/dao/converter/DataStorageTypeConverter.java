@@ -18,36 +18,32 @@
 package com.google.gcs.sdrs.dao.converter;
 
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.enums.DataStorageType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
-import static com.google.gcs.sdrs.enums.RetentionRuleType.DATASET;
-import static com.google.gcs.sdrs.enums.RetentionRuleType.GLOBAL;
-
-/** Supports converting a RetentionRuleType between the database and application representations */
+/** Supports converting a DataStorageType between the database and application representations */
 @Converter
-public class RetentionRuleTypeConverter implements AttributeConverter<RetentionRuleType, String> {
+public class DataStorageTypeConverter implements AttributeConverter<DataStorageType, String> {
 
-  /** Convert RetentionRuleType to a String */
+  /** Convert DataStorageType to a String */
   @Override
-  public String convertToDatabaseColumn(RetentionRuleType type) {
+  public String convertToDatabaseColumn(DataStorageType type) {
     return type.toDatabaseRepresentation();
   }
 
-  /** Convert a database string representation to a RetentionRuleType */
+  /** Convert a database string representation to a DataStorageType */
   @Override
-  public RetentionRuleType convertToEntityAttribute(String databaseRepresentation) {
+  public DataStorageType convertToEntityAttribute(String databaseRepresentation) {
     switch (databaseRepresentation) {
-      case DatabaseConstants.POLICY_TYPE_GLOBAL:
-        return GLOBAL;
-      case DatabaseConstants.POLICY_TYPE_DATASET:
-        return DATASET;
+      case DatabaseConstants.STORAGE_TYPE_GCS:
+        return DataStorageType.GOOGLE_CLOUD_STORAGE;
+      case DatabaseConstants.STORAGE_TYPE_BIG_QUERY:
+        return DataStorageType.BIG_QUERY;
       default:
         throw new IllegalArgumentException(
             String.format(
-                "%s is not representable as a %s",
-                databaseRepresentation, RetentionRuleType.class));
+                "%s is not representable as a %s", databaseRepresentation, DataStorageType.class));
     }
   }
 }

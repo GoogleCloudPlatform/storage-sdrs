@@ -13,34 +13,25 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- */
-
-package com.google.gcs.sdrs.enums;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
-
-/**
- * Supported type for events sent to the execution endpoint
  *
- * <p>JsonProperty values indicate the supported JSON input string.
  */
-public enum ExecutionEventType {
-  @JsonProperty(ValidationConstants.POLICY_JSON_VALUE)
-  POLICY(ValidationConstants.POLICY_JSON_VALUE),
 
-  @JsonProperty(ValidationConstants.USER_JSON_VALUE)
-  USER_COMMANDED(ValidationConstants.USER_JSON_VALUE);
+package com.google.gcs.sdrs.rule;
 
-  private final String jsonValue;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
 
-  ExecutionEventType(String jsonValue) {
-    this.jsonValue = jsonValue;
-  }
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.Collection;
 
-  /** This will return the JSON representation */
-  @Override
-  public String toString() {
-    return jsonValue;
-  }
+public interface RuleExecutor {
+
+  RetentionJob executeDatasetRule(RetentionRule rule) throws IOException, IllegalArgumentException;
+
+  RetentionJob executeDefaultRule(
+      RetentionRule defaultRule,
+      Collection<RetentionRule> bucketDatasetRules,
+      ZonedDateTime scheduledTime)
+      throws IOException, IllegalArgumentException;
 }

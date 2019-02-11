@@ -33,15 +33,15 @@ public class RetentionRuleTypeConverterTest {
   }
 
   @Test
-  public void convertsDatasetToString() {
+  public void convertsDatasetToDatabaseString() {
     String result = converter.convertToDatabaseColumn(RetentionRuleType.DATASET);
-    assertEquals(result, RetentionRuleType.DATASET.toString());
+    assertEquals(RetentionRuleType.DATASET.toDatabaseRepresentation(), result);
   }
 
   @Test
   public void convertsGlobalToString() {
     String result = converter.convertToDatabaseColumn(RetentionRuleType.GLOBAL);
-    assertEquals(result, RetentionRuleType.GLOBAL.toString());
+    assertEquals(RetentionRuleType.GLOBAL.toDatabaseRepresentation(), result);
   }
 
   @Test

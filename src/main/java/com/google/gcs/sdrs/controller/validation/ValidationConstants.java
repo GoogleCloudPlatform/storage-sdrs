@@ -15,32 +15,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.enums;
+package com.google.gcs.sdrs.controller.validation;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
-
-/**
- * Supported type for events sent to the execution endpoint
- *
- * <p>JsonProperty values indicate the supported JSON input string.
- */
-public enum ExecutionEventType {
-  @JsonProperty(ValidationConstants.POLICY_JSON_VALUE)
-  POLICY(ValidationConstants.POLICY_JSON_VALUE),
-
-  @JsonProperty(ValidationConstants.USER_JSON_VALUE)
-  USER_COMMANDED(ValidationConstants.USER_JSON_VALUE);
-
-  private final String jsonValue;
-
-  ExecutionEventType(String jsonValue) {
-    this.jsonValue = jsonValue;
-  }
-
-  /** This will return the JSON representation */
-  @Override
-  public String toString() {
-    return jsonValue;
-  }
+public class ValidationConstants {
+  // 3 Years
+  public static final Integer RETENTION_MAX_VALUE = 1095;
+  public static final String STORAGE_PREFIX = "gs://";
+  public static final String STORAGE_SEPARATOR = "/";
+  public static final String GLOBAL_JSON_VALUE = "GLOBAL";
+  public static final String DATASET_JSON_VALUE = "DATASET";
+  public static final String POLICY_JSON_VALUE = "POLICY";
+  public static final String USER_JSON_VALUE = "USER";
 }

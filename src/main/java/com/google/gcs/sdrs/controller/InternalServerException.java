@@ -15,32 +15,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.enums;
+package com.google.gcs.sdrs.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+import org.eclipse.jetty.http.HttpStatus;
 
-/**
- * Supported type for events sent to the execution endpoint
- *
- * <p>JsonProperty values indicate the supported JSON input string.
- */
-public enum ExecutionEventType {
-  @JsonProperty(ValidationConstants.POLICY_JSON_VALUE)
-  POLICY(ValidationConstants.POLICY_JSON_VALUE),
+/** Exception thrown when internal errors occur. Hides internal details. */
+public class InternalServerException extends HttpException {
 
-  @JsonProperty(ValidationConstants.USER_JSON_VALUE)
-  USER_COMMANDED(ValidationConstants.USER_JSON_VALUE);
-
-  private final String jsonValue;
-
-  ExecutionEventType(String jsonValue) {
-    this.jsonValue = jsonValue;
+  public InternalServerException(Exception exception) {
+    this.initCause(exception);
   }
 
-  /** This will return the JSON representation */
+  /** Gets an error message hiding internal details */
   @Override
-  public String toString() {
-    return jsonValue;
+  public String getMessage() {
+    return "Internal server error";
+  }
+
+  /** Gets the error HTTP status code */
+  @Override
+  public int getStatusCode() {
+    return HttpStatus.INTERNAL_SERVER_ERROR_500;
   }
 }

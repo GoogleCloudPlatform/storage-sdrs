@@ -18,12 +18,12 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.dao.converter.RetentionRuleTypeConverter;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 import java.sql.Timestamp;
-
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -48,9 +48,9 @@ public class RetentionJob {
   @Column(name = "retention_rule_version")
   private Integer retentionRuleVersion;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "retention_rule_type")
-  private String retentionRuleType;
+  @Convert(converter = RetentionRuleTypeConverter.class)
+  @Column(name = "type")
+  private RetentionRuleType retentionRuleType;
 
   @Column(name = "retention_rule_data_storage_name")
   private String retentionRuleDataStorageName;
@@ -87,11 +87,11 @@ public class RetentionJob {
     this.retentionRuleId = retentionRuleId;
   }
 
-  public String getRetentionRuleType() {
+  public RetentionRuleType getRetentionRuleType() {
     return retentionRuleType;
   }
 
-  public void setRetentionRuleType(String retentionRuleType) {
+  public void setRetentionRuleType(RetentionRuleType retentionRuleType) {
     this.retentionRuleType = retentionRuleType;
   }
 

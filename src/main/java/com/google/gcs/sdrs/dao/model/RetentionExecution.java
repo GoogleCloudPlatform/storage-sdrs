@@ -18,9 +18,12 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.dao.converter.DataStorageTypeConverter;
+import com.google.gcs.sdrs.enums.DataStorageType;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -42,9 +45,9 @@ public class RetentionExecution {
   @Column(name = "executor_id")
   private String executorId;
 
-  @Enumerated(EnumType.STRING)
+  @Convert(converter = DataStorageTypeConverter.class)
   @Column(name = "data_storage_type")
-  private Enum<?> dataStorageType;
+  private DataStorageType dataStorageType;
 
   @Column(name = "retention_job_id")
   private Integer retentionJobId;
@@ -70,11 +73,11 @@ public class RetentionExecution {
     this.executorId = executorId;
   }
 
-  public Enum<?> getDataStorageType() {
+  public DataStorageType getDataStorageType() {
     return dataStorageType;
   }
 
-  public void setDataStorageType(Enum<?> dataStorageType) {
+  public void setDataStorageType(DataStorageType dataStorageType) {
     this.dataStorageType = dataStorageType;
   }
 

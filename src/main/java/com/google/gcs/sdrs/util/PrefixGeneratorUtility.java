@@ -21,9 +21,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 /** A utility to generate bucket name prefixes within a time interval. */
@@ -37,10 +37,10 @@ public class PrefixGeneratorUtility {
    *     be earlier than {@code endTime}. There is no guarantee that files older than this value
    *     will not be deleted.
    * @param endTime indicating the time of the most recent prefix to generate.
-   * @return a {@link Collection} of {@link String}s of the form `pattern/period` for every time
+   * @return a {@link List} of {@link String}s of the form `pattern/period` for every time
    *     segment within the interval between endTime and startTime.
    */
-  public static Collection<String> generateTimePrefixes(
+  public static List<String> generateTimePrefixes(
       String pattern, ZonedDateTime startTime, ZonedDateTime endTime) {
 
     if (endTime.isBefore(startTime)) {
@@ -50,7 +50,7 @@ public class PrefixGeneratorUtility {
 
     endTime = endTime.truncatedTo(ChronoUnit.HOURS);
 
-    Collection<String> result = new HashSet<>();
+    List<String> result = new ArrayList<>();
 
     Map<ChronoUnit, DateTimeFormatter> formatters = new HashMap<>();
     formatters.put(ChronoUnit.YEARS, DateTimeFormatter.ofPattern("yyyy"));

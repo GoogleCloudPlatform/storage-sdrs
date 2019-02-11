@@ -47,4 +47,9 @@
       </validationService>
     </task>
   </scheduler>
+  <sts>
+    <maxPrefixCount>1000</maxPrefixCount>
+    <suffix>shadow</suffix>
+    <defaultProjectId>global-default</defaultProjectId>
+  </sts>
 </appConfiguration>
