@@ -67,13 +67,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
       executionTimezone = DEFAULT_TIMEZONE;
     }
 
-    try {
-      // TODO: dependency injection -- but there isn't a pressing need to avoid instantiation here.
-      ruleExecutor = new StsRuleExecutor();
-    } catch (IOException exception) {
-      logger.error("Unable to create StsRuleExecutor");
-      workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
-    }
+    ruleExecutor = StsRuleExecutor.getInstance();
   }
 
   @Override
