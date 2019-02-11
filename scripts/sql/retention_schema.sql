@@ -23,6 +23,7 @@ CREATE TABLE retention_rule (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `user` varchar(256) NOT NULL,
+  UNIQUE KEY `unique_dataset_storage_project` (`dataset_name`, `data_storage_name`, `project_id`),
   INDEX `retention_rule_dataset_name` (`dataset_name`),
   INDEX `retention_rule_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

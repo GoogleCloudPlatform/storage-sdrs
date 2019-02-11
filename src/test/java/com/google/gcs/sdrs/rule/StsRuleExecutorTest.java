@@ -20,14 +20,15 @@ package com.google.gcs.sdrs.rule;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.HashSet;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -42,20 +43,16 @@ public class StsRuleExecutorTest {
 
   @Before
   public void initialize(){
-    try {
-      testRule = new RetentionRule();
-      testRule.setId(1);
-      testRule.setProjectId("sdrs-test");
-      testRule.setDatasetName("test");
-      testRule.setRetentionPeriodInDays(30);
-      testRule.setDataStorageName(dataStorageName);
-      testRule.setType(RetentionRuleType.DATASET);
-      testRule.setVersion(2);
+    testRule = new RetentionRule();
+    testRule.setId(1);
+    testRule.setProjectId("sdrs-test");
+    testRule.setDatasetName("test");
+    testRule.setRetentionPeriodInDays(30);
+    testRule.setDataStorageName(dataStorageName);
+    testRule.setType(RetentionRuleType.DATASET);
+    testRule.setVersion(2);
 
-      objectUnderTest = new StsRuleExecutor();
-    } catch (IOException ex) {
-      Assert.fail();
-    }
+    objectUnderTest = StsRuleExecutor.getInstance();
   }
 
   @Test
@@ -103,18 +100,24 @@ public class StsRuleExecutorTest {
     }
   }
 
-//  @Test(expected = IllegalArgumentException.class)
-//  public void globalRuleExecutionNoProjectId() throws IOException {
-//    testRule.setType(RetentionRuleType.GLOBAL);
-//    testRule.setProjectId(null);
-//    ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
-//
-//    Collection<RetentionRule> bucketRules = new HashSet<>();
-//    RetentionRule bucketRule = new RetentionRule();
-//    bucketRule.setProjectId("sdrs-server");
-//    bucketRules.add(bucketRule);
-//    objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-//  }
+  @Test
+  public void globalRuleExecutionNoProjectId(){
+    try {
+      testRule.setType(RetentionRuleType.GLOBAL);
+      testRule.setProjectId("");
+      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
+
+      Collection<RetentionRule> bucketRules = new HashSet<>();
+      RetentionRule bucketRule = new RetentionRule();
+      bucketRule.setProjectId("");
+      bucketRules.add(bucketRule);
+      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
+    } catch (IllegalArgumentException ex) {
+      assertTrue(true);
+    } catch (IOException ex) {
+      Assert.fail();
+    }
+  }
 
   @Test
   public void formatDataStorageName(){

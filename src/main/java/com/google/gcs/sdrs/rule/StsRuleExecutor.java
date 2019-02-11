@@ -20,11 +20,12 @@ package com.google.gcs.sdrs.rule;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
-import com.google.gcs.sdrs.util.StsUtility;
+import com.google.gcs.sdrs.util.StsUtil;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -39,30 +40,50 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-
 /**
  * An implementation of the Rule Executor interface that uses STS
  */
-public class StsRuleExecutor implements RuleExecutor {
+public class StsRuleExecutor implements RuleExecutor{
 
+  public static StsRuleExecutor instance;
   private final String DEFAULT_SUFFIX = "shadow";
+  private final String DEFAULT_PROJECT_ID = "global-default";
+  private final int DEFAULT_MAX_PREFIX_COUNT = 1000;
   private String suffix;
+  private String defaultProjectId;
+  private int maxPrefixCount;
   Storagetransfer client;
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
+
+  public static StsRuleExecutor getInstance() {
+    if (instance == null) {
+      try {
+        instance = new StsRuleExecutor();
+      } catch (IOException ex) {
+        logger.error("Could not establish connection with STS: ", ex.getMessage());
+      }
+    }
+
+    return instance;
+  }
 
   /**
    * STS Rule Executor constructor that reads the bucket suffix from the configuration file
    * @throws IOException when the STS Client cannot be instantiated
    */
-  public StsRuleExecutor() throws IOException {
+  private StsRuleExecutor() throws IOException {
     try {
       Configuration config = new Configurations().xml("applicationConfig.xml");
       suffix = config.getString("sts.suffix");
-      client = StsUtility.createStsClient();
+      maxPrefixCount = config.getInt("sts.maxPrefixCount");
+      defaultProjectId = config.getString("sts.defaultProjectId");
+      client = StsUtil.createStsClient();
     } catch (ConfigurationException ex) {
       logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
       suffix = DEFAULT_SUFFIX;
+      maxPrefixCount = DEFAULT_MAX_PREFIX_COUNT;
+      defaultProjectId = DEFAULT_PROJECT_ID;
     }
   }
 
@@ -92,7 +113,7 @@ public class StsRuleExecutor implements RuleExecutor {
     String destinationBucket = formatDataStorageName(rule.getDataStorageName(), suffix);
 
     String description = String.format(
-        "Rule %s %s", rule.getId(), zonedDateTimeNow.toString());
+        "Rule %s %s %s", rule.getId(), rule.getVersion(), zonedDateTimeNow.toString());
 
     logger.debug(
         String.format("Creating STS job with projectId: %s, " +
@@ -103,7 +124,7 @@ public class StsRuleExecutor implements RuleExecutor {
             destinationBucket));
 
     TransferJob job =
-        StsUtility.createStsJob(
+        StsUtil.createStsJob(
             client,
             projectId,
             sourceBucket,
@@ -142,17 +163,19 @@ public class StsRuleExecutor implements RuleExecutor {
       prefixesToExclude.add(datasetRule.getDatasetName());
     }
 
-    // STS has a restriction of 1000 values in any prefix collection
-    if (prefixesToExclude.size() > 1000) {
-      String message = "There are too many dataset rules associated with this bucket. " +
-          "A maximum of 1000 rules are allowed.";
+    // STS has a restriction of 1000 values in any prefix collection. This should never happen.
+    if (prefixesToExclude.size() > maxPrefixCount) {
+      String message = String.format(
+          "There are too many dataset rules associated with this bucket. " +
+          "A maximum of %s rules are allowed.", maxPrefixCount);
       logger.error(message);
       throw new IllegalArgumentException(message);
     }
 
     String projectId = defaultRule.getProjectId();
     // if the default rule doesn't have a projectId, get it from a child dataset rule
-    if (defaultRule.getProjectId() == null) {
+    if (defaultRule.getProjectId().isEmpty()
+        || defaultRule.getProjectId().equalsIgnoreCase(defaultProjectId)) {
       Optional<RetentionRule> childRuleWithProject =
           bucketDatasetRules.stream().filter(r -> !r.getProjectId().isEmpty()).findFirst();
       if (childRuleWithProject.isPresent()) {
@@ -168,7 +191,7 @@ public class StsRuleExecutor implements RuleExecutor {
     String destinationBucket = formatDataStorageName(defaultRule.getDataStorageName(), suffix);
 
     String description = String.format(
-        "Rule %s %s", defaultRule.getId(), scheduledTime.toString());
+        "Rule %s %s %s", defaultRule.getId(), defaultRule.getVersion(), scheduledTime.toString());
 
     logger.debug(
         String.format("Creating STS job with for rule %s, projectId: %s, " +
@@ -180,7 +203,7 @@ public class StsRuleExecutor implements RuleExecutor {
             destinationBucket));
 
     TransferJob job =
-        StsUtility.createDefaultStsJob(
+        StsUtil.createDefaultStsJob(
             client,
             projectId,
             sourceBucket,
@@ -195,10 +218,12 @@ public class StsRuleExecutor implements RuleExecutor {
 
   String formatDataStorageName(String dataStorageName) {
 
-    dataStorageName = dataStorageName.replaceFirst("gs://","");
+    dataStorageName = dataStorageName.replaceFirst(
+        ValidationConstants.STORAGE_PREFIX,"");
 
-    if (dataStorageName.endsWith("/")) {
-      dataStorageName = dataStorageName.replaceAll("/", "");
+    if (dataStorageName.endsWith(ValidationConstants.STORAGE_SEPARATOR)) {
+      dataStorageName = dataStorageName.replaceAll(
+          ValidationConstants.STORAGE_SEPARATOR, "");
     }
 
     return dataStorageName;
