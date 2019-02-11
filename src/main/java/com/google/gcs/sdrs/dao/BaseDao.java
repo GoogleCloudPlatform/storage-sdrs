@@ -35,8 +35,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Hibernate based DAO base class
  *
- * @param <T>
- * @param <Id>
+ * @param <T> an annotated entity object
+ * @param <Id> the id type for the entity
  */
 public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> {
 
@@ -47,48 +47,59 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
   private Session currentSession;
   private Transaction currentTransaction;
 
+  /** A class reference for the entity type */
   protected final Class<T> type;
 
+  /** Constructs a DAO object with the entity class type */
   public BaseDao(final Class<T> type) {
     this.type = type;
   }
 
-  public Session openCurrentSession() {
+  /** Opens and returns a session */
+  protected Session openCurrentSession() {
     currentSession = getSessionFactory().openSession();
     return currentSession;
   }
 
-  public Session openCurrentSessionWithTransaction() {
+  /** Opens and returns a session with a transaction */
+  protected Session openCurrentSessionWithTransaction() {
     currentSession = getSessionFactory().openSession();
     currentTransaction = currentSession.beginTransaction();
     return currentSession;
   }
 
-  public void closeCurrentSession() {
+  /** Closes the currently open session */
+  protected void closeCurrentSession() {
     currentSession.close();
   }
 
-  public void closeCurrentSessionWithTransaction() {
+  /** Commits the current transaction and closes the currently open session */
+  protected void closeCurrentSessionWithTransaction() {
     currentTransaction.commit();
     currentSession.close();
   }
 
-  public Session getCurrentSession() {
+  /** Gets the current session */
+  protected Session getCurrentSession() {
     return currentSession;
   }
 
-  public void setCurrentSession(Session currentSession) {
+  /** Sets the current session */
+  protected void setCurrentSession(Session currentSession) {
     this.currentSession = currentSession;
   }
 
-  public Transaction getCurrentTransaction() {
+  /** Gets the current transaction */
+  protected Transaction getCurrentTransaction() {
     return currentTransaction;
   }
 
-  public void setCurrentTransaction(Transaction currentTransaction) {
+  /** Sets the current session */
+  protected void setCurrentTransaction(Transaction currentTransaction) {
     this.currentTransaction = currentTransaction;
   }
 
+  /** Gets the session factory */
   protected static SessionFactory getSessionFactory() {
     if (sessionFactory == null) {
       try {

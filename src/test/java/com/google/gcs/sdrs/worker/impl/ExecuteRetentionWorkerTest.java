@@ -74,29 +74,7 @@ public class ExecuteRetentionWorkerTest {
     worker.retentionRuleDao = retentionRuleDaoMock;
     RetentionRule rule = new RetentionRule();
     rule.setType(RetentionRuleType.DATASET);
-    List<RetentionRule> rules = new ArrayList<>();
-    rules.add(rule);
-    when(retentionRuleDaoMock.findAllByTarget(any(), any())).thenReturn(rules);
-
-    worker.doWork();
-
-    assertEquals(WorkerResult.WorkerResultStatus.SUCCESS, worker.getWorkerResult().getStatus());
-  }
-
-  @Test
-  public void doWorkSuccessfullyHandlesPolicyRequestsWithoutProjectId() {
-    ExecutionEventRequest request = createBasicRequest();
-    request.setExecutionEventType(ExecutionEventType.POLICY);
-    request.setProjectId(null);
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
-    worker.ruleExecutor = ruleExecutorMock;
-    worker.retentionJobDao = retentionJobDaoMock;
-    worker.retentionRuleDao = retentionRuleDaoMock;
-    RetentionRule rule = new RetentionRule();
-    rule.setType(RetentionRuleType.DATASET);
-    List<RetentionRule> rules = new ArrayList<>();
-    rules.add(rule);
-    when(retentionRuleDaoMock.findAllByTarget(any(), any())).thenReturn(rules);
+    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any(), any())).thenReturn(rule);
 
     worker.doWork();
 
@@ -114,30 +92,7 @@ public class ExecuteRetentionWorkerTest {
     worker.retentionRuleDao = retentionRuleDaoMock;
     RetentionRule rule = new RetentionRule();
     rule.setType(RetentionRuleType.GLOBAL);
-    List<RetentionRule> rules = new ArrayList<>();
-    rules.add(rule);
-    when(retentionRuleDaoMock.findAllByTarget(any(), any())).thenReturn(rules);
-
-    worker.doWork();
-
-    assertEquals(WorkerResult.WorkerResultStatus.SUCCESS, worker.getWorkerResult().getStatus());
-  }
-
-  @Test
-  public void doWorkPicksOneRuleToExecuteIfMultipleMatchPolicy() {
-    ExecutionEventRequest request = createBasicRequest();
-    request.setExecutionEventType(ExecutionEventType.POLICY);
-    request.setProjectId(null);
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
-    worker.ruleExecutor = ruleExecutorMock;
-    worker.retentionJobDao = retentionJobDaoMock;
-    worker.retentionRuleDao = retentionRuleDaoMock;
-    RetentionRule rule = new RetentionRule();
-    rule.setType(RetentionRuleType.GLOBAL);
-    List<RetentionRule> rules = new ArrayList<>();
-    rules.add(rule);
-    rules.add(rule);
-    when(retentionRuleDaoMock.findAllByTarget(any(), any())).thenReturn(rules);
+    when(retentionRuleDaoMock.findGlobalRuleByTarget(any(), any())).thenReturn(rule);
 
     worker.doWork();
 

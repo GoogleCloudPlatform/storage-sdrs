@@ -79,16 +79,17 @@ public class ExecuteRetentionWorker extends BaseWorker {
         rule = getEventDefinedRule();
         break;
       case POLICY:
-        List<RetentionRule> rules =
-            retentionRuleDao.findAllByTarget(dataStorageAndDataset[0], dataStorageAndDataset[1]);
-        if (rules.size() == 1) {
-          rule = rules.get(0);
-        } else if (rules.size() > 1) {
-          // TODO: define behavior when there are multiple matching rules
-          rule = rules.get(0);
+        // If the projectId is provided, the target can be assumed to be a Dataset rule.
+        if (executionEvent.getProjectId() != null) {
+          rule =
+              retentionRuleDao.findDatasetRuleByBusinessKey(
+                  executionEvent.getProjectId(),
+                  dataStorageAndDataset[0],
+                  dataStorageAndDataset[1]);
         } else {
-          // TODO: define behavior when there are no matching rules
-          throw new UnsupportedOperationException("Unknown rule");
+          rule =
+              retentionRuleDao.findGlobalRuleByTarget(
+                  dataStorageAndDataset[0], dataStorageAndDataset[1]);
         }
         break;
       default:
