@@ -22,9 +22,12 @@ import com.google.gcs.sdrs.enums.RetentionJobStatusType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
-/** Supports converting a RetentionJobStatusType between the database and application representations */
+/**
+ * Supports converting a RetentionJobStatusType between the database and application representations
+ */
 @Converter
-public class RetentionJobStatusTypeConverter implements AttributeConverter<RetentionJobStatusType, String> {
+public class RetentionJobStatusTypeConverter
+    implements AttributeConverter<RetentionJobStatusType, String> {
 
   /** Convert RetentionJobStatusType to a String */
   @Override

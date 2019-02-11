@@ -18,25 +18,19 @@
 
 package com.google.gcs.sdrs.worker;
 
-import java.util.concurrent.Callable;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-/**
- * A Callable BaseWorker class
- */
-public abstract class BaseWorker implements Callable<WorkerResult> {
+/** A Callable BaseWorker class */
+public abstract class BaseWorker implements Worker {
 
   public WorkerResult workerResult;
   private static final Logger logger = LoggerFactory.getLogger(BaseWorker.class);
 
-  /**
-   * BaseWorker constructor that instantiates the internal WorkerResult object
-   */
-  public BaseWorker(){
+  /** BaseWorker constructor that instantiates the internal WorkerResult object */
+  protected BaseWorker() {
     workerResult = new WorkerResult();
     workerResult.setType(this.getClass().getName());
     logger.debug("Worker created: " + this.workerResult.toString());
@@ -44,19 +38,23 @@ public abstract class BaseWorker implements Callable<WorkerResult> {
 
   /**
    * The call method required to make this class Callable
+   *
    * @return A basic populated WorkerResult object
    */
   @Override
   public WorkerResult call() {
     workerResult.setStartTime(DateTime.now(DateTimeZone.UTC));
     logger.info("Worker processing begins: " + this.workerResult.toString());
-    workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
+
+    doWork();
 
     workerResult.setEndTime(DateTime.now(DateTimeZone.UTC));
     logger.info("Worker processing ends: " + this.workerResult.toString());
 
     return workerResult;
   }
+
+  public abstract void doWork();
 
   public WorkerResult getWorkerResult() {
     return workerResult;

@@ -105,7 +105,7 @@ public class StsRuleExecutor implements RuleExecutor{
     ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
 
     List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(rule.getDatasetName(),
-        zonedDateTimeNow, zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()));
+        zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()), zonedDateTimeNow);
     //prefixes.add("testDataset/2018/12/31/12");
 
     String projectId = rule.getProjectId();
