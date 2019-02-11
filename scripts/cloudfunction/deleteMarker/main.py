@@ -1,5 +1,6 @@
 import os
 import requests
+#import urllib.parse
 
 import flask
 
@@ -27,8 +28,15 @@ def rpo_listener(object_finalize_event, context):
     dict_to_send = {'datasetName': prefix, 'dataStorageName': bucket_prefix, 'projectId':project, 'retentionPeriod': int_ttl, 'type': 'DATASET'}
     # vpc url format 'http://[INSTANCE_NAME].c.[PROJECT_ID].internal'
     # http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/
-    print(" hello world")
-    response = requests.get('http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/myresource/')
+    print(" hello world again")
+    # below is the format needed for our VPC cloud endpoints setup, note the port 80
+    #response = requests.get('http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/myresource/')
+    #http://localhost:8080/retentionrules/getByBusinessKey?project=sdrs-server&bucket=gs:%2F%2Fds-dev-rpo%2FdataSetY&dataSet=dataSetY
+    #todo need to do URL encoding UTF-8
+    get_response = requests.get('http://localhost:8080/retentionrules/getByBusinessKey?project={project}&bucket={buck_prefix}&dataSet={prefix}')
     print ('response from server:',response.text)
     dict_from_server = response.json()
+    # if has no reponse, do a create post
+    
+    # else do an update put
     
