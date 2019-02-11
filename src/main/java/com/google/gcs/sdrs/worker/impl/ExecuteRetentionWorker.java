@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.List;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -77,19 +78,38 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
   @Override
   public void doWork() {
-    RetentionRule eventDefinedRule = getEventDefinedRule();
+    String[] dataStorageAndDataset = extractDataStorage();
+    RetentionRule rule;
+    switch (executionEvent.getExecutionEventType()) {
+      case USER_COMMANDED:
+        rule = getEventDefinedRule();
+        break;
+      case POLICY:
+        List<RetentionRule> rules =
+            retentionRuleDao.findAllByTarget(dataStorageAndDataset[0], dataStorageAndDataset[1]);
+        if (rules.size() == 1) {
+          rule = rules.get(0);
+        } else {
+          // TODO: define behavior when there are multiple matching rules
+          rule = rules.get(0);
+        }
+        break;
+      default:
+        workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
+        throw new UnsupportedOperationException("Unknown execution event type");
+    }
+
     try {
       RetentionJob job;
-      switch (eventDefinedRule.getType()) {
+      switch (rule.getType()) {
         case DATASET:
-          job = ruleExecutor.executeDatasetRule(eventDefinedRule);
+          job = ruleExecutor.executeDatasetRule(rule);
           break;
         case GLOBAL:
-          String[] dataStorageAndDataset = extractDataStorage();
           Collection<RetentionRule> rules =
-              retentionRuleDao.getAllDatasetRulesInDataStorage(dataStorageAndDataset[0]);
+              retentionRuleDao.findAllDatasetRulesInDataStorage(dataStorageAndDataset[0]);
 
-          job = ruleExecutor.executeDefaultRule(eventDefinedRule, rules, atMidnight());
+          job = ruleExecutor.executeDefaultRule(rule, rules, atMidnight());
           break;
         default:
           workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
@@ -104,11 +124,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
   }
 
   private ZonedDateTime atMidnight() {
-    ZonedDateTime midnight =
-        LocalDate.now()
-            .atStartOfDay()
-            .plusDays(1)
-            .atZone(executionTimezone);
+    ZonedDateTime midnight = LocalDate.now().atStartOfDay().plusDays(1).atZone(executionTimezone);
     return midnight;
   }
 
@@ -121,12 +137,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
     rule.setRetentionPeriodInDays(0);
     rule.setProjectId(executionEvent.getProjectId());
-
-    RetentionRuleType ruleType =
-        rule.getProjectId() == null || rule.getDatasetName() == null
-            ? RetentionRuleType.GLOBAL
-            : RetentionRuleType.DATASET;
-    rule.setType(ruleType);
+    rule.setType(RetentionRuleType.DATASET);
 
     return rule;
   }

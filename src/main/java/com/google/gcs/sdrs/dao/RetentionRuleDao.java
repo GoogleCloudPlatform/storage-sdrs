@@ -23,5 +23,7 @@ import java.util.List;
 /** Defines available persistence operations for RetentionRule entities */
 public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
 
-  List<RetentionRule> getAllDatasetRulesInDataStorage(String dataStorage);
+  List<RetentionRule> findAllDatasetRulesInDataStorage(String dataStorage);
+
+  List<RetentionRule> findAllByTarget(String dataStorage, String dataset);
 }

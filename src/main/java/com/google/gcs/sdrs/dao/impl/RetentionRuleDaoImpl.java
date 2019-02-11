@@ -39,12 +39,12 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
   }
 
   /**
-   * Get a {@link List} of {@link RetentionRule}s with the provided dataStorage and dataSet
+   * Get a {@link List} of {@link RetentionRule}s with the provided dataStorage
    *
    * @param dataStorage a {@link String} of the form 'gs://bucketName'
    * @return a {@link List} of {@link RetentionRule}s
    */
-  public List<RetentionRule> getAllDatasetRulesInDataStorage(String dataStorage) {
+  public List<RetentionRule> findAllDatasetRulesInDataStorage(String dataStorage) {
     CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
     CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
     Root<RetentionRule> root = query.from(RetentionRule.class);
@@ -54,6 +54,28 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
         // These string values correspond to the entity field names
         .where(builder.equal(root.get("dataStorageName"), dataStorage))
         .where(builder.equal(root.get("type"), RetentionRuleType.DATASET));
+
+    Query<RetentionRule> result = getCurrentSession().createQuery(query);
+    return result.getResultList();
+  }
+
+  /**
+   * Get a {@link List} of {@link RetentionRule}s with the provided dataStorage and dataSet
+   *
+   * @param dataStorage a {@link String} of the form 'gs://bucketName'
+   * @param dataset a {@link String} of the form 'dataset/1/2'
+   * @return a {@link List} of {@link RetentionRule}s
+   */
+  public List<RetentionRule> findAllByTarget(String dataStorage, String dataset) {
+    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
+    Root<RetentionRule> root = query.from(RetentionRule.class);
+
+    query
+        .select(root)
+        // These string values correspond to the entity field names
+        .where(builder.equal(root.get("dataStorageName"), dataStorage))
+        .where(builder.equal(root.get("datasetName"), dataset));
 
     Query<RetentionRule> result = getCurrentSession().createQuery(query);
     return result.getResultList();
