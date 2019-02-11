@@ -99,6 +99,19 @@ public class ExecuteRetentionWorkerTest {
     assertEquals(WorkerResult.WorkerResultStatus.SUCCESS, worker.getWorkerResult().getStatus());
   }
 
+  @Test(expected = UnsupportedOperationException.class)
+  public void doWorkThrowsErrorWhenNoMatchingPolicy() {
+    ExecutionEventRequest request = createBasicRequest();
+    request.setExecutionEventType(ExecutionEventType.POLICY);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
+    worker.ruleExecutor = ruleExecutorMock;
+    worker.retentionJobDao = retentionJobDaoMock;
+    worker.retentionRuleDao = retentionRuleDaoMock;
+    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any(), any())).thenReturn(null);
+
+    worker.doWork();
+  }
+
   @Test
   public void doWorkSavesJobs() {
     ExecutionEventRequest request = createBasicRequest();
