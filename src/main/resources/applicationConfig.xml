@@ -37,4 +37,9 @@
         <frequency>30</frequency>
         <timeUnit>MINUTES</timeUnit>
     </ruleExecution>
+    <sts>
+        <maxPrefixCount>1000</maxPrefixCount>
+        <suffix>shadow</suffix>
+        <defaultProjectId>global-default</defaultProjectId>
+    </sts>
 </appConfiguration>
