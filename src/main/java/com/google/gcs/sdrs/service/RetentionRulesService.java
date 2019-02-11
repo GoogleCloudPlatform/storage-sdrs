@@ -40,4 +40,11 @@ public interface RetentionRulesService {
    * @return the updated retention rule
    */
   RetentionRuleResponse updateRetentionRule(Integer ruleId, RetentionRuleUpdateRequest request);
+  
+  
+  RetentionRuleResponse findRetentionRuleByBusinessKey(String project, String bucket, String dataSet);
+  
+  void deleteRetentionRuleByBusinessKey(String project, String bucket, String dataSet);
+  
+  
 }

@@ -18,6 +18,7 @@
 package com.google.gcs.sdrs.dao;
 
 import com.google.gcs.sdrs.dao.impl.GenericDao;
+import com.google.gcs.sdrs.dao.impl.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionExecution;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
@@ -33,7 +34,7 @@ public class SingletonDao {
 
   public static synchronized Dao<RetentionRule, Integer> getRetentionRuleDao() {
     if (retentionRuleDao == null) {
-      retentionRuleDao = new GenericDao<>(RetentionRule.class);
+      retentionRuleDao = new RetentionRuleDao<>(RetentionRule.class);
     }
     return retentionRuleDao;
   }

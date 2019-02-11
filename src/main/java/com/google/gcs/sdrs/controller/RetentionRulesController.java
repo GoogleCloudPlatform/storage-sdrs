@@ -18,27 +18,33 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
-import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
-import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
-import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
-import com.google.gcs.sdrs.controller.validation.FieldValidations;
-import com.google.gcs.sdrs.controller.validation.ValidationResult;
-import com.google.gcs.sdrs.service.RetentionRulesService;
-import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import java.util.Collection;
 import java.util.HashSet;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
+import com.google.gcs.sdrs.controller.validation.FieldValidations;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+import com.google.gcs.sdrs.controller.validation.ValidationResult;
+import com.google.gcs.sdrs.service.RetentionRulesService;
+import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 
 /** Controller for handling /retentionrules endpoints to manage retention rules. */
 @Path("/retentionrules")
@@ -47,6 +53,10 @@ public class RetentionRulesController extends BaseController {
   private static final Logger logger = LoggerFactory.getLogger(RetentionRulesController.class);
 
   RetentionRulesService service = new RetentionRulesServiceImpl();
+
+  public static final String PROJECT = "project";
+  public static final String BUCKET = "bucket";
+  public static final String DATASET = "dataSet";
 
   /** CRUD create endpoint */
   @POST
@@ -71,6 +81,42 @@ public class RetentionRulesController extends BaseController {
       logger.error(exception.getMessage());
       return generateExceptionResponse(new InternalServerException(exception), requestUuid);
     }
+  }
+
+  @GET
+  @Path("/getByBusinessKey")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getByBusinessKey(
+      @QueryParam(PROJECT) String project,
+      @QueryParam(BUCKET) String bucket,
+      @QueryParam(DATASET) String dataSet) {
+    String requestUuid = generateRequestUuid();
+    RetentionRuleResponse response =
+        service.findRetentionRuleByBusinessKey(project, bucket, dataSet);
+    if (response != null) {
+      response.setRequestUuid(requestUuid);
+      return Response.status(200).entity(response).build();
+    } else {
+      return Response.status(400).entity(response).build();
+    }
+  }
+
+  @DELETE
+  @Path("/deleteByBusinessKey")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response deleteByBusinessKey(
+      @QueryParam(PROJECT) String project,
+      @QueryParam(BUCKET) String bucket,
+      @QueryParam(DATASET) String dataSet) {
+    String requestUuid = generateRequestUuid();
+    RetentionRuleResponse response = new RetentionRuleResponse();
+    response.setRequestUuid(requestUuid);
+    try {
+      service.deleteRetentionRuleByBusinessKey(project, bucket, dataSet);
+    } catch (Exception e) {
+      return Response.status(400).entity(null).build();
+    }
+    return Response.status(200).entity(response).build();
   }
 
   /** CRUD update endpoint */
