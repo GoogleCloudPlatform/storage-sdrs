@@ -20,6 +20,8 @@ package com.google.gcs.sdrs.service.impl;
 import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.service.EventsService;
+import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
 import com.google.gcs.sdrs.worker.ValidationWorker;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
