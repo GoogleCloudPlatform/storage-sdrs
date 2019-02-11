@@ -82,8 +82,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
         .where(builder.equal(root.get("dataStorageName"), dataStorage))
         .where(builder.equal(root.get("datasetName"), dataset));
 
-    Query<RetentionRule> result = getCurrentSession().createQuery(query);
-    return result.getSingleResult();
+    return getSingleRuleWithCriteriaQuery(query);
   }
 
 
@@ -100,7 +99,17 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
         .where(builder.equal(root.get("dataStorageName"), dataStorage))
         .where(builder.equal(root.get("datasetName"), dataset));
 
-    Query<RetentionRule> result = getCurrentSession().createQuery(query);
-    return result.getSingleResult();
+    return getSingleRuleWithCriteriaQuery(query);
+  }
+
+  private RetentionRule getSingleRuleWithCriteriaQuery(CriteriaQuery<RetentionRule> query) {
+    Query<RetentionRule> queryResults = getCurrentSession().createQuery(query);
+    List<RetentionRule> list = queryResults.getResultList();
+
+    RetentionRule foundEntity = null;
+    if(!list.isEmpty()){
+      foundEntity = list.get(0);
+    }
+    return foundEntity;
   }
 }

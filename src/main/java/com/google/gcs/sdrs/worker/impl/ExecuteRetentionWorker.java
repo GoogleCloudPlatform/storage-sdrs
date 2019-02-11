@@ -91,6 +91,10 @@ public class ExecuteRetentionWorker extends BaseWorker {
               retentionRuleDao.findGlobalRuleByTarget(
                   dataStorageAndDataset[0], dataStorageAndDataset[1]);
         }
+
+        if (rule == null) {
+          throw new UnsupportedOperationException("No rule found matching description");
+        }
         break;
       default:
         workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
