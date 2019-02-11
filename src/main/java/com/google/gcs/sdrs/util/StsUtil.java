@@ -29,23 +29,32 @@ import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.StoragetransferScopes;
 import com.google.api.services.storagetransfer.v1.model.Date;
 import com.google.api.services.storagetransfer.v1.model.GcsData;
+import com.google.api.services.storagetransfer.v1.model.ListOperationsResponse;
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
+import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.api.services.storagetransfer.v1.model.Schedule;
 import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
+import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Manages the concrete integration with STS
  */
 public class StsUtil {
+
+  private static final String TRANSFER_OPERATION_STRING = "transferOperations";
+  private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
 
   /**
    * Creates an instance of the STS Client
@@ -150,6 +159,45 @@ public class StsUtil {
             .setStatus("ENABLED");
 
     return client.transferJobs().create(transferJob).execute();
+  }
+
+  /**
+   * Gets the information about submitted STS job operations
+   * @param client the {@link Storagetransfer} client to use for the request
+   * @param projectId a {@link String} of the project ID to search
+   * @param jobNames a {@link List} of job names to retrieve
+   * @return a {@link List} of {@link Operation} objects associated with the given jobs
+   */
+  public static List<Operation> getSubmittedStsJobs(
+      Storagetransfer client, String projectId, List<String> jobNames) {
+
+    List<Operation> operations = new ArrayList<>();
+
+    try {
+      Storagetransfer.TransferOperations.List operationRequest = client.transferOperations()
+          .list(TRANSFER_OPERATION_STRING)
+          .setFilter(buildOperationFilterString(projectId, jobNames));
+
+      ListOperationsResponse operationResponse;
+      do {
+        operationResponse = operationRequest.execute();
+        if (operationResponse.getOperations() == null) {
+          continue;
+        }
+
+        operations.addAll(operationResponse.getOperations());
+        operationRequest.setPageToken(operationResponse.getNextPageToken());
+      } while (operationResponse.getNextPageToken() != null);
+    } catch (IOException ex) {
+      logger.error("Could not establish connection with STS: ", ex.getMessage());
+    }
+
+    return operations;
+  }
+
+  private static String buildOperationFilterString(String projectId, List<String> jobNames) {
+    return String.format("\"project_id\": \"%s\", \"job_names\": %s",
+        projectId, new Gson().toJson(jobNames));
   }
 
   private static Storagetransfer createStorageTransferClient(
