@@ -60,22 +60,16 @@ public class MyResource {
 
     // The following is test code to execute the STS utility. This assumes a retention rule
     // with ID = 1 exists in the database
-//    Dao<RetentionRule, Integer> ruleDao = SingletonDao.getRetentionRuleDao();
+    Dao<RetentionRule, Integer> ruleDao = SingletonDao.getRetentionRuleDao();
 
-//    RetentionRule rule = ruleDao.findById(1);
+    RetentionRule rule = ruleDao.findById(1);
 
-    Dao<RetentionJob, Integer> jobDao = SingletonDao.getRetentionJobDao();
-
-    RetentionJob job = jobDao.findById(1);
-
-//    try{
-//      RuleExecutor executor = StsRuleExecutor.getInstance();
-//      RetentionJob job = executor.executeDatasetRule(rule);
-      RuleValidator validator = StsRuleValidator.getInstance();
-      RetentionJobValidation response = validator.validateRetentionJob(job);
-//    } catch (IOException ex) {
-//      logger.error("Couldn't submit rule for execution: " + ex.getMessage());
-//    }
+    try{
+      RuleExecutor executor = StsRuleExecutor.getInstance();
+      RetentionJob job = executor.executeDatasetRule(rule);
+    } catch (IOException ex) {
+      logger.error("Couldn't submit rule for execution: " + ex.getMessage());
+    }
 
     return "Got it good!";
   }

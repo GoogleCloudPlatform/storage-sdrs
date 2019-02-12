@@ -196,7 +196,7 @@ public class StsUtil {
   }
 
   private static String buildOperationFilterString(String projectId, List<String> jobNames) {
-    return String.format("\"project_id\": \"%s\", \"job_names\": %s",
+    return String.format("{\"project_id\": \"%s\", \"job_names\": %s}",
         projectId, new Gson().toJson(jobNames));
   }
 

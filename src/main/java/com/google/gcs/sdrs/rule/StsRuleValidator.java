@@ -98,7 +98,7 @@ public class StsRuleValidator implements RuleValidator {
         throw new IllegalArgumentException(message);
       }
       // the job name that is required in the request has a different format than the response
-      String stsJobId = job.getName().substring(job.getName().indexOf("/"));
+      String stsJobId = job.getName().substring(job.getName().indexOf("/") + 1);
       jobIdStsIdMap.put(stsJobId, job.getId());
       jobNames.add(job.getName());
     }
