@@ -40,7 +40,7 @@ public class StsRuleValidator implements RuleValidator {
 
   public static StsRuleValidator instance;
 
-  private Storagetransfer client;
+  Storagetransfer client;
   private static final Logger logger = LoggerFactory.getLogger(StsRuleValidator.class);
 
   /**
@@ -107,20 +107,7 @@ public class StsRuleValidator implements RuleValidator {
     List<RetentionJobValidation> validationRecords = new ArrayList<>();
     for (Operation operation : jobOperations) {
 
-      String operationName = operation.getName();
-
-      /* The response operation name is in the format
-       * "transferOperation/transferJob-<GCP_Job_id>-<GCP_Operation_id>"
-       * We need to get the GCP_Job_Id only
-       */
-      int firstHyphenIndex = operationName.indexOf("-") + 1;
-      int lastHyphenIndex = operationName.lastIndexOf("-");
-      if (firstHyphenIndex == -1 || lastHyphenIndex == -1) {
-        logger.error("The STS name format has changed: " + operationName);
-        throw new StringIndexOutOfBoundsException();
-      }
-
-      String stsJobId = operationName.substring(firstHyphenIndex, lastHyphenIndex);
+      String stsJobId = extractStsJobId(operation.getName());
       int jobId = jobIdStsIdMap.get(stsJobId);
 
       validationRecords.add(convertOperationToJobValidation(operation, jobId));
@@ -129,11 +116,7 @@ public class StsRuleValidator implements RuleValidator {
     return validationRecords;
   }
 
-  private StsRuleValidator() throws IOException {
-    client = StsUtil.createStsClient();
-  }
-
-  private RetentionJobValidation convertOperationToJobValidation(Operation operation, int jobId) {
+  RetentionJobValidation convertOperationToJobValidation(Operation operation, int jobId) {
     RetentionJobValidation validation = new RetentionJobValidation();
     validation.setJobOperationName(operation.getName());
     validation.setRetentionJobId(jobId);
@@ -152,5 +135,24 @@ public class StsRuleValidator implements RuleValidator {
     }
 
     return validation;
+  }
+
+  String extractStsJobId(String operationName) throws StringIndexOutOfBoundsException{
+    /* The response operation name is in the format
+     * "transferOperation/transferJob-<GCP_Job_id>-<GCP_Operation_id>"
+     * We need to get the GCP_Job_Id only
+     */
+    int firstHyphenIndex = operationName.indexOf("-");
+    int lastHyphenIndex = operationName.lastIndexOf("-");
+    if (firstHyphenIndex == -1 || lastHyphenIndex == -1 || firstHyphenIndex == lastHyphenIndex) {
+      logger.error("The STS name format has changed: " + operationName);
+      throw new StringIndexOutOfBoundsException();
+    }
+
+    return operationName.substring(firstHyphenIndex + 1, lastHyphenIndex);
+  }
+
+  private StsRuleValidator() throws IOException {
+    client = StsUtil.createStsClient();
   }
 }
