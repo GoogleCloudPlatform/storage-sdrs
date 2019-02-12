@@ -1,5 +1,7 @@
 import os
 import requests
+
+#for url encoding 
 #import urllib.parse
 
 import flask
@@ -26,9 +28,9 @@ def rpo_listener(object_finalize_event, context):
     print(bucket)
     print ('data:','invoking REST call')
     dict_to_send = {'datasetName': prefix, 'dataStorageName': bucket_prefix, 'projectId':project, 'retentionPeriod': int_ttl, 'type': 'DATASET'}
-    # vpc url format 'http://[INSTANCE_NAME].c.[PROJECT_ID].internal'
-    # http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/
-    print(" hello world again")
+  
+    # vpc format http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/
+    print(" hello world again 02/11/2019")
     # below is the format needed for our VPC cloud endpoints setup, note the port 80
     #response = requests.get('http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/myresource/')
     #http://localhost:8080/retentionrules/getByBusinessKey?project=sdrs-server&bucket=gs:%2F%2Fds-dev-rpo%2FdataSetY&dataSet=dataSetY
@@ -36,7 +38,8 @@ def rpo_listener(object_finalize_event, context):
     get_response = requests.get('http://localhost:8080/retentionrules/getByBusinessKey?project={project}&bucket={buck_prefix}&dataSet={prefix}')
     print ('response from server:',response.text)
     dict_from_server = response.json()
-    # if has no reponse, do a create post
-    
-    # else do an update put
+    # if has no response, ie, rule doesn't exist do a create via post
+    #post_response = requests.post('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
+    # else if it does exist already, do an update put not post
+    #put_response = requests.put('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
     
