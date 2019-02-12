@@ -26,9 +26,12 @@ import javax.ws.rs.core.MediaType;
 import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.rule.RuleExecutor;
+import com.google.gcs.sdrs.rule.RuleValidator;
 import com.google.gcs.sdrs.rule.StsRuleExecutor;
+import com.google.gcs.sdrs.rule.StsRuleValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,16 +60,22 @@ public class MyResource {
 
     // The following is test code to execute the STS utility. This assumes a retention rule
     // with ID = 1 exists in the database
-    Dao<RetentionRule, Integer> ruleDao = SingletonDao.getRetentionRuleDao();
+//    Dao<RetentionRule, Integer> ruleDao = SingletonDao.getRetentionRuleDao();
 
-    RetentionRule rule = ruleDao.findById(1);
+//    RetentionRule rule = ruleDao.findById(1);
 
-    try{
-      RuleExecutor executor = StsRuleExecutor.getInstance();
-      RetentionJob job = executor.executeDatasetRule(rule);
-    } catch (IOException ex) {
-      logger.error("Couldn't submit rule for execution: " + ex.getMessage());
-    }
+    Dao<RetentionJob, Integer> jobDao = SingletonDao.getRetentionJobDao();
+
+    RetentionJob job = jobDao.findById(1);
+
+//    try{
+//      RuleExecutor executor = StsRuleExecutor.getInstance();
+//      RetentionJob job = executor.executeDatasetRule(rule);
+      RuleValidator validator = StsRuleValidator.getInstance();
+      RetentionJobValidation response = validator.validateRetentionJob(job);
+//    } catch (IOException ex) {
+//      logger.error("Couldn't submit rule for execution: " + ex.getMessage());
+//    }
 
     return "Got it good!";
   }
