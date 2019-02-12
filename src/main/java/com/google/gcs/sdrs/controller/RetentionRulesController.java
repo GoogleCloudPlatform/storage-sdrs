@@ -101,6 +101,15 @@ public class RetentionRulesController extends BaseController {
     }
   }
 
+  /**
+   * relies on unique constraint in db from this user story
+   * https://github.com/GoogleCloudPlatform/storage-sdrs/pull/23/files
+   * 
+   * @param project
+   * @param bucket
+   * @param dataSet
+   * @return
+   */
   @DELETE
   @Path("/deleteByBusinessKey")
   @Produces(MediaType.APPLICATION_JSON)
