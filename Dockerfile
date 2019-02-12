@@ -17,6 +17,7 @@ RUN yum install maven -y
 # Copy GCP Credentials file
 # This file is not checked into source code
 COPY ./credentials.json ./credentials.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
 
 # Copy POM and install dependencies
 COPY ./pom.xml ./pom.xml
