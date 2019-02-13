@@ -124,14 +124,14 @@ public class StsRuleValidator implements RuleValidator {
       validation.setStatus(RetentionJobStatusType.PENDING);
     } else if (operation.getResponse() != null) {
       validation.setStatus(RetentionJobStatusType.SUCCESS);
-      logger.info(String.format("STS Operation %s Successful: %s"
-          ,operation.getName()
-          ,operation.getResponse().toString()));
+      logger.info(String.format("STS Operation %s Successful: %s",
+          operation.getName(),
+          operation.getResponse().toString()));
     } else {
       validation.setStatus(RetentionJobStatusType.ERROR);
-      logger.info(String.format("STS Operation %s failed: %s"
-          ,operation.getName()
-          ,operation.getError().getMessage()));
+      logger.info(String.format("STS Operation %s failed: %s",
+          operation.getName(),
+          operation.getError().getMessage()));
     }
 
     return validation;

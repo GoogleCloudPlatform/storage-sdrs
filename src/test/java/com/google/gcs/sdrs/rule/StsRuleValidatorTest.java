@@ -51,15 +51,11 @@ public class StsRuleValidatorTest {
     assertEquals(stsJobId, result);
   }
 
-  @Test
+  @Test(expected = StringIndexOutOfBoundsException.class)
   public void extractJobIdFailure(){
     String operationName = String.format("transferOperation/transferJob-%s", stsJobId);
-    try {
-      String result = objectUnderTest.extractStsJobId(operationName);
-      Assert.fail();
-    } catch (StringIndexOutOfBoundsException ex) {
-      assertTrue(true);
-    }
+    objectUnderTest.extractStsJobId(operationName);
+    Assert.fail();
   }
 
   @Test
