@@ -50,7 +50,8 @@ def rpo_listener(object_finalize_event, context):
     	print ('bag of data', dict_from_server)
     	rule_id = dict_from_server.get('ruleId')
     	print ('the numeric ruleId is: ', rule_id)
-    	put_response = requests.put('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
+    	put_url = 'http://104.198.4.155:8080/retentionrules/{}'.format(rule_id)
+    	put_response = requests.put(put_url, json=dict_to_send)
     	print ('Response from server: {}'.format(put_response.text))
     else:
     	print('non 200 response, does not exist, do a create')
