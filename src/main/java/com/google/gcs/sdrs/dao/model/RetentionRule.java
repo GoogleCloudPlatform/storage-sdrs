@@ -111,13 +111,13 @@ public class RetentionRule {
     this.projectId = projectId;
   }
 
-	public RetentionRuleType getType() {
-		return type;
-	}
+  public RetentionRuleType getType() {
+    return type;
+  }
 
-	public void setType(RetentionRuleType type) {
-		this.type = type;
-	}
+  public void setType(RetentionRuleType type) {
+    this.type = type;
+  }
 
   public Integer getVersion() {
     return version;

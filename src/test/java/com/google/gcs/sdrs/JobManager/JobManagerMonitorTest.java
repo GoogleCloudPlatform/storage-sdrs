@@ -18,17 +18,13 @@
 
 package com.google.gcs.sdrs.JobManager;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.util.Set;
-
+import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
-import com.google.gcs.sdrs.worker.DemoWorker;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * Test class for JobManagerMonitor
@@ -62,7 +58,7 @@ public class JobManagerMonitorTest {
   @Test
   public void getWorkerResultTest(){
     int activeWorkers = instance.activeWorkerCount.get();
-    instance.submitJob(new DemoWorker());
+    instance.submitJob(new ExecuteRetentionWorker(null));
     assertEquals(instance.activeWorkerCount.get(), activeWorkers + 1);
     try{
       objectToTest.getWorkerResults();

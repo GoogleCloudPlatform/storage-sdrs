@@ -18,6 +18,14 @@
 
 package com.google.gcs.sdrs.resource;
 
+import com.google.gcs.sdrs.JobManager.JobManager;
+import com.google.gcs.sdrs.dao.Dao;
+import com.google.gcs.sdrs.dao.SingletonDao;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.rule.RuleExecutor;
+import com.google.gcs.sdrs.rule.StsRuleExecutor;
+import java.io.IOException;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -43,6 +51,7 @@ import java.io.IOException;
 public class MyResource {
 
   static final private Logger logger = LoggerFactory.getLogger(MyResource.class);
+  static final private JobManager jobManager = JobManager.getInstance();
 
   /**
    * Method handling HTTP GET requests. The returned object will be sent
