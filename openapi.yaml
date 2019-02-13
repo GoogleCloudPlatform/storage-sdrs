@@ -41,7 +41,7 @@ paths:
               dataStorageName: gs://myBucket
               projectId: myProject
       responses:
-        '200':
+        200:
           description: Create retention rule response
           content:
             application/json:
@@ -67,27 +67,80 @@ paths:
               $ref: '#/components/schemas/UpdateRetentionRuleRequest'
       responses:
         200:
-          description: JSON success response
+          description: Updated retention rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionRuleResponse'
   "/retentionrules/getByBusinessKey":
     get:
-      description: "Allows viewing retention rules"
-      operationId: "getByBusinessKey"
+      description: Get retetion rule matching provided values
+      operationId: getByBusinessKey
+      parameters:
+        - in: query
+          name: project
+          required: true
+          schema:
+            type: string
+          description: The rule's projectId
+        - in: query
+          name: bucket
+          required: true
+          schema:
+            type: string
+          description: The rule's dataStorageName
+        - in: query
+          name: dataset
+          required: true
+          schema:
+            type: string
+          description: The rule's datasetName
       responses:
         200:
-          description: "JSON success response"
+          description: Matching retention rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionRuleResponse'
   "/retentionrules/deleteByBusinessKey":
     delete:
-      description: "Allows deleting retention rules"
-      operationId: "deleteByBusinessKey"
+      description: Delete retetion rule matching provided values
+      operationId: deleteByBusinessKey
+      parameters:
+        - in: query
+          name: project
+          required: true
+          schema:
+            type: string
+          description: The rule's projectId
+        - in: query
+          name: bucket
+          required: true
+          schema:
+            type: string
+          description: The rule's dataStorageName
+        - in: query
+          name: dataset
+          required: true
+          schema:
+            type: string
+          description: The rule's datasetName
       responses:
         200:
-          description: "JSON success response"
+          description: Successful delete response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
 components:
   schemas:
     RetentionPeriod:
       type: integer
       minimum: 0
       maximum: 1000
+    RetentionRuleType:
+      type: string
+      enum: [GLOBAL, DATASET]
     CreateRetentionRuleRequest:
       type: object
       required:
@@ -95,8 +148,7 @@ components:
         - retentionPeriod
       properties:
         type:
-          type: string
-          enum: [GLOBAL, DATASET]
+          $ref: '#/components/schemas/RetentionRuleType'
         retentionPeriod:
           $ref: '#/components/schemas/RetentionPeriod'
         datasetName:
@@ -136,6 +188,23 @@ components:
       properties:
         requestUuid:
           type: string
+    RetentionRuleResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            ruleId:
+              type: integer
+            type:
+              $ref: '#/components/schemas/RetentionRuleType'
+            retentionPeriod:
+              $ref: '#/components/schemas/RetentionPeriod'
+            datasetName:
+              type: string
+            dataStorageName:
+              type: string
+            projectId:
+              type: string
     CreateRetentionRuleResponse:
       allOf:
         - $ref: '#/components/schemas/BaseResponse'
