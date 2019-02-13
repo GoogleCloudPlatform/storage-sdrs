@@ -41,8 +41,13 @@ def rpo_listener(object_finalize_event, context):
     url = 'http://104.198.4.155:8080/retentionrules/getByBusinessKey?project={}&bucket={}&dataSet={}'.format(project, encoded, prefix)
     print ('url: ', url)
     get_response = requests.get(url)
-    print ('response from server:',get_response.text)
-    #dict_from_server = get_response.json()
+    print ('response from server:',get_response)
+    print ('response code: ', get_response.status_code)
+    print ('ok code constant: ', requests.codes.ok)
+  	#if response.status_code == requests.codes.ok
+    
+    dict_from_server = get_response.json()
+    print ('dict from server:' ,dict_from_server)
     # if has no response, ie, rule doesn't exist do a create via post
     #post_response = requests.post('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
     # else if it does exist already, do an update put not post
