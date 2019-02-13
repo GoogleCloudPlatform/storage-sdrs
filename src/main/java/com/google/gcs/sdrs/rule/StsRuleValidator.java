@@ -79,7 +79,6 @@ public class StsRuleValidator implements RuleValidator {
   public List<RetentionJobValidation> validateRetentionJobs(List<RetentionJob> jobs) {
 
     if (jobs.size() == 0) {
-      logger.info("The list of retention jobs to validate can't be empty.");
       return new ArrayList<>();
     }
 
