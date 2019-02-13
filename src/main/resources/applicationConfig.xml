@@ -7,13 +7,6 @@
         <shutdownGracePeriodInSeconds>60</shutdownGracePeriodInSeconds>
         <useHttps>false</useHttps>
 	</serverConfig>
-	<database>
-		<host>35.185.192.218:3306</host>
-		<user>root</user>
-		<schema>retention_schema</schema>
-		<password>sdrsGrt</password>
-		<poolSize>7</poolSize>
-	</database>
 	<gcp>
 		<projectID>sdrs-server</projectID>
 		<pathToJsonCredential>./credentials.json</pathToJsonCredential>

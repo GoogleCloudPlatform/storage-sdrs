@@ -40,4 +40,4 @@ COPY --from=sdrs-build ./target/storage-sdrs-jar-with-dependencies.jar ./app.jar
 EXPOSE 8080
 
 # Start server on 0.0.0.0
-CMD ["java", "-jar", "./app.jar", "0.0.0.0"]
+CMD ["java", "-jar", "./app.jar", "0.0.0.0", "-Xms256m", "-Xmx512m"]
