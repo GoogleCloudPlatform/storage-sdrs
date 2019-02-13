@@ -30,7 +30,7 @@ def rpo_listener(object_finalize_event, context):
     dict_to_send = {'datasetName': prefix, 'dataStorageName': bucket_prefix, 'projectId':project, 'retentionPeriod': int_ttl, 'type': 'DATASET'}
   
     # vpc format http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/
-    print(" yo 02/12/2019")
+    print(" test 1001 ")
     # below is the format needed for our VPC cloud endpoints setup, note the port 80
     #response = requests.get('http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/myresource/')
     #http://localhost:8080/retentionrules/getByBusinessKey?project=sdrs-server&bucket=gs:%2F%2Fds-dev-rpo%2FdataSetY&dataSet=dataSetY
@@ -41,14 +41,18 @@ def rpo_listener(object_finalize_event, context):
     url = 'http://104.198.4.155:8080/retentionrules/getByBusinessKey?project={}&bucket={}&dataSet={}'.format(project, encoded, prefix)
     print ('url: ', url)
     get_response = requests.get(url)
-    print ('response from server:',get_response)
+    print ('response from server:', get_response)
     print ('response code: ', get_response.status_code)
-    print ('ok code constant: ', requests.codes.ok)
-  	#if response.status_code == requests.codes.ok
     
-    dict_from_server = get_response.json()
-    print ('dict from server:' ,dict_from_server)
+    #dict_from_server = get_response.json()
+    #print ('dict from server:' , dict_from_server)
     # if has no response, ie, rule doesn't exist do a create via post
+    if get_response.status_code == requests.codes.ok:
+    	print('200 response, so exists, do an update')
+    	put_response = requests.put('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
+    else:
+    	print('non 200 response, does not exist, do a create')
+    	post_response = requests.post('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
     #post_response = requests.post('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
     # else if it does exist already, do an update put not post
     #put_response = requests.put('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
