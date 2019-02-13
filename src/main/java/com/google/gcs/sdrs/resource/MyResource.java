@@ -26,12 +26,9 @@ import javax.ws.rs.core.MediaType;
 import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
-import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.rule.RuleExecutor;
-import com.google.gcs.sdrs.rule.RuleValidator;
 import com.google.gcs.sdrs.rule.StsRuleExecutor;
-import com.google.gcs.sdrs.rule.StsRuleValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
