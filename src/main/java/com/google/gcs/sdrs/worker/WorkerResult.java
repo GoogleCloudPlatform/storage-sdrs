@@ -21,9 +21,7 @@ package com.google.gcs.sdrs.worker;
 import java.util.UUID;
 import org.joda.time.DateTime;
 
-/**
- * WorkerResult class to standardize worker output
- */
+/** WorkerResult class to standardize worker output */
 public class WorkerResult {
 
   private String id;
@@ -32,28 +30,25 @@ public class WorkerResult {
   private DateTime startTime;
   private DateTime endTime;
 
-  /**
-   * An enum of valid WorkerResult status values
-   */
+  /** An enum of valid WorkerResult status values */
   public enum WorkerResultStatus {
     RUNNING,
     SUCCESS,
     FAILED
   }
 
-  /**
-   * A constructor for the WorkerResult object
-   */
-  public WorkerResult(){
+  /** A constructor for the WorkerResult object */
+  public WorkerResult() {
     id = UUID.randomUUID().toString();
   }
 
   /**
    * toString method for the WorkerResult.
+   *
    * @return string representation of the WorkerResult.
    */
   @Override
-  public String toString(){
+  public String toString() {
     return String.format(
         "id: %1s, type: %2s, status: %3s, startTime: %4s, endTime: %5s",
         id, type, String.valueOf(status), String.valueOf(startTime), String.valueOf(endTime));
@@ -62,27 +57,35 @@ public class WorkerResult {
   public String getId() {
     return id;
   }
+
   public String getType() {
     return type;
   }
+
   public void setType(String type) {
     this.type = type;
   }
+
   public WorkerResultStatus getStatus() {
     return status;
   }
+
   public void setStatus(WorkerResultStatus status) {
     this.status = status;
   }
+
   public DateTime getStartTime() {
     return startTime;
   }
+
   public void setStartTime(DateTime startTime) {
     this.startTime = startTime;
   }
+
   public DateTime getEndTime() {
     return endTime;
   }
+
   public void setEndTime(DateTime endTime) {
     this.endTime = endTime;
   }

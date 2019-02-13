@@ -18,13 +18,11 @@
 
 package com.google.gcs.sdrs.JobManager;
 
+import com.google.gcs.sdrs.worker.BaseWorker;
+import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.gcs.sdrs.JobManager.JobManager;
-import com.google.gcs.sdrs.worker.BaseWorker;
-import com.google.gcs.sdrs.worker.DemoWorker;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -78,7 +76,7 @@ public class JobManagerTest {
   @Test
   public void testSubmitJob() {
     assertNotNull(instance);
-    BaseWorker worker = new DemoWorker();
+    BaseWorker worker = new ExecuteRetentionWorker(null);
     int currentActiveWorkers = instance.activeWorkerCount.get();
     instance.submitJob(worker);
     assertEquals(currentActiveWorkers + 1, instance.activeWorkerCount.get());
