@@ -76,7 +76,7 @@ public class EventsController extends BaseController {
   public Response executeValidation() {
     String requestUuid = generateRequestUuid();
 
-    service.validateEvent();
+    service.processValidationEvent();
 
     EventResponse response = new EventResponse();
     response.setRequestUuid(requestUuid);
