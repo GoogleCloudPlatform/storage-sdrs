@@ -31,6 +31,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +60,7 @@ public class EventsController extends BaseController {
       response.setRequestUuid(requestUuid);
       response.setMessage("Event registered and awaiting execution.");
 
-      return Response.status(200).entity(response).build();
+      return Response.status(HttpStatus.OK_200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
     } catch (Exception exception) {
@@ -81,7 +82,7 @@ public class EventsController extends BaseController {
     response.setRequestUuid(requestUuid);
     response.setMessage("Validation service run request registered.");
 
-    return Response.status(200).entity(response).build();
+    return Response.status(HttpStatus.OK_200).entity(response).build();
   }
 
   /**

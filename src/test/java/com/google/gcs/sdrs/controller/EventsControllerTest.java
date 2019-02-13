@@ -23,6 +23,7 @@ import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.enums.ExecutionEventType;
 import javax.ws.rs.core.Response;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -57,7 +58,7 @@ public class EventsControllerTest {
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException(ValidationResult.fromString("test"));
     Response response = controller.generateExceptionResponse(testException, "requestUuid");
-    assertEquals(response.getStatus(), 400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: test");
   }
 
@@ -68,7 +69,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), 200);
+    assertEquals(response.getStatus(), HttpStatus.OK_200);
     assertTrue(((EventResponse) response.getEntity()).getMessage().length() > 0);
     assertNotNull(((EventResponse) response.getEntity()).getRequestUuid());
   }
@@ -79,7 +80,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), 400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("type"));
   }
 
@@ -90,7 +91,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), 200);
+    assertEquals(response.getStatus(), HttpStatus.OK_200);
   }
 
   @Test
@@ -102,7 +103,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), 200);
+    assertEquals(response.getStatus(), HttpStatus.OK_200);
   }
 
   @Test
@@ -114,7 +115,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), 400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("projectId"));
   }
 
@@ -122,6 +123,6 @@ public class EventsControllerTest {
   public void executeValidationSucceeds() {
     Response response = controller.executeValidation();
 
-    assertEquals(response.getStatus(), 200);
+    assertEquals(response.getStatus(), HttpStatus.OK_200);
   }
 }

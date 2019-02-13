@@ -26,5 +26,5 @@ public interface EventsService {
   void executeEvent(ExecutionEventRequest request);
 
   /** Runs the validation service asynchronously */
-  void validateEvent();
+  void processValidationEvent();
 }

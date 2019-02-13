@@ -60,8 +60,8 @@ public class SdrsApplication {
     }
 
     startWebServer();
-    startRuleExecutor();
-    startValidationService();
+    scheduleExecutionServiceJob();
+    scheduleValidationServiceJob();
   }
 
   /**
@@ -102,7 +102,7 @@ public class SdrsApplication {
     }
   }
 
-  private static void startRuleExecutor(){
+  private static void scheduleExecutionServiceJob(){
     JobScheduler scheduler = JobScheduler.getInstance();
 
     int initialDelay = xmlConfig.getInt("scheduler.task.ruleExecution.initialDelay");
@@ -113,7 +113,7 @@ public class SdrsApplication {
     logger.info("Rule execution scheduled successfully.");
   }
 
-  private static void startValidationService(){
+  private static void scheduleValidationServiceJob(){
     JobScheduler scheduler = JobScheduler.getInstance();
 
     int initialDelay = xmlConfig.getInt("scheduler.task.validationService.initialDelay");
