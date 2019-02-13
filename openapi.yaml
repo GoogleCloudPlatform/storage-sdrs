@@ -1,0 +1,80 @@
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+openapi: 3.0.0
+info:
+  description: "A simple Google Cloud Endpoints API example."
+  title: "Endpoints Example"
+  version: "1.0.0"
+x-google-endpoints:
+  - name: "sdrs-api.endpoints.sdrs-server.cloud.goog"
+    target: "10.20.23.202"
+paths:
+  "/retentionrules":
+    post:
+      description: "Create retention rule"
+      operationId: "postRetentionRules"
+      requestBody:
+        description: "Retention rule definition"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/RetentionRuleCreateRequest'
+      responses:
+        200:
+          description: "JSON success response"
+  "/retentionrules/{id}":
+    put:
+      description: "Update retention rule by id"
+      operationId: "putRetentionRulesById"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          description: "Rule primary key"
+          schema:
+            type: "integer"
+      responses:
+        200:
+          description: "JSON success response"
+  "/retentionrules/getByBusinessKey":
+    get:
+      description: "Allows viewing retention rules"
+      operationId: "getByBusinessKey"
+      responses:
+        200:
+          description: "JSON success response"
+  "/retentionrules/deleteByBusinessKey":
+    delete:
+      description: "Allows deleting retention rules"
+      operationId: "deleteByBusinessKey"
+      responses:
+        200:
+          description: "JSON success response"
+components:
+  schemas:
+    Pet:
+      type: object
+  requestBodies:
+    PetBody:
+      description: A JSON object containing pet information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Pet'
+
+
+
