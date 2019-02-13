@@ -62,7 +62,7 @@ public class StsRuleValidator implements RuleValidator {
   /**
    * Validates the status of a given {@link RetentionJob} against STS
    * @param job the {@link RetentionJob} to validate
-   * @return a {@link RetentionJobValidation record}
+   * @return a {@link RetentionJobValidation} record
    */
   public RetentionJobValidation validateRetentionJob(RetentionJob job) {
     List<RetentionJob> jobList = new ArrayList<>();
