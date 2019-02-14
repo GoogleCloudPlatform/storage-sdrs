@@ -38,6 +38,9 @@ public class RetentionRuleTypeConverter implements AttributeConverter<RetentionR
   /** Convert a database string representation to a RetentionRuleType */
   @Override
   public RetentionRuleType convertToEntityAttribute(String databaseRepresentation) {
+    if (databaseRepresentation == null) {
+      return null;
+    }
     switch (databaseRepresentation) {
       case DatabaseConstants.POLICY_TYPE_GLOBAL:
         return GLOBAL;
