@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-swagger: 2.0
+swagger: '2.0'
 info:
   title: Storage SDRS API Definition
-  version: 1.0.0
+  version: '1.0.0'
+host: sdrs-api.endpoints.sdrs-server.cloud.goog
 x-google-endpoints:
   - name: sdrs-api.endpoints.sdrs-server.cloud.goog
-    target: 10.20.23.202
+    target: '10.20.23.202'
 paths:
   /retentionrules:
     post:
