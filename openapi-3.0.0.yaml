@@ -1,0 +1,214 @@
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+openapi: 3.0.0
+info:
+  title: Storage SDRS API Definition
+  version: '1.0.0'
+x-google-endpoints:
+  - name: sdrs-api.endpoints.sdrs-server.cloud.goog
+    target: '10.20.23.202'
+paths:
+  '/retentionrules':
+    post:
+      description: Create retention rule
+      operationId: postRetentionRules
+      requestBody:
+        description: Retention rule definition
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CreateGlobalRetentionRuleRequest'
+                - $ref: '#/components/schemas/CreateDatasetRetentionRuleRequest'
+              discriminator:
+                propertyName: type
+            example:
+              type: DATASET
+              retentionPeriod: 365
+              dataStorageName: gs://myBucket
+              projectId: myProject
+      responses:
+        200:
+          description: Create retention rule response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRetentionRuleResponse'
+  '/retentionrules/{id}':
+    put:
+      description: Update retention rule by id
+      operationId: putRetentionRulesById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Rule primary key
+          schema:
+            type: integer
+      requestBody:
+        description: Retention rule updates
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRetentionRuleRequest'
+      responses:
+        200:
+          description: Updated retention rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionRuleResponse'
+  "/retentionrules/getByBusinessKey":
+    get:
+      description: Get retetion rule matching provided values
+      operationId: getByBusinessKey
+      parameters:
+        - in: query
+          name: project
+          required: true
+          schema:
+            type: string
+          description: The rule's projectId
+        - in: query
+          name: bucket
+          required: true
+          schema:
+            type: string
+          description: The rule's dataStorageName
+        - in: query
+          name: dataset
+          required: true
+          schema:
+            type: string
+          description: The rule's datasetName
+      responses:
+        200:
+          description: Matching retention rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionRuleResponse'
+  "/retentionrules/deleteByBusinessKey":
+    delete:
+      description: Delete retetion rule matching provided values
+      operationId: deleteByBusinessKey
+      parameters:
+        - in: query
+          name: project
+          required: true
+          schema:
+            type: string
+          description: The rule's projectId
+        - in: query
+          name: bucket
+          required: true
+          schema:
+            type: string
+          description: The rule's dataStorageName
+        - in: query
+          name: dataset
+          required: true
+          schema:
+            type: string
+          description: The rule's datasetName
+      responses:
+        200:
+          description: Successful delete response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseResponse'
+components:
+  schemas:
+    RetentionPeriod:
+      type: integer
+      minimum: 0
+      maximum: 1000
+    RetentionRuleType:
+      type: string
+      enum: [GLOBAL, DATASET]
+    CreateRetentionRuleRequest:
+      type: object
+      required:
+        - type
+        - retentionPeriod
+      properties:
+        type:
+          $ref: '#/components/schemas/RetentionRuleType'
+        retentionPeriod:
+          $ref: '#/components/schemas/RetentionPeriod'
+        datasetName:
+          type: string
+        dataStorageName:
+          type: string
+        projectId:
+          type: string
+    CreateGlobalRetentionRuleRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateRetentionRuleRequest'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [GLOBAL]
+    CreateDatasetRetentionRuleRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateRetentionRuleRequest'
+        - type: object
+          required:
+            - dataStorageName
+            - projectId
+          properties:
+            type:
+              type: string
+              enum: [DATASET]
+    UpdateRetentionRuleRequest:
+      type: object
+      required:
+        - retentionPeriod
+      properties:
+        retentionPeriod:
+          $ref: '#/components/schemas/RetentionPeriod'
+    BaseResponse:
+      type: object
+      properties:
+        requestUuid:
+          type: string
+    RetentionRuleResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            ruleId:
+              type: integer
+            type:
+              $ref: '#/components/schemas/RetentionRuleType'
+            retentionPeriod:
+              $ref: '#/components/schemas/RetentionPeriod'
+            datasetName:
+              type: string
+            dataStorageName:
+              type: string
+            projectId:
+              type: string
+    CreateRetentionRuleResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            ruleId:
+              type: integer
