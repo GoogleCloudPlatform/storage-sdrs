@@ -23,6 +23,7 @@ import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import javax.ws.rs.core.Response;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,7 +44,7 @@ public class InvalidFormatExceptionMapperTest {
     InvalidFormatException exception =
         new InvalidFormatException(null, "message", "value", RetentionRuleCreateRequest.class);
     Response response = mapper.toResponse(exception);
-    assertEquals(response.getStatus(), 400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("value"));
     assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }

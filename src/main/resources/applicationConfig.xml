@@ -1,39 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <appConfiguration>
-	<serverConfig>
-		<address>0.0.0.0</address>
-		<port>8080</port>
-		<sleepMins>60</sleepMins>
-        <shutdownGracePeriodInSeconds>60</shutdownGracePeriodInSeconds>
-        <useHttps>false</useHttps>
-	</serverConfig>
-	<gcp>
-		<projectID>sdrs-server</projectID>
-		<pathToJsonCredential>./credentials.json</pathToJsonCredential>
-	</gcp>
-	<jobManager>
-		<threadPoolSize>7</threadPoolSize>
-        <shutdownSleepMinutes>5</shutdownSleepMinutes>
-        <monitor>
-            <initialDelay>0</initialDelay>
-            <frequency>30</frequency>
-            <timeUnit>SECONDS</timeUnit>
-        </monitor>
-	</jobManager>
-    <scheduler>
-        <threadPoolSize>1</threadPoolSize>
-        <shutdownWait>30</shutdownWait>
-        <shutdownTimeUnit>SECONDS</shutdownTimeUnit>
-    </scheduler>
-    <ruleExecution>
+  <serverConfig>
+    <address>0.0.0.0</address>
+    <port>8080</port>
+    <sleepMins>60</sleepMins>
+    <shutdownGracePeriodInSeconds>60</shutdownGracePeriodInSeconds>
+    <useHttps>false</useHttps>
+  </serverConfig>
+  <gcp>
+    <projectID>sdrs-server</projectID>
+    <pathToJsonCredential>./credentials.json</pathToJsonCredential>
+  </gcp>
+  <jobManager>
+    <threadPoolSize>7</threadPoolSize>
+    <shutdownSleepMinutes>5</shutdownSleepMinutes>
+    <monitor>
+      <initialDelay>0</initialDelay>
+      <frequency>30</frequency>
+      <timeUnit>SECONDS</timeUnit>
+    </monitor>
+  </jobManager>
+  <scheduler>
+    <threadPoolSize>1</threadPoolSize>
+    <shutdownWait>30</shutdownWait>
+    <shutdownTimeUnit>SECONDS</shutdownTimeUnit>
+    <serviceUrl>http://127.0.0.1:8080</serviceUrl>
+    <task>
+      <ruleExecution>
+        <endpoint>events/execution</endpoint>
         <initialDelay>0</initialDelay>
         <frequency>30</frequency>
         <timeUnit>MINUTES</timeUnit>
         <timezone>America/Los_Angeles</timezone>
-    </ruleExecution>
-    <sts>
-        <maxPrefixCount>1000</maxPrefixCount>
-        <suffix>shadow</suffix>
-        <defaultProjectId>global-default</defaultProjectId>
-    </sts>
+      </ruleExecution>
+      <validationService>
+        <endpoint>events/validation</endpoint>
+        <initialDelay>0</initialDelay>
+        <frequency>30</frequency>
+        <timeUnit>MINUTES</timeUnit>
+      </validationService>
+    </task>
+  </scheduler>
+  <sts>
+    <maxPrefixCount>1000</maxPrefixCount>
+    <suffix>shadow</suffix>
+    <defaultProjectId>global-default</defaultProjectId>
+  </sts>
 </appConfiguration>
