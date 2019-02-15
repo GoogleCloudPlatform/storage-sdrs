@@ -33,19 +33,18 @@ public class PrefixGeneratorUtility {
    * Generate a list of bucket name prefixes within a time interval.
    *
    * @param pattern indicating the base portion of the prefix.
-   * @param startTime indicating the time of the least recent prefix to generate. This value must
-   *     be earlier than {@code endTime}. There is no guarantee that files older than this value
-   *     will not be deleted.
+   * @param startTime indicating the time of the least recent prefix to generate. This value must be
+   *     earlier than {@code endTime}. There is no guarantee that files older than this value will
+   *     not be deleted.
    * @param endTime indicating the time of the most recent prefix to generate.
-   * @return a {@link List} of {@link String}s of the form `pattern/period` for every time
-   *     segment within the interval between endTime and startTime.
+   * @return a {@link List} of {@link String}s of the form `pattern/period` for every time segment
+   *     within the interval between endTime and startTime.
    */
   public static List<String> generateTimePrefixes(
       String pattern, ZonedDateTime startTime, ZonedDateTime endTime) {
 
     if (endTime.isBefore(startTime)) {
-      throw new IllegalArgumentException(
-          "endTime occurs before startTime; try swapping them.");
+      throw new IllegalArgumentException("endTime occurs before startTime; try swapping them.");
     }
 
     endTime = endTime.truncatedTo(ChronoUnit.HOURS);
@@ -58,22 +57,30 @@ public class PrefixGeneratorUtility {
     formatters.put(ChronoUnit.DAYS, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
     formatters.put(ChronoUnit.HOURS, DateTimeFormatter.ofPattern("yyyy/MM/dd/HH"));
 
-    ZonedDateTime currentTime = ZonedDateTime.from(startTime);
-    while (currentTime.isBefore(endTime)) {
-      ChronoUnit increment;
-      if (!endTime.isBefore(currentTime.plus(1, ChronoUnit.YEARS))) {
-        increment = ChronoUnit.YEARS;
-      } else if (!endTime.isBefore(currentTime.plus(1, ChronoUnit.MONTHS))) {
-        increment = ChronoUnit.MONTHS;
-      } else if (!endTime.isBefore(currentTime.plus(1, ChronoUnit.DAYS))) {
-        increment = ChronoUnit.DAYS;
-      } else {
-        increment = ChronoUnit.HOURS;
-      }
+    ZonedDateTime currentTime = ZonedDateTime.from(endTime);
 
-      DateTimeFormatter formatter = formatters.get(increment).withZone(ZoneOffset.UTC);
+    while (currentTime.getHour() > 0 && currentTime.isAfter(startTime)) {
+      currentTime = currentTime.minus(1, ChronoUnit.HOURS);
+      DateTimeFormatter formatter = formatters.get(ChronoUnit.HOURS).withZone(ZoneOffset.UTC);
       result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
-      currentTime = currentTime.plus(1, increment);
+    }
+
+    while (currentTime.getDayOfMonth() > 1 && currentTime.isAfter(startTime)) {
+      currentTime = currentTime.minus(1, ChronoUnit.DAYS);
+      DateTimeFormatter formatter = formatters.get(ChronoUnit.DAYS).withZone(ZoneOffset.UTC);
+      result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
+    }
+
+    while (currentTime.getMonthValue() > 1 && currentTime.isAfter(startTime)) {
+      currentTime = currentTime.minus(1, ChronoUnit.MONTHS);
+      DateTimeFormatter formatter = formatters.get(ChronoUnit.MONTHS).withZone(ZoneOffset.UTC);
+      result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
+    }
+
+    while (currentTime.isAfter(startTime)) {
+      currentTime = currentTime.minus(1, ChronoUnit.YEARS);
+      DateTimeFormatter formatter = formatters.get(ChronoUnit.YEARS).withZone(ZoneOffset.UTC);
+      result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
     }
 
     return result;
