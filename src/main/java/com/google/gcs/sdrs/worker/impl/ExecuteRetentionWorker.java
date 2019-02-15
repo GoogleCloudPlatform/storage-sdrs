@@ -59,7 +59,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
     try {
       Configuration config = new Configurations().xml("applicationConfig.xml");
-      executionTimezone = ZoneId.of(config.getString("ruleExecution.timezone"));
+      executionTimezone = ZoneId.of(config.getString("scheduler.task.ruleExecution.timezone"));
     } catch (ConfigurationException ex) {
       logger.error(
           String.format(
@@ -84,8 +84,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
           rule =
               retentionRuleDao.findDatasetRuleByBusinessKey(
                   executionEvent.getProjectId(),
-                  dataStorageAndDataset[0],
-                  dataStorageAndDataset[1]);
+                  executionEvent.getTarget());
         } else {
           rule =
               retentionRuleDao.findGlobalRuleByTarget(
@@ -135,7 +134,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
     RetentionRule rule = new RetentionRule();
 
     String[] dataStorageAndDataset = extractDataStorage();
-    rule.setDataStorageName(dataStorageAndDataset[0]);
+    rule.setDataStorageName(executionEvent.getTarget());
     rule.setDatasetName(dataStorageAndDataset[1]);
 
     rule.setRetentionPeriodInDays(0);

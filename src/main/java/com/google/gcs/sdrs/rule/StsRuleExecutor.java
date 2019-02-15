@@ -49,9 +49,11 @@ public class StsRuleExecutor implements RuleExecutor{
   private final String DEFAULT_SUFFIX = "shadow";
   private final String DEFAULT_PROJECT_ID = "global-default";
   private final int DEFAULT_MAX_PREFIX_COUNT = 1000;
+  private final int DEFAULT_LOOKBACK_IN_DAYS = 365;
   private String suffix;
   private String defaultProjectId;
   private int maxPrefixCount;
+  private int lookBackInDays;
   Storagetransfer client;
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
@@ -79,12 +81,14 @@ public class StsRuleExecutor implements RuleExecutor{
       suffix = config.getString("sts.suffix");
       maxPrefixCount = config.getInt("sts.maxPrefixCount");
       defaultProjectId = config.getString("sts.defaultProjectId");
+      lookBackInDays = config.getInt("sts.maxLookBackInDays");
       client = StsUtil.createStsClient();
     } catch (ConfigurationException ex) {
       logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
       suffix = DEFAULT_SUFFIX;
       maxPrefixCount = DEFAULT_MAX_PREFIX_COUNT;
       defaultProjectId = DEFAULT_PROJECT_ID;
+      lookBackInDays = DEFAULT_LOOKBACK_IN_DAYS;
     }
   }
 
@@ -107,8 +111,8 @@ public class StsRuleExecutor implements RuleExecutor{
 
     List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(
         getDatasetPath(rule.getDataStorageName()),
-        zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()),
-        zonedDateTimeNow);
+        zonedDateTimeNow.minusDays(lookBackInDays),
+        zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()));
 
     String projectId = rule.getProjectId();
     String sourceBucket = getBucketName(rule.getDataStorageName());

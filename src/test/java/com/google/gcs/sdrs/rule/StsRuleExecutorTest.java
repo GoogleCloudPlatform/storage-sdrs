@@ -89,7 +89,7 @@ public class StsRuleExecutorTest {
       Collection<RetentionRule> bucketRules = new HashSet<>();
       for(int i = 0; i < 1002; i++) {
         RetentionRule rule = new RetentionRule();
-        rule.setDataStorageName(dataStorageName);
+        rule.setDataStorageName(dataStorageName + "/myPath");
         bucketRules.add(rule);
       }
       objectUnderTest.executeDefaultRule(testRule, bucketRules, now);

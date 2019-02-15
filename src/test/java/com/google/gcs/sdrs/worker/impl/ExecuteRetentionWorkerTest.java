@@ -74,7 +74,7 @@ public class ExecuteRetentionWorkerTest {
     worker.retentionRuleDao = retentionRuleDaoMock;
     RetentionRule rule = new RetentionRule();
     rule.setType(RetentionRuleType.DATASET);
-    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any(), any())).thenReturn(rule);
+    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(rule);
 
     worker.doWork();
 
@@ -107,7 +107,7 @@ public class ExecuteRetentionWorkerTest {
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
-    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any(), any())).thenReturn(null);
+    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(null);
 
     worker.doWork();
   }
