@@ -92,7 +92,7 @@ public class ExecuteRetentionWorkerTest {
     worker.retentionRuleDao = retentionRuleDaoMock;
     RetentionRule rule = new RetentionRule();
     rule.setType(RetentionRuleType.GLOBAL);
-    when(retentionRuleDaoMock.findGlobalRuleByTarget(any(), any())).thenReturn(rule);
+    when(retentionRuleDaoMock.findGlobalRuleByTarget(any())).thenReturn(rule);
 
     worker.doWork();
 

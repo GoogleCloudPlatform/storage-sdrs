@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <appConfiguration>
   <serverConfig>
-    <address>127.0.0.1</address>
+    <address>0.0.0.0</address>
     <port>8080</port>
     <sleepMins>60</sleepMins>
     <shutdownGracePeriodInSeconds>60</shutdownGracePeriodInSeconds>

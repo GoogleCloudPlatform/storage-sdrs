@@ -87,8 +87,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
                   executionEvent.getTarget());
         } else {
           rule =
-              retentionRuleDao.findGlobalRuleByTarget(
-                  dataStorageAndDataset[0], dataStorageAndDataset[1]);
+              retentionRuleDao.findGlobalRuleByTarget(executionEvent.getTarget());
         }
 
         if (rule == null) {
