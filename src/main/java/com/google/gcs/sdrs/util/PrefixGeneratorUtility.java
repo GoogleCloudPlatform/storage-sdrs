@@ -22,9 +22,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /** A utility to generate bucket name prefixes within a time interval. */
 public class PrefixGeneratorUtility {
@@ -51,38 +49,28 @@ public class PrefixGeneratorUtility {
 
     List<String> result = new ArrayList<>();
 
-    Map<ChronoUnit, DateTimeFormatter> formatters = new HashMap<>();
-    formatters.put(ChronoUnit.YEARS, DateTimeFormatter.ofPattern("yyyy"));
-    formatters.put(ChronoUnit.MONTHS, DateTimeFormatter.ofPattern("yyyy/MM"));
-    formatters.put(ChronoUnit.DAYS, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-    formatters.put(ChronoUnit.HOURS, DateTimeFormatter.ofPattern("yyyy/MM/dd/HH"));
-
     ZonedDateTime currentTime = ZonedDateTime.from(endTime);
-
     while (currentTime.getHour() > 0 && currentTime.isAfter(startTime)) {
       currentTime = currentTime.minus(1, ChronoUnit.HOURS);
-      DateTimeFormatter formatter = formatters.get(ChronoUnit.HOURS).withZone(ZoneOffset.UTC);
-      result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
+      result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy/MM/dd/HH")));
     }
-
     while (currentTime.getDayOfMonth() > 1 && currentTime.isAfter(startTime)) {
       currentTime = currentTime.minus(1, ChronoUnit.DAYS);
-      DateTimeFormatter formatter = formatters.get(ChronoUnit.DAYS).withZone(ZoneOffset.UTC);
-      result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
+      result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy/MM/dd")));
     }
-
     while (currentTime.getMonthValue() > 1 && currentTime.isAfter(startTime)) {
       currentTime = currentTime.minus(1, ChronoUnit.MONTHS);
-      DateTimeFormatter formatter = formatters.get(ChronoUnit.MONTHS).withZone(ZoneOffset.UTC);
-      result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
+      result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy/MM")));
     }
-
     while (currentTime.isAfter(startTime)) {
       currentTime = currentTime.minus(1, ChronoUnit.YEARS);
-      DateTimeFormatter formatter = formatters.get(ChronoUnit.YEARS).withZone(ZoneOffset.UTC);
-      result.add(String.format("%s/%s", pattern, formatter.format(currentTime)));
+      result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy")));
     }
 
     return result;
+  }
+
+  private static String formatPrefix(ZonedDateTime time, String pattern, DateTimeFormatter formatter) {
+    return String.format("%s/%s", pattern, formatter.withZone(ZoneOffset.UTC).format(time));
   }
 }
