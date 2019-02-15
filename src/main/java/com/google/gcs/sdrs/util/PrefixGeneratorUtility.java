@@ -49,19 +49,27 @@ public class PrefixGeneratorUtility {
 
     List<String> result = new ArrayList<>();
 
+    // The general approach here is to work backwards from the endTime to the start time at the
+    // largest interval granularity possible. This means that first prefixes on the same day as the
+    // endTime will be generated, then month, then year.
     ZonedDateTime currentTime = ZonedDateTime.from(endTime);
+    // Generate all prefixes on the current day
     while (currentTime.getHour() > 0 && currentTime.isAfter(startTime)) {
       currentTime = currentTime.minus(1, ChronoUnit.HOURS);
       result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy/MM/dd/HH")));
     }
+    // Generate all prefixes in the current month
     while (currentTime.getDayOfMonth() > 1 && currentTime.isAfter(startTime)) {
       currentTime = currentTime.minus(1, ChronoUnit.DAYS);
       result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy/MM/dd")));
     }
+    // Generate all prefixes in the current year
     while (currentTime.getMonthValue() > 1 && currentTime.isAfter(startTime)) {
       currentTime = currentTime.minus(1, ChronoUnit.MONTHS);
       result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy/MM")));
     }
+    // From here on only year prefixes will be added. This might include values older than the
+    // provided startTime
     while (currentTime.isAfter(startTime)) {
       currentTime = currentTime.minus(1, ChronoUnit.YEARS);
       result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy")));
@@ -70,7 +78,8 @@ public class PrefixGeneratorUtility {
     return result;
   }
 
-  private static String formatPrefix(ZonedDateTime time, String pattern, DateTimeFormatter formatter) {
+  private static String formatPrefix(
+      ZonedDateTime time, String pattern, DateTimeFormatter formatter) {
     return String.format("%s/%s", pattern, formatter.withZone(ZoneOffset.UTC).format(time));
   }
 }
