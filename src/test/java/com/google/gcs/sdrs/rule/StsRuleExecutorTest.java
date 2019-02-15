@@ -37,7 +37,7 @@ public class StsRuleExecutorTest {
 
   StsRuleExecutor objectUnderTest;
   String dataStorageName = "gs://test";
-  String expectedDataStorageName = "test";
+  String expectedBucketName = "test";
   String suffix = "shadow";
   RetentionRule testRule;
 
@@ -80,7 +80,7 @@ public class StsRuleExecutorTest {
     }
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void globalRuleExecutionWithOver1000DatasetRules(){
     try {
       testRule.setType(RetentionRuleType.GLOBAL);
@@ -89,20 +89,19 @@ public class StsRuleExecutorTest {
       Collection<RetentionRule> bucketRules = new HashSet<>();
       for(int i = 0; i < 1002; i++) {
         RetentionRule rule = new RetentionRule();
-        rule.setDatasetName("test");
-        bucketRules.add(new RetentionRule());
+        rule.setDataStorageName(dataStorageName);
+        bucketRules.add(rule);
       }
       objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-    } catch (IllegalArgumentException ex) {
-      assertTrue(true);
+      Assert.fail();
     } catch (IOException ex) {
       Assert.fail();
     }
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void globalRuleExecutionNoProjectId(){
-    try {
+    try{
       testRule.setType(RetentionRuleType.GLOBAL);
       testRule.setProjectId("");
       ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
@@ -110,43 +109,106 @@ public class StsRuleExecutorTest {
       Collection<RetentionRule> bucketRules = new HashSet<>();
       RetentionRule bucketRule = new RetentionRule();
       bucketRule.setProjectId("");
+      bucketRule.setDataStorageName("");
       bucketRules.add(bucketRule);
       objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-    } catch (IllegalArgumentException ex) {
-      assertTrue(true);
-    } catch (IOException ex) {
+      Assert.fail();
+    } catch (IOException ex){
       Assert.fail();
     }
   }
 
   @Test
-  public void formatDataStorageName(){
-    String result = objectUnderTest.formatDataStorageName(dataStorageName);
-
-    assertEquals(result, expectedDataStorageName);
+  public void getBucketNameRootTest(){
+    String result = objectUnderTest.getBucketName(dataStorageName);
+    assertEquals(expectedBucketName, result);
   }
 
   @Test
-  public void formatDataStorageNameTrailingSlash(){
+  public void getBucketNameTrailingSlashTest(){
     dataStorageName = dataStorageName.concat("/");
-    String result = objectUnderTest.formatDataStorageName(dataStorageName);
+    String result = objectUnderTest.getBucketName(dataStorageName);
 
-    assertEquals(result, expectedDataStorageName);
+    assertEquals(expectedBucketName, result);
   }
 
   @Test
-  public void formatDataStorageNameWithSuffix(){
-    String result = objectUnderTest.formatDataStorageName(dataStorageName, suffix);;
+  public void getBucketNameWithPathTest(){
+    dataStorageName = dataStorageName.concat("/test/myLog");
+    String result = objectUnderTest.getBucketName(dataStorageName);
 
-    assertEquals(result, expectedDataStorageName.concat(suffix));
+    assertEquals(expectedBucketName, result);
   }
 
   @Test
-  public void formatDataStorageNameWithSuffixAndTrailingSlash(){
+  public void getBucketNameNullTest(){
+    String result = objectUnderTest.getBucketName(null);
+
+    assertEquals("", result);
+  }
+
+  @Test
+  public void getBucketNameWithSuffix(){
+    String result = objectUnderTest.getBucketName(dataStorageName, suffix);;
+
+    assertEquals(expectedBucketName.concat(suffix), result);
+  }
+
+  @Test
+  public void getBucketNameWithSuffixAndTrailingSlash(){
     dataStorageName = dataStorageName.concat("/");
-    String result = objectUnderTest.formatDataStorageName(dataStorageName, suffix);;
+    String result = objectUnderTest.getBucketName(dataStorageName, suffix);
 
-    assertEquals(result, expectedDataStorageName.concat(suffix));
+    assertEquals(expectedBucketName.concat(suffix), result);
+  }
+
+  @Test
+  public void getBucketNameWithSuffixAndPathTest(){
+    dataStorageName = dataStorageName.concat("/dataset/myLog");
+    String result = objectUnderTest.getBucketName(dataStorageName, suffix);
+
+    assertEquals(expectedBucketName.concat(suffix), result);
+  }
+
+  @Test
+  public void getDatasetPathTest(){
+    String path = "/dataset/myLog";
+    dataStorageName = dataStorageName.concat(path);
+
+    String result = objectUnderTest.getDatasetPath(dataStorageName);
+    String expected = path.replaceFirst("/", "");
+
+    assertEquals(expected, result);
+  }
+
+  @Test
+  public void getDatasetPathBucketOnlyTest(){
+    String result = objectUnderTest.getDatasetPath(dataStorageName);
+
+    assertEquals("", result);
+  }
+
+  @Test
+  public void getDatasetPathTrailingSlash(){
+    String result = objectUnderTest.getDatasetPath(dataStorageName.concat("/"));
+
+    assertEquals("", result);
+  }
+
+  @Test
+  public void getDatasetPathNull(){
+    String result = objectUnderTest.getDatasetPath(null);
+
+    assertEquals("", result);
+  }
+
+  @Test
+  public void getDatasetPathSameName(){
+    String expected = "test";
+    String fullPath = dataStorageName + "/" + expected;
+    String result = objectUnderTest.getDatasetPath(fullPath);
+
+    assertEquals(expected, result);
   }
 
   @Test

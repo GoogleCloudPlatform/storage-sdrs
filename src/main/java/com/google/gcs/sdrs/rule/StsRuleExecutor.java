@@ -105,13 +105,14 @@ public class StsRuleExecutor implements RuleExecutor{
 
     ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
 
-    List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(rule.getDatasetName(),
-        zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()), zonedDateTimeNow);
-    //prefixes.add("testDataset/2018/12/31/12");
+    List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(
+        getDatasetPath(rule.getDataStorageName()),
+        zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()),
+        zonedDateTimeNow);
 
     String projectId = rule.getProjectId();
-    String sourceBucket = formatDataStorageName(rule.getDataStorageName());
-    String destinationBucket = formatDataStorageName(rule.getDataStorageName(), suffix);
+    String sourceBucket = getBucketName(rule.getDataStorageName());
+    String destinationBucket = getBucketName(rule.getDataStorageName(), suffix);
 
     String description = String.format(
         "Rule %s %s %s", rule.getId(), rule.getVersion(), zonedDateTimeNow.toString());
@@ -161,7 +162,10 @@ public class StsRuleExecutor implements RuleExecutor{
     for (RetentionRule datasetRule : bucketDatasetRules) {
       // Adds the dataset folder to the exclude list as the retention is already being handled
       // by the dataset rule. No need to generate the full prefix here.
-      prefixesToExclude.add(datasetRule.getDatasetName());
+      String pathToExclude = getDatasetPath(datasetRule.getDataStorageName());
+      if (!pathToExclude.isEmpty()) {
+        prefixesToExclude.add(pathToExclude);
+      }
     }
 
     // STS has a restriction of 1000 values in any prefix collection. This should never happen.
@@ -188,8 +192,8 @@ public class StsRuleExecutor implements RuleExecutor{
       }
     }
 
-    String sourceBucket = formatDataStorageName(defaultRule.getDataStorageName());
-    String destinationBucket = formatDataStorageName(defaultRule.getDataStorageName(), suffix);
+    String sourceBucket = getBucketName(defaultRule.getDataStorageName());
+    String destinationBucket = getBucketName(defaultRule.getDataStorageName(), suffix);
 
     String description = String.format(
         "Rule %s %s %s", defaultRule.getId(), defaultRule.getVersion(), scheduledTime.toString());
@@ -217,21 +221,40 @@ public class StsRuleExecutor implements RuleExecutor{
     return buildRetentionJobEntity(job.getName(), defaultRule);
   }
 
-  String formatDataStorageName(String dataStorageName) {
-
-    dataStorageName = dataStorageName.replaceFirst(
-        ValidationConstants.STORAGE_PREFIX,"");
-
-    if (dataStorageName.endsWith(ValidationConstants.STORAGE_SEPARATOR)) {
-      dataStorageName = dataStorageName.replaceAll(
-          ValidationConstants.STORAGE_SEPARATOR, "");
+  String getBucketName(String dataStorageName) {
+    if (dataStorageName == null){
+      return "";
     }
 
-    return dataStorageName;
+    String bucketName = dataStorageName.replaceFirst(ValidationConstants.STORAGE_PREFIX,"");
+
+    int separatorIndex = bucketName.indexOf(ValidationConstants.STORAGE_SEPARATOR);
+
+    if (separatorIndex != -1) {
+      bucketName = bucketName.substring(0, separatorIndex);
+    }
+
+    return bucketName;
   }
 
-  String formatDataStorageName(String dataStorageName, String suffix) {
-    return formatDataStorageName(dataStorageName).concat(suffix);
+  String getBucketName(String dataStorageName, String suffix) {
+    return getBucketName(dataStorageName).concat(suffix);
+  }
+
+  String getDatasetPath(String dataStorageName) {
+    if (dataStorageName == null){
+      return "";
+    }
+
+    String bucketName = getBucketName(dataStorageName);
+    String datasetPath = dataStorageName.replaceFirst(ValidationConstants.STORAGE_PREFIX, "");
+    datasetPath = datasetPath.replaceFirst(bucketName, "");
+
+    if (datasetPath.indexOf(ValidationConstants.STORAGE_SEPARATOR) == 0) {
+      datasetPath = datasetPath.replaceFirst(ValidationConstants.STORAGE_SEPARATOR, "");
+    }
+
+    return datasetPath;
   }
 
   RetentionJob buildRetentionJobEntity(String jobName, RetentionRule rule) {
