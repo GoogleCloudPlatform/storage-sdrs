@@ -18,7 +18,6 @@
 package com.google.gcs.sdrs.worker.impl;
 
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.Dao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
@@ -27,6 +26,7 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.rule.RuleExecutor;
 import com.google.gcs.sdrs.rule.StsRuleExecutor;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.worker.BaseWorker;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
@@ -34,7 +34,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.List;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -72,7 +71,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
   @Override
   public void doWork() {
-    String[] dataStorageAndDataset = extractDataStorage();
+    String dataStorageName = getDataStorageName(executionEvent.getTarget());
     RetentionRule rule;
     switch (executionEvent.getExecutionEventType()) {
       case USER_COMMANDED:
@@ -84,10 +83,9 @@ public class ExecuteRetentionWorker extends BaseWorker {
           rule =
               retentionRuleDao.findDatasetRuleByBusinessKey(
                   executionEvent.getProjectId(),
-                  executionEvent.getTarget());
+                  dataStorageName);
         } else {
-          rule =
-              retentionRuleDao.findGlobalRuleByTarget(executionEvent.getTarget());
+          rule = retentionRuleDao.findGlobalRuleByTarget(dataStorageName);
         }
 
         if (rule == null) {
@@ -108,7 +106,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
           break;
         case GLOBAL:
           Collection<RetentionRule> rules =
-              retentionRuleDao.findAllDatasetRulesInDataStorage(dataStorageAndDataset[0]);
+              retentionRuleDao.findAllDatasetRulesInDataStorage(dataStorageName);
 
           job = ruleExecutor.executeDefaultRule(rule, rules, atMidnight());
           break;
@@ -132,9 +130,10 @@ public class ExecuteRetentionWorker extends BaseWorker {
   private RetentionRule getEventDefinedRule() {
     RetentionRule rule = new RetentionRule();
 
-    String[] dataStorageAndDataset = extractDataStorage();
-    rule.setDataStorageName(executionEvent.getTarget());
-    rule.setDatasetName(dataStorageAndDataset[1]);
+    String dataStorageName = getDataStorageName(executionEvent.getTarget());
+
+    rule.setDataStorageName(dataStorageName);
+    rule.setDatasetName(RetentionUtil.getDatasetPath(dataStorageName));
 
     rule.setRetentionPeriodInDays(0);
     rule.setProjectId(executionEvent.getProjectId());
@@ -143,11 +142,11 @@ public class ExecuteRetentionWorker extends BaseWorker {
     return rule;
   }
 
-  private String[] extractDataStorage() {
-    String target = executionEvent.getTarget();
-    String removedPrefix = target.substring(ValidationConstants.STORAGE_PREFIX.length());
-    String[] dataStorageAndDataset = removedPrefix.split(ValidationConstants.STORAGE_SEPARATOR, 2);
-    dataStorageAndDataset[0] = ValidationConstants.STORAGE_PREFIX + dataStorageAndDataset[0];
-    return dataStorageAndDataset;
+  private String getDataStorageName(String target){
+    if (target == null) {
+      target = "";
+    }
+
+    return target;
   }
 }

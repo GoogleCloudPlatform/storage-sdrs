@@ -25,6 +25,7 @@ import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -110,13 +111,13 @@ public class StsRuleExecutor implements RuleExecutor{
     ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
 
     List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(
-        getDatasetPath(rule.getDataStorageName()),
+        RetentionUtil.getDatasetPath(rule.getDataStorageName()),
         zonedDateTimeNow.minusDays(lookBackInDays),
         zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()));
 
     String projectId = rule.getProjectId();
-    String sourceBucket = getBucketName(rule.getDataStorageName());
-    String destinationBucket = getBucketName(rule.getDataStorageName(), suffix);
+    String sourceBucket = RetentionUtil.getBucketName(rule.getDataStorageName());
+    String destinationBucket = RetentionUtil.getBucketName(rule.getDataStorageName(), suffix);
 
     String description = String.format(
         "Rule %s %s %s", rule.getId(), rule.getVersion(), zonedDateTimeNow.toString());
@@ -166,7 +167,7 @@ public class StsRuleExecutor implements RuleExecutor{
     for (RetentionRule datasetRule : bucketDatasetRules) {
       // Adds the dataset folder to the exclude list as the retention is already being handled
       // by the dataset rule. No need to generate the full prefix here.
-      String pathToExclude = getDatasetPath(datasetRule.getDataStorageName());
+      String pathToExclude = RetentionUtil.getDatasetPath(datasetRule.getDataStorageName());
       if (!pathToExclude.isEmpty()) {
         prefixesToExclude.add(pathToExclude);
       }
@@ -196,8 +197,8 @@ public class StsRuleExecutor implements RuleExecutor{
       }
     }
 
-    String sourceBucket = getBucketName(defaultRule.getDataStorageName());
-    String destinationBucket = getBucketName(defaultRule.getDataStorageName(), suffix);
+    String sourceBucket = RetentionUtil.getBucketName(defaultRule.getDataStorageName());
+    String destinationBucket = RetentionUtil.getBucketName(defaultRule.getDataStorageName(), suffix);
 
     String description = String.format(
         "Rule %s %s %s", defaultRule.getId(), defaultRule.getVersion(), scheduledTime.toString());
@@ -223,42 +224,6 @@ public class StsRuleExecutor implements RuleExecutor{
             defaultRule.getRetentionPeriodInDays());
 
     return buildRetentionJobEntity(job.getName(), defaultRule);
-  }
-
-  String getBucketName(String dataStorageName) {
-    if (dataStorageName == null){
-      return "";
-    }
-
-    String bucketName = dataStorageName.replaceFirst(ValidationConstants.STORAGE_PREFIX,"");
-
-    int separatorIndex = bucketName.indexOf(ValidationConstants.STORAGE_SEPARATOR);
-
-    if (separatorIndex != -1) {
-      bucketName = bucketName.substring(0, separatorIndex);
-    }
-
-    return bucketName;
-  }
-
-  String getBucketName(String dataStorageName, String suffix) {
-    return getBucketName(dataStorageName).concat(suffix);
-  }
-
-  String getDatasetPath(String dataStorageName) {
-    if (dataStorageName == null){
-      return "";
-    }
-
-    String bucketName = getBucketName(dataStorageName);
-    String datasetPath = dataStorageName.replaceFirst(ValidationConstants.STORAGE_PREFIX, "");
-    datasetPath = datasetPath.replaceFirst(bucketName, "");
-
-    if (datasetPath.indexOf(ValidationConstants.STORAGE_SEPARATOR) == 0) {
-      datasetPath = datasetPath.replaceFirst(ValidationConstants.STORAGE_SEPARATOR, "");
-    }
-
-    return datasetPath;
   }
 
   RetentionJob buildRetentionJobEntity(String jobName, RetentionRule rule) {
