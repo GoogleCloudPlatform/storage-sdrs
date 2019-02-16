@@ -102,6 +102,78 @@ public class PrefixGeneratorUtilityTest {
   }
 
   @Test
+  public void startMonthValueGreaterThanEndMonthWorks() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2018, 9, 19, 12, 50, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 3, 11, 10, 30, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
+
+    assertTrue(result.contains("test/2019/02"));
+  }
+
+  @Test
+  public void noExcessiveMonthPrefixesAreGenerated() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 4, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
+
+    assertTrue(result.contains("test/2019/05"));
+    assertTrue(result.contains("test/2019/04"));
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  public void startDayValueGreaterThanEndDayWorks() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2018, 9, 19, 12, 50, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 3, 11, 10, 30, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
+
+    assertTrue(result.contains("test/2019/03/10"));
+  }
+
+  @Test
+  public void noExcessiveDayPrefixesAreGenerated() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 3, 4, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 3, 6, 0, 0, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
+
+    assertTrue(result.contains("test/2019/03/05"));
+    assertTrue(result.contains("test/2019/03/04"));
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  public void startHourValueGreaterThanEndHourWorks() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2018, 9, 19, 12, 50, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 3, 11, 10, 30, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
+
+    assertTrue(result.contains("test/2019/03/11/00"));
+  }
+
+  @Test
+  public void noExcessiveHourPrefixesAreGenerated() {
+    String pattern = "test";
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 3, 3, 4, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2019, 3, 3, 6, 0, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
+
+    assertTrue(result.contains("test/2019/03/03/04"));
+    assertTrue(result.contains("test/2019/03/03/05"));
+    assertEquals(2, result.size());
+  }
+
+  @Test
   public void prefixGeneratorFluctuatesInterval() {
     String pattern = "test";
     ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
