@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.rule;
+package com.google.gcs.sdrs.rule.impl;
 
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -35,11 +35,9 @@ import static org.junit.Assert.assertTrue;
 
 public class StsRuleExecutorTest {
 
-  StsRuleExecutor objectUnderTest;
-  String dataStorageName = "gs://test";
-  String expectedBucketName = "test";
-  String suffix = "shadow";
-  RetentionRule testRule;
+  private StsRuleExecutor objectUnderTest;
+  private String dataStorageName = "gs://test";
+  private RetentionRule testRule;
 
   @Before
   public void initialize(){

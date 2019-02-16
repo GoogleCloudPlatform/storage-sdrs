@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.rule;
+package com.google.gcs.sdrs.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.api.services.storagetransfer.v1.model.Status;
@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class StsRuleValidatorTest {
 

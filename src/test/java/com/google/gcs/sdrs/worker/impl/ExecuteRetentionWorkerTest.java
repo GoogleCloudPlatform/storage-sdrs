@@ -23,11 +23,10 @@ import com.google.gcs.sdrs.dao.impl.GenericDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.ExecutionEventType;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
-import com.google.gcs.sdrs.rule.StsRuleExecutor;
+import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 

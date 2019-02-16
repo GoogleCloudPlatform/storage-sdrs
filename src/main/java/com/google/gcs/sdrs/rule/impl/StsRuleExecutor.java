@@ -16,14 +16,14 @@
  *
  */
 
-package com.google.gcs.sdrs.rule;
+package com.google.gcs.sdrs.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.rule.RuleExecutor;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * An implementation of the Rule Executor interface that uses STS
  */
-public class StsRuleExecutor implements RuleExecutor{
+public class StsRuleExecutor implements RuleExecutor {
 
   public static StsRuleExecutor instance;
   private final String DEFAULT_SUFFIX = "shadow";

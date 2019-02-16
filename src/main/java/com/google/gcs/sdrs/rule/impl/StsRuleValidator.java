@@ -16,13 +16,14 @@
  *
  */
 
-package com.google.gcs.sdrs.rule;
+package com.google.gcs.sdrs.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.enums.RetentionJobStatusType;
+import com.google.gcs.sdrs.rule.RuleValidator;
 import com.google.gcs.sdrs.util.StsUtil;
 
 import org.slf4j.Logger;
