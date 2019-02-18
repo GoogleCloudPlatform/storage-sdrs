@@ -19,7 +19,8 @@ info:
 # The API hostname
 host: your-api.endpoints.your-project.cloud.goog
 x-google-endpoints:
-  - name: SDRS API
+  - # The endpoints name matches the 'host' value above
+    name: your-api.endpoints.your-project.cloud.goog
     # Your target IP Address; Must be quoted
     target: 'your_target_ip'
 paths:
