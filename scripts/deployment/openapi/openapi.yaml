@@ -39,6 +39,14 @@ paths:
           description: Create retention rule response
           schema:
             $ref: '#/definitions/CreateRetentionRuleResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
       description: Create retention rule
       operationId: postRetentionRules
     get:
@@ -65,6 +73,14 @@ paths:
           description: Matching retention rule
           schema:
             $ref: '#/definitions/RetentionRuleResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
       description: Get retetion rule matching provided values
       operationId: getByBusinessKey
     delete:
@@ -91,6 +107,14 @@ paths:
           description: Successful delete response
           schema:
             $ref: '#/definitions/BaseResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
       description: Delete retetion rule matching provided values
       operationId: deleteByBusinessKey
   '/retentionrules/{id}':
@@ -116,6 +140,14 @@ paths:
           description: Updated retention rule
           schema:
             $ref: '#/definitions/RetentionRuleResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
       description: Update retention rule by id
       operationId: putRetentionRulesById
 definitions:
@@ -124,6 +156,13 @@ definitions:
       requestUuid:
         type: string
     type: object
+  ErrorResponse:
+    allOf:
+      - $ref: '#/definitions/BaseResponse'
+      - properties:
+          message:
+            type: string
+        type: object
   CreateRetentionRuleRequest:
     properties:
       dataStorageName:
