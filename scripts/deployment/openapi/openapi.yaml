@@ -16,9 +16,10 @@ swagger: '2.0'
 info:
   title: Storage SDRS API Definition
   version: '1.0.0'
-host: sdrs-api.endpoints.sdrs-server.cloud.goog
+# The API hostname
+host: your-api.endpoints.your-project.cloud.goog
 x-google-endpoints:
-  - name: sdrs-api.endpoints.sdrs-server.cloud.goog
+  - name: SDRS API
     # Your target IP Address; Must be quoted
     target: 'your_target_ip'
 paths:
