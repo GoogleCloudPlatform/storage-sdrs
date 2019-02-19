@@ -15,16 +15,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service;
+package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
+import java.util.List;
 
-/** Interface exposing event behaviors. */
-public interface EventsService {
+/** Defines available persistence operations for RetentionRule entities */
+public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
 
-  /** Executes an execution event asynchronously */
-  void executeEvent(ExecutionEventRequest request);
+  List<RetentionRule> findAllDatasetRulesInDataStorage(String dataStorage);
 
-  /** Runs the validation service asynchronously */
-  void processValidationEvent();
+  RetentionRule findDatasetRuleByBusinessKey(String projectId, String dataStorage, String dataset);
+
+  RetentionRule findGlobalRuleByTarget(String dataStorage, String dataset);
 }

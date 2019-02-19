@@ -20,7 +20,7 @@ package com.google.gcs.sdrs.service.impl;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
-import com.google.gcs.sdrs.dao.impl.GenericDao;
+import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import org.junit.Before;
@@ -39,7 +39,7 @@ public class RetentionRulesServiceImplTest {
 
   @Before
   public void setup() {
-    service.dao = mock(GenericDao.class);
+    service.dao = mock(RetentionRuleDaoImpl.class);
   }
 
   @Test

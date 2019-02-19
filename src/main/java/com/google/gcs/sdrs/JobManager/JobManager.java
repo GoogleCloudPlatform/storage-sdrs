@@ -18,22 +18,20 @@
 
 package com.google.gcs.sdrs.JobManager;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.WorkerResult;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gcs.sdrs.worker.BaseWorker;
-import com.google.gcs.sdrs.worker.WorkerResult;
 
 /**
  * JobManager for creating and managing worker threads.
@@ -118,7 +116,7 @@ public class JobManager {
    * Submits a callable worker for execution
    * @param job A callable that returns a WorkerResult record.
    */
-  public void submitJob(BaseWorker job) {
+  public void submitJob(Worker job) {
     completionService.submit(job);
     activeWorkerCount.incrementAndGet();
     logger.debug("Active Workers after submission: " + activeWorkerCount.get());

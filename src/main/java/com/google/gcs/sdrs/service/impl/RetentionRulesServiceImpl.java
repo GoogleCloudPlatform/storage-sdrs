@@ -17,11 +17,11 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
-import com.google.gcs.sdrs.dao.Dao;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -32,7 +32,7 @@ import com.google.gcs.sdrs.service.RetentionRulesService;
 public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
 
-  Dao<RetentionRule, Integer> dao = SingletonDao.getRetentionRuleDao();
+  RetentionRuleDao dao = SingletonDao.getRetentionRuleDao();
 
   @Override()
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {

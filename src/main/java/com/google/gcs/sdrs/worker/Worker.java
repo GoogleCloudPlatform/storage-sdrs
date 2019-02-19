@@ -15,16 +15,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service;
+package com.google.gcs.sdrs.worker;
 
-import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import java.util.concurrent.Callable;
 
-/** Interface exposing event behaviors. */
-public interface EventsService {
+public interface Worker extends Callable<WorkerResult> {
 
-  /** Executes an execution event asynchronously */
-  void executeEvent(ExecutionEventRequest request);
+  void doWork();
 
-  /** Runs the validation service asynchronously */
-  void processValidationEvent();
+  WorkerResult getWorkerResult();
 }

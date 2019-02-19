@@ -20,6 +20,7 @@ package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.JobScheduler.JobScheduler;
 import com.google.gcs.sdrs.runners.RuleExecutionRunner;
+import com.google.gcs.sdrs.runners.ValidationRunner;
 import com.google.gcs.sdrs.server.ServerShutdownHook;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -59,7 +60,8 @@ public class SdrsApplication {
     }
 
     startWebServer();
-    startRuleExecutor();
+    scheduleExecutionServiceJob();
+    scheduleValidationServiceJob();
   }
 
   /**
@@ -100,15 +102,26 @@ public class SdrsApplication {
     }
   }
 
-  private static void startRuleExecutor(){
-    JobScheduler ruleExecutor = JobScheduler.getInstance();
+  private static void scheduleExecutionServiceJob(){
+    JobScheduler scheduler = JobScheduler.getInstance();
 
-    int initialDelay = xmlConfig.getInt("ruleExecution.initialDelay");
-    int frequency = xmlConfig.getInt("ruleExecution.frequency");
-    TimeUnit timeUnit = TimeUnit.valueOf(xmlConfig.getString("ruleExecution.timeUnit"));
+    int initialDelay = xmlConfig.getInt("scheduler.task.ruleExecution.initialDelay");
+    int frequency = xmlConfig.getInt("scheduler.task.ruleExecution.frequency");
+    TimeUnit timeUnit = TimeUnit.valueOf(xmlConfig.getString("scheduler.task.ruleExecution.timeUnit"));
 
-    ruleExecutor.submitScheduledJob(new RuleExecutionRunner(), initialDelay, frequency, timeUnit);
+    scheduler.submitScheduledJob(new RuleExecutionRunner(), initialDelay, frequency, timeUnit);
     logger.info("Rule execution scheduled successfully.");
+  }
+
+  private static void scheduleValidationServiceJob(){
+    JobScheduler scheduler = JobScheduler.getInstance();
+
+    int initialDelay = xmlConfig.getInt("scheduler.task.validationService.initialDelay");
+    int frequency = xmlConfig.getInt("scheduler.task.validationService.frequency");
+    TimeUnit timeUnit = TimeUnit.valueOf(xmlConfig.getString("scheduler.task.validationService.timeUnit"));
+
+    scheduler.submitScheduledJob(new ValidationRunner(), initialDelay, frequency, timeUnit);
+    logger.info("Validation service scheduled successfully.");
   }
 
   private static void registerPubSub() {

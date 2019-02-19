@@ -13,18 +13,10 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ *
  */
 
-package com.google.gcs.sdrs.service;
+package com.google.gcs.sdrs.worker;
 
-import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
-
-/** Interface exposing event behaviors. */
-public interface EventsService {
-
-  /** Executes an execution event asynchronously */
-  void executeEvent(ExecutionEventRequest request);
-
-  /** Runs the validation service asynchronously */
-  void processValidationEvent();
-}
+/** A worker class to do the validation */
+public class ValidationWorker extends BaseWorker {}

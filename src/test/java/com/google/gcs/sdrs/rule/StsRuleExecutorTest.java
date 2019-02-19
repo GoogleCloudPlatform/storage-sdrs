@@ -1,0 +1,164 @@
+/*
+ * Copyright 2019 Google LLC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the “License”);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
+ *
+ * Any software provided by Google hereunder is distributed “AS IS”,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ */
+
+package com.google.gcs.sdrs.rule;
+
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.HashSet;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class StsRuleExecutorTest {
+
+  StsRuleExecutor objectUnderTest;
+  String dataStorageName = "gs://test";
+  String expectedDataStorageName = "test";
+  String suffix = "shadow";
+  RetentionRule testRule;
+
+  @Before
+  public void initialize(){
+    testRule = new RetentionRule();
+    testRule.setId(1);
+    testRule.setProjectId("sdrs-test");
+    testRule.setDatasetName("test");
+    testRule.setRetentionPeriodInDays(30);
+    testRule.setDataStorageName(dataStorageName);
+    testRule.setType(RetentionRuleType.DATASET);
+    testRule.setVersion(2);
+
+    objectUnderTest = StsRuleExecutor.getInstance();
+  }
+
+  @Test
+  public void datasetRuleExecutionWithGlobalType(){
+    try {
+      testRule.setType(RetentionRuleType.GLOBAL);
+      objectUnderTest.executeDatasetRule(testRule);
+    } catch (IllegalArgumentException ex) {
+      assertTrue(true);
+    } catch (IOException ex) {
+      Assert.fail();
+    }
+  }
+
+  @Test
+  public void globalRuleExecutionWithDatasetType(){
+    try {
+      Collection<RetentionRule> bucketRules = new HashSet<>();
+      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
+      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
+    } catch (IllegalArgumentException ex) {
+      assertTrue(true);
+    } catch (IOException ex) {
+      Assert.fail();
+    }
+  }
+
+  @Test
+  public void globalRuleExecutionWithOver1000DatasetRules(){
+    try {
+      testRule.setType(RetentionRuleType.GLOBAL);
+      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
+
+      Collection<RetentionRule> bucketRules = new HashSet<>();
+      for(int i = 0; i < 1002; i++) {
+        RetentionRule rule = new RetentionRule();
+        rule.setDatasetName("test");
+        bucketRules.add(new RetentionRule());
+      }
+      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
+    } catch (IllegalArgumentException ex) {
+      assertTrue(true);
+    } catch (IOException ex) {
+      Assert.fail();
+    }
+  }
+
+  @Test
+  public void globalRuleExecutionNoProjectId(){
+    try {
+      testRule.setType(RetentionRuleType.GLOBAL);
+      testRule.setProjectId("");
+      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
+
+      Collection<RetentionRule> bucketRules = new HashSet<>();
+      RetentionRule bucketRule = new RetentionRule();
+      bucketRule.setProjectId("");
+      bucketRules.add(bucketRule);
+      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
+    } catch (IllegalArgumentException ex) {
+      assertTrue(true);
+    } catch (IOException ex) {
+      Assert.fail();
+    }
+  }
+
+  @Test
+  public void formatDataStorageName(){
+    String result = objectUnderTest.formatDataStorageName(dataStorageName);
+
+    assertEquals(result, expectedDataStorageName);
+  }
+
+  @Test
+  public void formatDataStorageNameTrailingSlash(){
+    dataStorageName = dataStorageName.concat("/");
+    String result = objectUnderTest.formatDataStorageName(dataStorageName);
+
+    assertEquals(result, expectedDataStorageName);
+  }
+
+  @Test
+  public void formatDataStorageNameWithSuffix(){
+    String result = objectUnderTest.formatDataStorageName(dataStorageName, suffix);;
+
+    assertEquals(result, expectedDataStorageName.concat(suffix));
+  }
+
+  @Test
+  public void formatDataStorageNameWithSuffixAndTrailingSlash(){
+    dataStorageName = dataStorageName.concat("/");
+    String result = objectUnderTest.formatDataStorageName(dataStorageName, suffix);;
+
+    assertEquals(result, expectedDataStorageName.concat(suffix));
+  }
+
+  @Test
+  public void buildRetentionJobTest(){
+    String jobName = "test";
+
+    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule);
+
+    assertEquals(result.getName(), jobName);
+    assertEquals((int)result.getRetentionRuleId(), (int)testRule.getId());
+    assertEquals(result.getRetentionRuleDataStorageName(), testRule.getDataStorageName());
+    assertEquals(result.getRetentionRuleType(), testRule.getType());
+    assertEquals((int)result.getRetentionRuleVersion(), (int)testRule.getVersion());
+  }
+}

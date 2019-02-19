@@ -16,9 +16,22 @@
  *
  */
 
-package com.google.gcs.sdrs.worker;
+package com.google.gcs.sdrs.rule;
 
-// TODO Remove this class and replace usages after a
-//  concrete worker implementation is written
-public class DemoWorker extends BaseWorker {
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
+
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+
+public interface RuleExecutor {
+
+  RetentionJob executeDatasetRule(RetentionRule rule) throws IOException, IllegalArgumentException;
+
+  RetentionJob executeDefaultRule(
+      RetentionRule defaultRule,
+      Collection<RetentionRule> bucketDatasetRules,
+      ZonedDateTime scheduledTime)
+      throws IOException, IllegalArgumentException;
 }
