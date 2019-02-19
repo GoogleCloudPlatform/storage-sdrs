@@ -3,3 +3,5 @@
 /logs/
 credentials.json
 /bin/
+/.idea/
+*.iml

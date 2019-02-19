@@ -20,15 +20,30 @@ package com.google.gcs.sdrs.service.impl;
 import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.service.EventsService;
+import com.google.gcs.sdrs.worker.ValidationWorker;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Service implementation for event related behaviors. */
 public class EventsServiceImpl implements EventsService {
+
+  private static final Logger logger = LoggerFactory.getLogger(EventsServiceImpl.class);
 
   @Override
   public void executeEvent(ExecutionEventRequest request) {
     Worker worker = new ExecuteRetentionWorker(request);
     JobManager.getInstance().submitJob(worker);
+  }
+
+  /**
+   * Submits a validation job to the JobManager.
+   */
+  @Override
+  public void processValidationEvent() {
+    JobManager jobManager = JobManager.getInstance();
+    jobManager.submitJob(new ValidationWorker());
+    logger.info("ValidationWorker submitted to JobManager.");
   }
 }

@@ -20,6 +20,7 @@ package com.google.gcs.sdrs.controller.mapper.exception;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import javax.ws.rs.core.Response;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,7 +43,7 @@ public class JsonParseExceptionMapperTest {
 
     Response response = mapper.toResponse(exceptionMock);
 
-    assertEquals(response.getStatus(), 400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("Unable"));
     assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }

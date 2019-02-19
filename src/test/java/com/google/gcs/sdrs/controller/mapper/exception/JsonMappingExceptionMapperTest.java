@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import java.util.List;
 import javax.ws.rs.core.Response;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +53,7 @@ public class JsonMappingExceptionMapperTest {
 
     Response response = mapper.toResponse(exceptionMock);
 
-    assertEquals(response.getStatus(), 400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("Invalid"));
     assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
   }

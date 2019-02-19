@@ -44,7 +44,7 @@ tear down by executing ./makeRestEngine down
 #Docker Deployment to GCP
 1) Build the docker image
 ```
-docker build -t gcr.io/sdrs-server/sdrs:tag . -f sdrs.dockerfile
+docker build -t gcr.io/sdrs-server/sdrs:tag .
 ```
 2) Publish the image to the GCP image repository to make it available
 ```

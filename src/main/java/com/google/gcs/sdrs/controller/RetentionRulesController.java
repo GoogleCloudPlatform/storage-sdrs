@@ -37,6 +37,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,7 @@ public class RetentionRulesController extends BaseController {
       response.setRequestUuid(requestUuid);
       response.setRuleId(result);
 
-      return Response.status(200).entity(response).build();
+      return Response.status(HttpStatus.OK_200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
     } catch (Exception exception) {
@@ -88,7 +89,7 @@ public class RetentionRulesController extends BaseController {
 
       response.setRequestUuid(requestUuid);
 
-      return Response.status(200).entity(response).build();
+      return Response.status(HttpStatus.OK_200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
     } catch (Exception exception) {

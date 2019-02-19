@@ -13,18 +13,19 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ *
  */
 
-package com.google.gcs.sdrs.service;
+package com.google.gcs.sdrs.rule;
 
-import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 
-/** Interface exposing event behaviors. */
-public interface EventsService {
+import java.util.List;
 
-  /** Executes an execution event asynchronously */
-  void executeEvent(ExecutionEventRequest request);
+public interface RuleValidator {
 
-  /** Runs the validation service asynchronously */
-  void processValidationEvent();
+  RetentionJobValidation validateRetentionJob(RetentionJob job);
+
+  List<RetentionJobValidation> validateRetentionJobs(List<RetentionJob> jobs);
 }

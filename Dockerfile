@@ -17,6 +17,7 @@ RUN yum install maven -y
 # Copy GCP Credentials file
 # This file is not checked into source code
 COPY ./credentials.json ./credentials.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
 
 # Copy POM and install dependencies
 COPY ./pom.xml ./pom.xml
@@ -33,10 +34,10 @@ RUN yum install -y \
        java-1.8.0-openjdk
 
 # Copy the JAR from the build stage
-COPY --from=sdrs-build ./target/restEngine-jar-with-dependencies.jar ./app.jar
+COPY --from=sdrs-build ./target/storage-sdrs-jar-with-dependencies.jar ./app.jar
 
 # Server runs on port 8080
 EXPOSE 8080
 
 # Start server on 0.0.0.0
-CMD ["java", "-jar", "./app.jar", "0.0.0.0"]
+CMD ["java", "-jar", "./app.jar", "0.0.0.0", "-Xms256m", "-Xmx512m"]
