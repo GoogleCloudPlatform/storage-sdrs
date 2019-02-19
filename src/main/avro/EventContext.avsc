@@ -1,0 +1,81 @@
+{
+  "namespace": "com.google.gcs.sdrs.mq.events.context",
+  "type": "record",
+  "name": "EventContext",
+  "doc": "The event context used for all events",
+  "fields": [
+    {
+      "name": "uuid",
+      "doc": "Event UUID.",
+      "type": "string"
+    },
+    {
+      "name": "name",
+      "doc": "Name of event.",
+      "type": "string"
+    },
+    {
+      "name": "correlationID",
+      "doc": "Unique ID that correlates multiple related events generated from a multi-stepped process.",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "timestamp",
+      "doc": "Time of event expressed as number of milliseconds from the unix epoch, 1 January 1970 00:00:00.000 UTC.",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "version",
+      "doc": "Version of event schema",
+      "type": "string"
+    },
+    {
+      "name": "group",
+      "doc": "Event group. Present if event is broken into multiple messages. ",
+      "type": [
+        "null",
+        {
+          "name": "groupRecord",
+          "type": "record",
+          "fields": [
+            {
+              "name": "groupID",
+              "doc": "Unique event group ID",
+              "type": "string"
+            },
+            {
+              "name": "sequenceNumber",
+              "doc": "Event sequence in the group. ",
+              "type": "int"
+            },
+            {
+              "name": "totalNumber",
+              "doc": "Total number of events in the group.",
+              "type": "int"
+            }
+          ]
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "attributes",
+      "doc": "Optional event attributes in key=value pairs",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": "string"
+        }
+      ],
+      "default": null
+    }
+  ]
+}

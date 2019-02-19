@@ -47,4 +47,7 @@
     <defaultProjectId>global-default</defaultProjectId>
     <maxLookBackInDays>365</maxLookBackInDays>
   </sts>
+  <pubsub>
+    <topic>${topic_name}</topic>
+  </pubsub>
 </appConfiguration>

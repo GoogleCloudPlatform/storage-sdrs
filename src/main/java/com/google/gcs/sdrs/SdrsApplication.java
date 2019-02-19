@@ -19,6 +19,7 @@
 package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
 import com.google.gcs.sdrs.runners.RuleExecutionRunner;
 import com.google.gcs.sdrs.runners.ValidationRunner;
 import com.google.gcs.sdrs.server.ServerShutdownHook;
@@ -60,6 +61,7 @@ public class SdrsApplication {
     }
 
     startWebServer();
+    registerPubSub();
     scheduleExecutionServiceJob();
     scheduleValidationServiceJob();
   }
@@ -124,8 +126,22 @@ public class SdrsApplication {
     logger.info("Validation service scheduled successfully.");
   }
 
+  public static Configuration getAppConfig() {
+    if (xmlConfig == null) {
+      try {
+        xmlConfig = new Configurations().xml("applicationConfig.xml");
+      } catch (ConfigurationException ex) {
+        logger.error("Failed to load applicationConfig.xml");
+      }
+
+    }
+    return xmlConfig;
+  }
+
   private static void registerPubSub() {
-    // TODO Create pubsub connection once pub sub utility is complete
+    if (PubSubMessageQueueManagerImpl.getInstance().getPublisher() == null) {
+      logger.error("Failed to register pubsub publisher");
+    }
   }
 
   private static void createServiceInstances(){
