@@ -90,6 +90,8 @@ public class StsUtil {
     TransferJob transferJob = buildTransferJob(projectId, sourceBucket, destinationBucket,
         prefixes, description, startDateTime, true, null);
 
+    logger.info("Creating one time transfer job in STS: ", transferJob.toPrettyString());
+
     return client.transferJobs().create(transferJob).execute();
   }
 
@@ -120,6 +122,8 @@ public class StsUtil {
         sourceBucket, destinationBucket, prefixesToExclude,
         description, startDateTime, false, retentionInDays);
 
+    logger.info("Creating recurring transfer job in STS: ", transferJob.toPrettyString());
+
     return client.transferJobs().create(transferJob).execute();
   }
 
@@ -138,7 +142,11 @@ public class StsUtil {
     requestBody.setProjectId(jobToUpdate.getProjectId());
     requestBody.setTransferJob(jobToUpdate);
 
-    Storagetransfer.TransferJobs.Patch request = client.transferJobs().patch(jobToUpdate.getName(), requestBody);
+    Storagetransfer.TransferJobs.Patch request =
+        client.transferJobs().patch(jobToUpdate.getName(), requestBody);
+
+    logger.info("Updating transfer job in STS: ", jobToUpdate.toPrettyString());
+
     return request.execute();
   }
 

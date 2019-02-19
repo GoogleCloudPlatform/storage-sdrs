@@ -28,7 +28,6 @@ import com.google.api.services.storagetransfer.v1.model.Date;
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
 import com.google.api.services.storagetransfer.v1.model.Schedule;
 import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
-import org.apache.avro.generic.GenericData;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
