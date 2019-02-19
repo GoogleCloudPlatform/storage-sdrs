@@ -23,6 +23,7 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
+import com.google.gcs.sdrs.dao.impl.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
@@ -52,6 +53,22 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
     return mapRuleToResponse(entity);
   }
+  
+  @Override public RetentionRuleResponse findRetentionRuleByBusinessKey(String project, String bucket, 
+		  String dataSet) {
+	  @SuppressWarnings("rawtypes") 
+	  RetentionRule entity = ((RetentionRuleDao) dao).findByBusinessKey(project, bucket, dataSet);
+	  
+	  return mapRuleToResponse(entity);
+  }
+  
+  @Override()
+  public void deleteRetentionRuleByBusinessKey(String project, String bucket, String dataSet) {
+	  @SuppressWarnings("rawtypes") 
+	  RetentionRule entity = ((RetentionRuleDao) dao).findByBusinessKey(project, bucket, dataSet);
+	  dao.delete(entity);
+  }
+  
 
   private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {
     RetentionRule entity = new RetentionRule();
@@ -109,4 +126,5 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       return bucketAndDataset[0];
     }
   }
+
 }
