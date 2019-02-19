@@ -49,7 +49,7 @@ public class RetentionJob {
   private Integer retentionRuleVersion;
 
   @Convert(converter = RetentionRuleTypeConverter.class)
-  @Column(name = "type")
+  @Column(name = "retention_rule_type")
   private RetentionRuleType retentionRuleType;
 
   @Column(name = "retention_rule_data_storage_name")

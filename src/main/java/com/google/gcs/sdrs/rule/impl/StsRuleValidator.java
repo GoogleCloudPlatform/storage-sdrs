@@ -16,18 +16,20 @@
  *
  */
 
-package com.google.gcs.sdrs.rule;
+package com.google.gcs.sdrs.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.enums.RetentionJobStatusType;
+import com.google.gcs.sdrs.rule.RuleValidator;
 import com.google.gcs.sdrs.util.StsUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,10 +66,13 @@ public class StsRuleValidator implements RuleValidator {
    * @param job the {@link RetentionJob} to validate
    * @return a {@link RetentionJobValidation} record
    */
-  public RetentionJobValidation validateRetentionJob(RetentionJob job) {
+  public @Nullable RetentionJobValidation validateRetentionJob(RetentionJob job) {
     List<RetentionJob> jobList = new ArrayList<>();
     jobList.add(job);
     List<RetentionJobValidation> validationList = validateRetentionJobs(jobList);
+    if (validationList.size() == 0) {
+      return null;
+    }
     return validationList.get(0);
   }
 

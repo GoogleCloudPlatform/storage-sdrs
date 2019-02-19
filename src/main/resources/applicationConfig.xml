@@ -45,5 +45,6 @@
     <maxPrefixCount>1000</maxPrefixCount>
     <suffix>shadow</suffix>
     <defaultProjectId>global-default</defaultProjectId>
+    <maxLookBackInDays>365</maxLookBackInDays>
   </sts>
 </appConfiguration>

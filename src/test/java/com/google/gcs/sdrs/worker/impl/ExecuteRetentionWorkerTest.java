@@ -23,11 +23,10 @@ import com.google.gcs.sdrs.dao.impl.GenericDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.ExecutionEventType;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
-import com.google.gcs.sdrs.rule.StsRuleExecutor;
+import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -74,7 +73,7 @@ public class ExecuteRetentionWorkerTest {
     worker.retentionRuleDao = retentionRuleDaoMock;
     RetentionRule rule = new RetentionRule();
     rule.setType(RetentionRuleType.DATASET);
-    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any(), any())).thenReturn(rule);
+    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(rule);
 
     worker.doWork();
 
@@ -92,7 +91,7 @@ public class ExecuteRetentionWorkerTest {
     worker.retentionRuleDao = retentionRuleDaoMock;
     RetentionRule rule = new RetentionRule();
     rule.setType(RetentionRuleType.GLOBAL);
-    when(retentionRuleDaoMock.findGlobalRuleByTarget(any(), any())).thenReturn(rule);
+    when(retentionRuleDaoMock.findGlobalRuleByTarget(any())).thenReturn(rule);
 
     worker.doWork();
 
@@ -107,7 +106,7 @@ public class ExecuteRetentionWorkerTest {
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
-    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any(), any())).thenReturn(null);
+    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(null);
 
     worker.doWork();
   }

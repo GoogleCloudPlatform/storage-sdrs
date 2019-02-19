@@ -19,4 +19,8 @@
 package com.google.gcs.sdrs.worker;
 
 /** A worker class to do the validation */
-public class ValidationWorker extends BaseWorker {}
+public class ValidationWorker extends BaseWorker {
+  public void doWork(){
+    return;
+  }
+}

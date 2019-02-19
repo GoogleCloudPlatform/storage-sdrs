@@ -16,15 +16,16 @@
  *
  */
 
-package com.google.gcs.sdrs.rule;
+package com.google.gcs.sdrs.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.rule.RuleExecutor;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -43,15 +44,17 @@ import java.util.Optional;
 /**
  * An implementation of the Rule Executor interface that uses STS
  */
-public class StsRuleExecutor implements RuleExecutor{
+public class StsRuleExecutor implements RuleExecutor {
 
   public static StsRuleExecutor instance;
   private final String DEFAULT_SUFFIX = "shadow";
   private final String DEFAULT_PROJECT_ID = "global-default";
   private final int DEFAULT_MAX_PREFIX_COUNT = 1000;
+  private final int DEFAULT_LOOKBACK_IN_DAYS = 365;
   private String suffix;
   private String defaultProjectId;
   private int maxPrefixCount;
+  private int lookBackInDays;
   Storagetransfer client;
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
@@ -79,12 +82,14 @@ public class StsRuleExecutor implements RuleExecutor{
       suffix = config.getString("sts.suffix");
       maxPrefixCount = config.getInt("sts.maxPrefixCount");
       defaultProjectId = config.getString("sts.defaultProjectId");
+      lookBackInDays = config.getInt("sts.maxLookBackInDays");
       client = StsUtil.createStsClient();
     } catch (ConfigurationException ex) {
       logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
       suffix = DEFAULT_SUFFIX;
       maxPrefixCount = DEFAULT_MAX_PREFIX_COUNT;
       defaultProjectId = DEFAULT_PROJECT_ID;
+      lookBackInDays = DEFAULT_LOOKBACK_IN_DAYS;
     }
   }
 
@@ -105,13 +110,14 @@ public class StsRuleExecutor implements RuleExecutor{
 
     ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
 
-    List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(rule.getDatasetName(),
-        zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()), zonedDateTimeNow);
-    //prefixes.add("testDataset/2018/12/31/12");
+    List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(
+        RetentionUtil.getDatasetPath(rule.getDataStorageName()),
+        zonedDateTimeNow.minusDays(lookBackInDays),
+        zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()));
 
     String projectId = rule.getProjectId();
-    String sourceBucket = formatDataStorageName(rule.getDataStorageName());
-    String destinationBucket = formatDataStorageName(rule.getDataStorageName(), suffix);
+    String sourceBucket = RetentionUtil.getBucketName(rule.getDataStorageName());
+    String destinationBucket = RetentionUtil.getBucketName(rule.getDataStorageName(), suffix);
 
     String description = String.format(
         "Rule %s %s %s", rule.getId(), rule.getVersion(), zonedDateTimeNow.toString());
@@ -161,7 +167,10 @@ public class StsRuleExecutor implements RuleExecutor{
     for (RetentionRule datasetRule : bucketDatasetRules) {
       // Adds the dataset folder to the exclude list as the retention is already being handled
       // by the dataset rule. No need to generate the full prefix here.
-      prefixesToExclude.add(datasetRule.getDatasetName());
+      String pathToExclude = RetentionUtil.getDatasetPath(datasetRule.getDataStorageName());
+      if (!pathToExclude.isEmpty()) {
+        prefixesToExclude.add(pathToExclude);
+      }
     }
 
     // STS has a restriction of 1000 values in any prefix collection. This should never happen.
@@ -188,8 +197,8 @@ public class StsRuleExecutor implements RuleExecutor{
       }
     }
 
-    String sourceBucket = formatDataStorageName(defaultRule.getDataStorageName());
-    String destinationBucket = formatDataStorageName(defaultRule.getDataStorageName(), suffix);
+    String sourceBucket = RetentionUtil.getBucketName(defaultRule.getDataStorageName());
+    String destinationBucket = RetentionUtil.getBucketName(defaultRule.getDataStorageName(), suffix);
 
     String description = String.format(
         "Rule %s %s %s", defaultRule.getId(), defaultRule.getVersion(), scheduledTime.toString());
@@ -215,23 +224,6 @@ public class StsRuleExecutor implements RuleExecutor{
             defaultRule.getRetentionPeriodInDays());
 
     return buildRetentionJobEntity(job.getName(), defaultRule);
-  }
-
-  String formatDataStorageName(String dataStorageName) {
-
-    dataStorageName = dataStorageName.replaceFirst(
-        ValidationConstants.STORAGE_PREFIX,"");
-
-    if (dataStorageName.endsWith(ValidationConstants.STORAGE_SEPARATOR)) {
-      dataStorageName = dataStorageName.replaceAll(
-          ValidationConstants.STORAGE_SEPARATOR, "");
-    }
-
-    return dataStorageName;
-  }
-
-  String formatDataStorageName(String dataStorageName, String suffix) {
-    return formatDataStorageName(dataStorageName).concat(suffix);
   }
 
   RetentionJob buildRetentionJobEntity(String jobName, RetentionRule rule) {

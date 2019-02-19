@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.rule;
+package com.google.gcs.sdrs.rule.impl;
 
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -35,11 +35,9 @@ import static org.junit.Assert.assertTrue;
 
 public class StsRuleExecutorTest {
 
-  StsRuleExecutor objectUnderTest;
-  String dataStorageName = "gs://test";
-  String expectedDataStorageName = "test";
-  String suffix = "shadow";
-  RetentionRule testRule;
+  private StsRuleExecutor objectUnderTest;
+  private String dataStorageName = "gs://test";
+  private RetentionRule testRule;
 
   @Before
   public void initialize(){
@@ -80,7 +78,7 @@ public class StsRuleExecutorTest {
     }
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void globalRuleExecutionWithOver1000DatasetRules(){
     try {
       testRule.setType(RetentionRuleType.GLOBAL);
@@ -89,20 +87,19 @@ public class StsRuleExecutorTest {
       Collection<RetentionRule> bucketRules = new HashSet<>();
       for(int i = 0; i < 1002; i++) {
         RetentionRule rule = new RetentionRule();
-        rule.setDatasetName("test");
-        bucketRules.add(new RetentionRule());
+        rule.setDataStorageName(dataStorageName + "/myPath");
+        bucketRules.add(rule);
       }
       objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-    } catch (IllegalArgumentException ex) {
-      assertTrue(true);
+      Assert.fail();
     } catch (IOException ex) {
       Assert.fail();
     }
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void globalRuleExecutionNoProjectId(){
-    try {
+    try{
       testRule.setType(RetentionRuleType.GLOBAL);
       testRule.setProjectId("");
       ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
@@ -110,43 +107,13 @@ public class StsRuleExecutorTest {
       Collection<RetentionRule> bucketRules = new HashSet<>();
       RetentionRule bucketRule = new RetentionRule();
       bucketRule.setProjectId("");
+      bucketRule.setDataStorageName("");
       bucketRules.add(bucketRule);
       objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-    } catch (IllegalArgumentException ex) {
-      assertTrue(true);
-    } catch (IOException ex) {
+      Assert.fail();
+    } catch (IOException ex){
       Assert.fail();
     }
-  }
-
-  @Test
-  public void formatDataStorageName(){
-    String result = objectUnderTest.formatDataStorageName(dataStorageName);
-
-    assertEquals(result, expectedDataStorageName);
-  }
-
-  @Test
-  public void formatDataStorageNameTrailingSlash(){
-    dataStorageName = dataStorageName.concat("/");
-    String result = objectUnderTest.formatDataStorageName(dataStorageName);
-
-    assertEquals(result, expectedDataStorageName);
-  }
-
-  @Test
-  public void formatDataStorageNameWithSuffix(){
-    String result = objectUnderTest.formatDataStorageName(dataStorageName, suffix);;
-
-    assertEquals(result, expectedDataStorageName.concat(suffix));
-  }
-
-  @Test
-  public void formatDataStorageNameWithSuffixAndTrailingSlash(){
-    dataStorageName = dataStorageName.concat("/");
-    String result = objectUnderTest.formatDataStorageName(dataStorageName, suffix);;
-
-    assertEquals(result, expectedDataStorageName.concat(suffix));
   }
 
   @Test
