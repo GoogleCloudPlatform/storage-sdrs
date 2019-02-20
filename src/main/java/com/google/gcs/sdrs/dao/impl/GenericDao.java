@@ -92,10 +92,10 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
   }
 
   /* (non-Javadoc)
-   * @see com.google.gcs.sdrs.dao.impl.DAO#findMultipleById(Class<T>, Collection<Id>)
+   * @see com.google.gcs.sdrs.dao.impl.DAO#findAllByMultipleIds(Class<T>, Collection<Id>)
    */
   @Override
-  public List<T> findMultipleById(Class<T> cls, List<Id> ids) {
+  public List<T> findAllByMultipleIds(Class<T> cls, List<Id> ids) {
     openCurrentSession();
     MultiIdentifierLoadAccess<T> multiLoadAccess = getCurrentSession().byMultipleIds(cls);
     List<T> entities = multiLoadAccess.multiLoad(ids);

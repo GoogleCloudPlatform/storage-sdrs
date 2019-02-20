@@ -16,7 +16,7 @@ BEGIN
     AND table_name='retention_rule'
     AND index_name='unique_dataset_storage_project';
 
-  IF indexExists = 0 THEN
+  IF oldIndexExists > 0 THEN
     DROP INDEX unique_dataset_storage_project on retention_rule;
   END IF;
 

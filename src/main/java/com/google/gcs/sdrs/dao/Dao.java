@@ -37,7 +37,7 @@ public interface Dao<T, Id extends Serializable> {
 
   T findById(Id id);
 
-  List<T> findMultipleById(Class<T> cls, List<Id> ids);
+  List<T> findAllByMultipleIds(Class<T> cls, List<Id> ids);
 
   void delete(T entity);
 }
