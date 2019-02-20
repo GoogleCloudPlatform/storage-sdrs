@@ -11,7 +11,7 @@ import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.enums.RetentionJobStatusType;
-import com.google.gcs.sdrs.rule.StsRuleValidator;
+import com.google.gcs.sdrs.rule.impl.StsRuleValidator;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
