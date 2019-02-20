@@ -25,7 +25,7 @@ import javax.ws.rs.core.Response;
 /** Abstract base class for Controllers. */
 public abstract class BaseController {
 
-  protected String generateRequestUuid() {
+  public static String generateRequestUuid() {
     return UUID.randomUUID().toString();
   }
 

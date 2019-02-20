@@ -15,57 +15,64 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.filter;
+package com.google.gcs.sdrs.controller.filter;
 
-import java.util.UUID;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import static com.google.gcs.sdrs.filter.ContainerContextProperties.CORRELATION_UUID;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class CorrelationRequestFilterTest {
+public class UserInfoRequestFilterTest {
 
-  private CorrelationRequestFilter filter;
+  private UserInfoRequestFilter filter;
 
   @Before
   public void setup() {
-    filter = new CorrelationRequestFilter();
+    filter = new UserInfoRequestFilter();
   }
 
   @Test
-  public void filterAddsCorrelationToContextProperty() {
-    String correlation = "12345";
-    MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
-    requestHeaders.add("correlation-uuid", correlation);
-    ContainerRequestContext mockRequestContext = spy(ContainerRequestContext.class);
-    when(mockRequestContext.getHeaders()).thenReturn(requestHeaders);
-
-    filter.filter(mockRequestContext);
-
-    verify(mockRequestContext).setProperty(CORRELATION_UUID.toString(), correlation);
-  }
-
-  @Test
-  public void filterCreatesCorrelationWhenMissing() {
+  public void filterAbortsWith403WhenNoHeaderPresent() {
     MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
     ContainerRequestContext mockRequestContext = spy(ContainerRequestContext.class);
     when(mockRequestContext.getHeaders()).thenReturn(requestHeaders);
 
     filter.filter(mockRequestContext);
 
-    ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
-    verify(mockRequestContext).setProperty(eq(CORRELATION_UUID.toString()), captor.capture());
-    String generatedUuid = (String) captor.getValue();
-    UUID result = UUID.fromString(generatedUuid);
-    assertNotNull(result);
+    ArgumentCaptor<Response> captor = ArgumentCaptor.forClass(Response.class);
+    verify(mockRequestContext).abortWith(captor.capture());
+    Response response = captor.getValue();
+    assertEquals(403, response.getStatus());
+  }
+
+  @Test
+  public void filterCreatesUserInfo() {
+    MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
+    requestHeaders.add(
+        "X-Endpoint-API-UserInfo",
+        "ewogICJpc3N1ZXIiOiBUT0tFTl9JU1NVRVIsCiAgImlkI"
+            + "jogVVNFUl9JRCwKICAiZW1haWwiIDogVVNFUl9FTUFJTAp9");
+
+    ContainerRequestContext mockRequestContext = spy(ContainerRequestContext.class);
+    when(mockRequestContext.getHeaders()).thenReturn(requestHeaders);
+
+    filter.filter(mockRequestContext);
+
+    ArgumentCaptor<UserInfo> captor = ArgumentCaptor.forClass(UserInfo.class);
+    verify(mockRequestContext)
+        .setProperty(eq(ContainerContextProperties.USER_INFO.toString()), captor.capture());
+    UserInfo userInfo = captor.getValue();
+    assertEquals("USER_EMAIL", userInfo.getEmail());
+    assertEquals("TOKEN_ISSUER", userInfo.getIssuer());
+    assertEquals("USER_ID", userInfo.getId());
   }
 }

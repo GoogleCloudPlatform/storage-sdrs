@@ -15,26 +15,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.controller;
+package com.google.gcs.sdrs.controller.filter;
 
-import javax.ws.rs.core.Response;
+public class UserInfo {
+  private String issuer;
+  private String id;
+  private String email;
 
-/** Exception thrown when internal errors occur. Hides internal details. */
-public class InternalServerException extends HttpException {
-
-  public InternalServerException(Exception exception) {
-    this.initCause(exception);
+  public String getId() {
+    return id;
   }
 
-  /** Gets an error message hiding internal details */
-  @Override
-  public String getMessage() {
-    return "Internal server error";
+  public void setId(String id) {
+    this.id = id;
   }
 
-  /** Gets the error HTTP status code */
-  @Override
-  public int getStatusCode() {
-    return Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public String getIssuer() {
+    return issuer;
+  }
+
+  public void setIssuer(String issuer) {
+    this.issuer = issuer;
   }
 }

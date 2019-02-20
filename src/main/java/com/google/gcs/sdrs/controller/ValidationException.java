@@ -19,7 +19,7 @@ package com.google.gcs.sdrs.controller;
 
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import java.util.Collection;
-import org.eclipse.jetty.http.HttpStatus;
+import javax.ws.rs.core.Response;
 
 /**
  * Exception thrown in case of validation errors. Supports messages including multiple identified
@@ -44,6 +44,6 @@ public class ValidationException extends HttpException {
   /** Gets the validation error HTTP status code */
   @Override
   public int getStatusCode() {
-    return HttpStatus.BAD_REQUEST_400;
+    return Response.Status.BAD_REQUEST.getStatusCode();
   }
 }
