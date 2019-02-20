@@ -208,6 +208,16 @@ public class StsUtil {
     return operations;
   }
 
+  /**
+   * Converts an int value to a Google Duration string
+   * @param retentionInDays the retention period in days
+   * @return the Google Duration string
+   */
+  public static @NotNull String convertRetentionInDaysToDuration(int retentionInDays) {
+    int ONE_DAY_IN_SECS = 3600 * 24;
+    return (retentionInDays * ONE_DAY_IN_SECS) + "s";
+  }
+
   static TransferJob buildTransferJob(String projectId,
                                       String sourceBucket,
                                       String destinationBucket,
@@ -300,11 +310,6 @@ public class StsUtil {
     return new Storagetransfer.Builder(httpTransport, jsonFactory, initializer)
         .setApplicationName("sdrs")
         .build();
-  }
-
-  static @NotNull String convertRetentionInDaysToDuration(int retentionInDays) {
-    int ONE_DAY_IN_SECS = 3600 * 24;
-    return (retentionInDays * ONE_DAY_IN_SECS) + "s";
   }
 
   static @NotNull Date convertToDate(LocalDate startDate) {
