@@ -19,6 +19,7 @@
 package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
 import com.google.gcs.sdrs.runners.RuleExecutionRunner;
 import com.google.gcs.sdrs.runners.ValidationRunner;
 import com.google.gcs.sdrs.server.ServerShutdownHook;
@@ -60,6 +61,7 @@ public class SdrsApplication {
     }
 
     startWebServer();
+    registerPubSub();
     scheduleExecutionServiceJob();
     scheduleValidationServiceJob();
   }
@@ -124,14 +126,50 @@ public class SdrsApplication {
     logger.info("Validation service scheduled successfully.");
   }
 
-  private static void registerPubSub() {
-    // TODO Create pubsub connection once pub sub utility is complete
+  public static Configuration getAppConfig() {
+    if (xmlConfig == null) {
+      try {
+        xmlConfig = new Configurations().xml("applicationConfig.xml");
+      } catch (ConfigurationException ex) {
+        logger.error("Failed to load applicationConfig.xml");
+      }
+
+    }
+    return xmlConfig;
   }
 
-  private static void createServiceInstances(){
-    /*
-      TODO Wire up any injection of services once they're needed.
-      May be unnecessary if we add a DI framework
-    */
+  public static String getAppConfigProperty(String key) {
+    return getAppConfigProperty(key, null);
+  }
+
+  public static String getAppConfigProperty(String key, String defaultValue) {
+    Configuration config = getAppConfig();
+    String propertyValue = config.getString(key);
+    if (propertyValue == null) {
+      propertyValue = defaultValue;
+    } else {
+      // get property value from environment if the value is a replacement token
+      if (isPropertyValueToken(propertyValue)) {
+        propertyValue = getPropertyValueFromEnv(propertyValue);
+      }
+    }
+    return propertyValue;
+  }
+
+  private static boolean isPropertyValueToken(String value) {
+    // config property token is included in ${}. i.e ${PUBSUB_TOPIC}
+    return value.startsWith("${");
+  }
+
+  private static String getPropertyValueFromEnv(String token) {
+    String envVariable = token.substring(2, token.length()-1);
+    return System.getenv(envVariable);
+  }
+
+
+  private static void registerPubSub() {
+    if (PubSubMessageQueueManagerImpl.getInstance().getPublisher() == null) {
+      logger.error("Failed to register pubsub publisher");
+    }
   }
 }
