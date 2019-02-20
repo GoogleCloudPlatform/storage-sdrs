@@ -1,5 +1,6 @@
 info:
   title: CloudSQL
+  author: Google Inc.
   description: |
     Creates a CloudSQL deployment
   version: 0.1
@@ -20,7 +21,7 @@ properties:
   cloudsql:
     type: object
     default:
-      properties: 
+      properties:
     properties:
       databaseVersion:
         type: string
@@ -51,28 +52,26 @@ properties:
         type: string
         description: i.e. us-central1-a
         default: us-west1-a
-      authorizedNetworks:
-        type: array
-        description: An array of allowed CIDR blocks
-        items:
-          type: string
+      privateNetwork:
+        type: string
+        description: The resource link for the VPC network from which the Cloud SQL instance is accessible for private IP
 
-  databaseFlags: 
+  databaseFlags:
     type: array
     description: An array of https://cloud.google.com/sql/docs/mysql/flags
     items:
       type: object
       required:
         - name
-        - value 
+        - value
       properties:
-        name: 
-          type: string 
+        name:
+          type: string
         value:
-          type: 
+          type:
             - integer
             - string
-  
+
   dbUser:
     type: object
     required:
@@ -86,16 +85,15 @@ properties:
         default: '%'
       password:
         type: string
-  
-  database: 
+
+  database:
     type: object
     required:
       - name
     properties:
-      name: 
+      name:
         type: string
       charset:
         type: string
         description: https://dev.mysql.com/doc/refman/5.7/en/charset.html
         default: utf8
-
