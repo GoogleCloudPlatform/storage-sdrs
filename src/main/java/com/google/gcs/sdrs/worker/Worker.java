@@ -13,14 +13,15 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
 
 package com.google.gcs.sdrs.worker;
 
-/** A worker class to do the validation */
-public class ValidationWorker extends BaseWorker {
-  public void doWork(){
-    return;
-  }
+import java.util.concurrent.Callable;
+
+public interface Worker extends Callable<WorkerResult> {
+
+  void doWork();
+
+  WorkerResult getWorkerResult();
 }

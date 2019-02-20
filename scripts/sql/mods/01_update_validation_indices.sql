@@ -1,0 +1,5 @@
+USE sdrs;
+
+DROP INDEX retention_job_validation_status on retention_job_validation;
+
+CREATE INDEX retention_job_validation_job_operation_name on retention_job_validation (job_operation_name)

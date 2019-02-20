@@ -18,17 +18,17 @@
 package com.google.gcs.sdrs.dao;
 
 import com.google.gcs.sdrs.dao.impl.GenericDao;
+import com.google.gcs.sdrs.dao.impl.RetentionJobValidationDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionExecution;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
-import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 
 /** Class to manage singleton DAO instances. */
 public class SingletonDao {
 
   private static RetentionRuleDao retentionRuleDao;
   private static Dao<RetentionJob, Integer> retentionJobDao;
-  private static Dao<RetentionJobValidation, Integer> retentionJobValidationDao;
+  private static RetentionJobValidationDao retentionJobValidationDao;
   private static Dao<RetentionExecution, Integer> retentionExecutionDao;
 
   public static synchronized RetentionRuleDao getRetentionRuleDao() {
@@ -45,9 +45,9 @@ public class SingletonDao {
     return retentionJobDao;
   }
 
-  public static synchronized Dao<RetentionJobValidation, Integer> getRetentionJobValidationDao() {
+  public static synchronized RetentionJobValidationDao getRetentionJobValidationDao() {
     if (retentionJobValidationDao == null) {
-      retentionJobValidationDao = new GenericDao<>(RetentionJobValidation.class);
+      retentionJobValidationDao = new RetentionJobValidationDaoImpl();
     }
     return retentionJobValidationDao;
   }

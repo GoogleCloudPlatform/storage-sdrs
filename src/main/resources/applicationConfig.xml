@@ -9,7 +9,7 @@
   </serverConfig>
   <gcp>
     <projectID>sdrs-server</projectID>
-    <pathToJsonCredential>./credentials.json</pathToJsonCredential>
+    <pathToJsonCredential>/Users/mgeneau/Documents/sdrs-server-2937e78a43b6.json</pathToJsonCredential>
   </gcp>
   <jobManager>
     <threadPoolSize>7</threadPoolSize>

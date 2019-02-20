@@ -24,6 +24,7 @@ import javax.persistence.Converter;
 
 import static com.google.gcs.sdrs.enums.RetentionRuleType.DATASET;
 import static com.google.gcs.sdrs.enums.RetentionRuleType.GLOBAL;
+import static com.google.gcs.sdrs.enums.RetentionRuleType.MARKER;
 
 /** Supports converting a RetentionRuleType between the database and application representations */
 @Converter
@@ -46,6 +47,8 @@ public class RetentionRuleTypeConverter implements AttributeConverter<RetentionR
         return GLOBAL;
       case DatabaseConstants.POLICY_TYPE_DATASET:
         return DATASET;
+      case DatabaseConstants.POLICY_TYPE_MARKER:
+        return MARKER;
       default:
         throw new IllegalArgumentException(
             String.format(
