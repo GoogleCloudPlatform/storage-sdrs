@@ -55,9 +55,7 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
 
   private PubSubMessageQueueManagerImpl() {}
 
-  public static final String TOPIC_ENV_VARIABLE = "PUBSUB_TOPIC_NAME";
   public static final String TOPIC_APP_CONFIG_KEY = "pubsub.topic";
-  public static final String APP_CONFIG_TOKEN_PREFIX = "${";
   public static final String DELETE_NOTIFICAITON_EVENT_NAME = "SuccessDeleteNotificationEvent";
   public static final String AVRO_MESSAGE_VERSION = "1.0";
 
@@ -66,7 +64,7 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
       synchronized (PubSubMessageQueueManagerImpl.class) {
         if (instance == null) {
           instance = new PubSubMessageQueueManagerImpl();
-          String topicName = getTopicFromConfig();
+          String topicName = SdrsApplication.getAppConfigProperty(TOPIC_APP_CONFIG_KEY);
           if (topicName == null) {
             logger.error("Topic name is not configured");
           } else {
@@ -90,7 +88,8 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
   /**
    * Send a successful delete notification message to pubsub topic.
    *
-   * @param msg A {@link com.google.gcs.sdrs.mq.pojo.DeleteNotificationMessage DeleteNotificationMessage}
+   * @param msg A {@link com.google.gcs.sdrs.mq.pojo.DeleteNotificationMessage
+   *     DeleteNotificationMessage}
    */
   @Override
   public void sendSuccessDeleteMessage(DeleteNotificationMessage msg) {
@@ -141,7 +140,8 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
   /**
    * Serialize Avro message to JSON
    *
-   * @param record A {@link org.apache.avro.generic.GenericRecord GenericRecord} that represents an Avro message
+   * @param record A {@link org.apache.avro.generic.GenericRecord GenericRecord} that represents an
+   *     Avro message
    * @return Arroy of bytes
    * @throws IOException
    */
@@ -159,8 +159,11 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
 
   /**
    * Convert a POJO to Avro message
-   * @param msg A {@link com.google.gcs.sdrs.mq.pojo.DeleteNotificationMessage DeleteNotificationMessage}
-   * @return A {@link com.google.gcs.sdrs.mq.events.SuccessDeleteNotificationEvent SuccessDeleteNotificationEvent} Avro message
+   *
+   * @param msg A {@link com.google.gcs.sdrs.mq.pojo.DeleteNotificationMessage
+   *     DeleteNotificationMessage}
+   * @return A {@link com.google.gcs.sdrs.mq.events.SuccessDeleteNotificationEvent
+   *     SuccessDeleteNotificationEvent} Avro message
    */
   private static SuccessDeleteNotificationEvent convertToAvro(DeleteNotificationMessage msg) {
     if (msg == null) {
@@ -187,17 +190,6 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
             .build();
 
     return event;
-  }
-
-  private static String getTopicFromConfig() {
-    String topicName = System.getenv(TOPIC_ENV_VARIABLE);
-    if (topicName == null) {
-      topicName = SdrsApplication.getAppConfig().getString(TOPIC_APP_CONFIG_KEY);
-      if (topicName.startsWith(APP_CONFIG_TOKEN_PREFIX)) {
-        return null;
-      }
-    }
-    return topicName;
   }
 
   public static void main(String[] args) {

@@ -138,16 +138,38 @@ public class SdrsApplication {
     return xmlConfig;
   }
 
+  public static String getAppConfigProperty(String key) {
+    return getAppConfigProperty(key, null);
+  }
+
+  public static String getAppConfigProperty(String key, String defaultValue) {
+    Configuration config = getAppConfig();
+    String propertyValue = config.getString(key);
+    if (propertyValue == null) {
+      propertyValue = defaultValue;
+    } else {
+      // get property value from environment if the value is a replacement token
+      if (isPropertyValueToken(propertyValue)) {
+        propertyValue = getPropertyValueFromEnv(propertyValue);
+      }
+    }
+    return propertyValue;
+  }
+
+  private static boolean isPropertyValueToken(String value) {
+    // config property token is included in ${}. i.e ${PUBSUB_TOPIC}
+    return value.startsWith("${");
+  }
+
+  private static String getPropertyValueFromEnv(String token) {
+    String envVariable = token.substring(2, token.length()-1);
+    return System.getenv(envVariable);
+  }
+
+
   private static void registerPubSub() {
     if (PubSubMessageQueueManagerImpl.getInstance().getPublisher() == null) {
       logger.error("Failed to register pubsub publisher");
     }
-  }
-
-  private static void createServiceInstances(){
-    /*
-      TODO Wire up any injection of services once they're needed.
-      May be unnecessary if we add a DI framework
-    */
   }
 }
