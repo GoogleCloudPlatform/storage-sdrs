@@ -1,0 +1,224 @@
+# Copyright 2019 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+swagger: '2.0'
+info:
+  title: Storage SDRS API Definition
+  version: '1.0.0'
+# The API hostname
+host: your-api.endpoints.your-project.cloud.goog
+x-google-endpoints:
+  - # The endpoints name matches the 'host' value above
+    name: your-api.endpoints.your-project.cloud.goog
+    # Your target IP Address; Must be quoted
+    target: 'your_target_ip'
+paths:
+  /retentionrules:
+    post:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Retention rule definition
+          schema:
+            $ref: '#/definitions/CreateRetentionRuleRequest'
+      responses:
+        '200':
+          description: Create retention rule response
+          schema:
+            $ref: '#/definitions/CreateRetentionRuleResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      description: Create retention rule
+      operationId: postRetentionRules
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: The rule's projectId
+          in: query
+          name: project
+          required: true
+          type: string
+        - description: The rule's dataStorageName
+          in: query
+          name: bucket
+          required: true
+          type: string
+        - description: The rule's datasetName
+          in: query
+          name: dataset
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Matching retention rule
+          schema:
+            $ref: '#/definitions/RetentionRuleResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      description: Get retetion rule matching provided values
+      operationId: getByBusinessKey
+    delete:
+      produces:
+        - application/json
+      parameters:
+        - description: The rule's projectId
+          in: query
+          name: project
+          required: true
+          type: string
+        - description: The rule's dataStorageName
+          in: query
+          name: bucket
+          required: true
+          type: string
+        - description: The rule's datasetName
+          in: query
+          name: dataset
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successful delete response
+          schema:
+            $ref: '#/definitions/BaseResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      description: Delete retetion rule matching provided values
+      operationId: deleteByBusinessKey
+  '/retentionrules/{id}':
+    put:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: Rule primary key
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: Retention rule updates
+          in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateRetentionRuleRequest'
+      responses:
+        '200':
+          description: Updated retention rule
+          schema:
+            $ref: '#/definitions/RetentionRuleResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      description: Update retention rule by id
+      operationId: putRetentionRulesById
+definitions:
+  BaseResponse:
+    properties:
+      requestUuid:
+        type: string
+    type: object
+  ErrorResponse:
+    allOf:
+      - $ref: '#/definitions/BaseResponse'
+      - properties:
+          message:
+            type: string
+        type: object
+  CreateRetentionRuleRequest:
+    properties:
+      dataStorageName:
+        type: string
+      datasetName:
+        type: string
+      projectId:
+        type: string
+      retentionPeriod:
+        $ref: '#/definitions/RetentionPeriod'
+      type:
+        $ref: '#/definitions/RetentionRuleType'
+    required:
+      - type
+      - retentionPeriod
+    type: object
+  CreateRetentionRuleResponse:
+    allOf:
+      - $ref: '#/definitions/BaseResponse'
+      - properties:
+          ruleId:
+            type: integer
+        type: object
+  RetentionPeriod:
+    maximum: 1000
+    minimum: 0
+    type: integer
+  RetentionRuleResponse:
+    allOf:
+      - $ref: '#/definitions/BaseResponse'
+      - properties:
+          dataStorageName:
+            type: string
+          datasetName:
+            type: string
+          projectId:
+            type: string
+          retentionPeriod:
+            $ref: '#/definitions/RetentionPeriod'
+          ruleId:
+            type: integer
+          type:
+            $ref: '#/definitions/RetentionRuleType'
+        type: object
+  RetentionRuleType:
+    enum:
+      - GLOBAL
+      - DATASET
+    type: string
+  UpdateRetentionRuleRequest:
+    properties:
+      retentionPeriod:
+        $ref: '#/definitions/RetentionPeriod'
+    required:
+      - retentionPeriod
+    type: object
+
