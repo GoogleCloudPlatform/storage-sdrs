@@ -4,7 +4,7 @@ import requests
 import flask
 
 def rpo_listener(object_finalize_event, context):
-    
+
     project = os.environ.get('GCP_PROJECT', 'Specified environment variable is not set.')
     print(f"Project : {project}")
     print(f"Processing object_finalize_event: {object_finalize_event['name']}.")
@@ -26,4 +26,3 @@ def rpo_listener(object_finalize_event, context):
     response = requests.post('http://104.198.4.155:8080/retentionrules/', json=dict_to_send)
     print ('Response from server: {}'.format(response.text))
     dict_from_server = response.json()
-    
