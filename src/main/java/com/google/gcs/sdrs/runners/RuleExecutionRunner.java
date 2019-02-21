@@ -18,6 +18,8 @@
 
 package com.google.gcs.sdrs.runners;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.enums.ExecutionEventType;
 import org.apache.commons.configuration2.Configuration;
@@ -53,13 +55,20 @@ public class RuleExecutionRunner implements Runnable {
    */
   public void run(){
     logger.info("Making request to execution service endpoint.");
-    Client client = ClientBuilder.newClient();
 
-    ExecutionEventRequest requestObject = new ExecutionEventRequest();
-    requestObject.setExecutionEventType(ExecutionEventType.POLICY);
+    try{
+      ExecutionEventRequest requestObject = new ExecutionEventRequest();
+      requestObject.setExecutionEventType(ExecutionEventType.POLICY);
 
-    client.target(SERVICE_URL).path("events/execution")
-        .request(MediaType.APPLICATION_JSON)
-        .post(Entity.entity(requestObject, MediaType.APPLICATION_JSON));
+      ObjectMapper jsonMapper = new ObjectMapper();
+      String requestObjectJson = jsonMapper.writeValueAsString(requestObject);
+
+      Client client = ClientBuilder.newClient();
+      client.target(SERVICE_URL).path("events/execution")
+          .request(MediaType.APPLICATION_JSON)
+          .post(Entity.entity(requestObjectJson, MediaType.APPLICATION_JSON));
+    } catch (JsonProcessingException ex) {
+      logger.error("Execution request could not be sent: ", ex.getMessage());
+    }
   }
 }
