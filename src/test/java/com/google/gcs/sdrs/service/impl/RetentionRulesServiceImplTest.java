@@ -39,7 +39,7 @@ public class RetentionRulesServiceImplTest {
 
   @Before
   public void setup() {
-    service.dao = mock(RetentionRuleDaoImpl.class);
+    service.ruleDao = mock(RetentionRuleDaoImpl.class);
   }
 
   @Test
@@ -55,7 +55,7 @@ public class RetentionRulesServiceImplTest {
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).save(captor.capture());
+    verify(service.ruleDao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
     assertEquals(RetentionRuleType.DATASET, input.getType());
@@ -79,7 +79,7 @@ public class RetentionRulesServiceImplTest {
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).save(captor.capture());
+    verify(service.ruleDao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertEquals("gs://b", input.getDataStorageName());
     assertEquals("b", input.getDatasetName());
@@ -97,7 +97,7 @@ public class RetentionRulesServiceImplTest {
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).save(captor.capture());
+    verify(service.ruleDao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertEquals("gs://b/d", input.getDataStorageName());
     assertEquals("d", input.getDatasetName());
@@ -113,7 +113,7 @@ public class RetentionRulesServiceImplTest {
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).save(captor.capture());
+    verify(service.ruleDao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
     assertEquals(RetentionRuleType.GLOBAL, input.getType());
@@ -133,12 +133,12 @@ public class RetentionRulesServiceImplTest {
     existingRule.setId(2);
     existingRule.setRetentionPeriodInDays(12);
     existingRule.setVersion(3);
-    when(service.dao.findById(2)).thenReturn(existingRule);
+    when(service.ruleDao.findById(2)).thenReturn(existingRule);
 
     RetentionRuleResponse result = service.updateRetentionRule(2, request);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-    verify(service.dao).update(captor.capture());
+    verify(service.ruleDao).update(captor.capture());
     RetentionRule input = captor.getValue();
     assertEquals(4, (int) input.getVersion());
 

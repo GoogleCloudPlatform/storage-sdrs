@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
@@ -26,29 +27,87 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
+import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.impl.UpdateExternalJobWorker;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
+  private static String defaultProjectId;
+  private static final Logger logger = LoggerFactory.getLogger(RetentionRulesServiceImpl.class);
 
-  RetentionRuleDao dao = SingletonDao.getRetentionRuleDao();
+  RetentionRuleDao ruleDao = SingletonDao.getRetentionRuleDao();
 
+  public RetentionRulesServiceImpl() {
+    try {
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      defaultProjectId = config.getString("sts.defaultProjectId");
+    } catch (ConfigurationException ex) {
+      logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
+      defaultProjectId = DEFAULT_PROJECT_ID;
+    }
+  }
+
+  /**
+   * Creates a new retention rule in the database
+   * @param rule the {@link RetentionRuleCreateRequest} object input by the user
+   * @return the {@link Integer} id of the created rule
+   */
   @Override()
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
-    return dao.save(entity);
+    int ruleId = ruleDao.save(entity);
+    entity.setId(ruleId);
+
+    if (entity.getType().equals(RetentionRuleType.DATASET)) {
+      RetentionRule globalRule = ruleDao.findGlobalRuleByProjectId(defaultProjectId);
+      if (globalRule != null) {
+        Worker updateWorker = new UpdateExternalJobWorker(globalRule, entity.getProjectId());
+        JobManager.getInstance().submitJob(updateWorker);
+      }
+    }
+
+    if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
+      List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+      for (String projectId : projectIds) {
+        // TODO Create default STS job
+      }
+    }
+
+    return ruleId;
   }
 
+  /**
+   * Updates an existing retention rule
+   * @param ruleId the identifier for the rule to update
+   * @param request the {@link RetentionRuleUpdateRequest} update request
+   * @return the {@link RetentionRuleResponse} object
+   */
   @Override
   public RetentionRuleResponse updateRetentionRule(
       Integer ruleId, RetentionRuleUpdateRequest request) {
 
-    RetentionRule entity = dao.findById(ruleId);
+    RetentionRule entity = ruleDao.findById(ruleId);
 
     entity.setVersion(entity.getVersion() + 1);
     entity.setRetentionPeriodInDays(request.getRetentionPeriod());
 
-    dao.update(entity);
+    ruleDao.update(entity);
+
+    if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
+      List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+      for (String projectId : projectIds) {
+        Worker updateWorker = new UpdateExternalJobWorker(entity, projectId);
+        JobManager.getInstance().submitJob(updateWorker);
+      }
+    }
 
     return mapRuleToResponse(entity);
   }
@@ -69,7 +128,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setDatasetName(datasetName);
 
     if (entity.getType() == RetentionRuleType.GLOBAL) {
-      entity.setProjectId(DEFAULT_PROJECT_ID);
+      entity.setProjectId(defaultProjectId);
     }
 
     // Generate metadata

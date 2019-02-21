@@ -20,8 +20,13 @@ package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.BaseDao;
 import java.io.Serializable;
+import java.util.List;
+
+import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.persistence.criteria.CriteriaQuery;
 
 /**
  * Hibernate based Generic Dao implementation
@@ -78,5 +83,16 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
     openCurrentSessionWithTransaction();
     getCurrentSession().delete(entity);
     closeCurrentSessionWithTransaction();
+  }
+
+  T getSingleRecordWithCriteriaQuery(CriteriaQuery<T> query) {
+    Query<T> queryResults = getCurrentSession().createQuery(query);
+    List<T> list = queryResults.getResultList();
+
+    T foundEntity = null;
+    if(!list.isEmpty()){
+      foundEntity = list.get(0);
+    }
+    return foundEntity;
   }
 }
