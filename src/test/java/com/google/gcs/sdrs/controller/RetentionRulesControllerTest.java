@@ -31,10 +31,13 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.SQLException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -74,18 +77,22 @@ public class RetentionRulesControllerTest {
 
   @Test
   public void createRuleWhenSuccessfulIncludesResponseFields() {
-    when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
-        .thenReturn(543);
+    try{
+      when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
+          .thenReturn(543);
 
-    RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
-    rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
-    rule.setRetentionPeriod(1);
+      RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
+      rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
+      rule.setRetentionPeriod(1);
 
-    Response response = controller.create(rule);
+      Response response = controller.create(rule);
 
-    assertEquals(HttpStatus.OK_200, response.getStatus());
-    assertEquals(543, ((RetentionRuleCreateResponse) response.getEntity()).getRuleId());
-    assertNotNull(((RetentionRuleCreateResponse) response.getEntity()).getRequestUuid());
+      assertEquals(HttpStatus.OK_200, response.getStatus());
+      assertEquals(543, ((RetentionRuleCreateResponse) response.getEntity()).getRuleId());
+      assertNotNull(((RetentionRuleCreateResponse) response.getEntity()).getRequestUuid());
+    } catch (SQLException ex){
+      fail(ex.getMessage());
+    }
   }
 
   @Test
@@ -208,19 +215,24 @@ public class RetentionRulesControllerTest {
     serviceResponse.setRetentionPeriod(123);
     serviceResponse.setRuleId(1);
     serviceResponse.setType(RetentionRuleType.DATASET);
-    when(controller.service.updateRetentionRule(anyInt(), any(RetentionRuleUpdateRequest.class)))
-        .thenReturn(serviceResponse);
 
-    Response response = controller.update(1, request);
+    try{
+      when(controller.service.updateRetentionRule(anyInt(), any(RetentionRuleUpdateRequest.class)))
+          .thenReturn(serviceResponse);
 
-    assertEquals(response.getStatus(), HttpStatus.OK_200);
-    RetentionRuleResponse body = (RetentionRuleResponse) response.getEntity();
-    assertEquals(body.getDatasetName(), "dataset");
-    assertEquals(body.getDataStorageName(), "gs://bucket/dataset");
-    assertEquals(body.getProjectId(), "projectId");
-    assertEquals((int) body.getRetentionPeriod(), 123);
-    assertEquals((int) body.getRuleId(), 1);
-    assertEquals(body.getType(), RetentionRuleType.DATASET);
+      Response response = controller.update(1, request);
+
+      assertEquals(response.getStatus(), HttpStatus.OK_200);
+      RetentionRuleResponse body = (RetentionRuleResponse) response.getEntity();
+      assertEquals(body.getDatasetName(), "dataset");
+      assertEquals(body.getDataStorageName(), "gs://bucket/dataset");
+      assertEquals(body.getProjectId(), "projectId");
+      assertEquals((int) body.getRetentionPeriod(), 123);
+      assertEquals((int) body.getRuleId(), 1);
+      assertEquals(body.getType(), RetentionRuleType.DATASET);
+    } catch (SQLException ex){
+      fail(ex.getMessage());
+    }
   }
 
   @Test
