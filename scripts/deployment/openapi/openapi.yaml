@@ -24,7 +24,7 @@ x-google-endpoints:
     # Your target IP Address; Must be quoted
     target: 'your_target_ip'
 security:
-  - API_AUTHENTICATION: []
+  - server_service_account: []
 paths:
   /retentionrules:
     post:
@@ -224,10 +224,11 @@ definitions:
       - retentionPeriod
     type: object
 securityDefinitions:
-  API_AUTHENTICATION:
+  # This security definition will allow the app to call itself over HTTP/S
+  server_service_account:
     authorizationUrl: ""
-    flow: "implicit"
-    type: "oauth2"
-    x-google-issuer: "tomflenniken@sdrs-server.iam.gserviceaccount.com"
-    x-google-jwks_uri: "https://www.googleapis.com/robot/v1/metadata/x509/tomflenniken@sdrs-server.iam.gserviceaccount.com"
-
+    flow: implicit
+    type: oauth2
+    # The service account associated with this application should be used here
+    x-google-issuer: your-service-account-email-address
+    x-google-jwks_uri: https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email-address
