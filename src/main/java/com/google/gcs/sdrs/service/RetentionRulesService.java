@@ -17,8 +17,9 @@
 
 package com.google.gcs.sdrs.service;
 
-import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
+import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 
 /** Service implementation for managing retention rules. */
@@ -28,9 +29,10 @@ public interface RetentionRulesService {
    * Creates a retention rule and returns its ID
    *
    * @param rule the request object input by the user
+   * @param user the user who initiated the request
    * @return The identifier for the created rule
    */
-  Integer createRetentionRule(RetentionRuleCreateRequest rule);
+  Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user);
 
   /**
    * Updates a retention rule and returns the rule with updates

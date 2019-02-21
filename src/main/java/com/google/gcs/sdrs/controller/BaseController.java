@@ -18,12 +18,18 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.controller.filter.ContainerContextProperties;
+import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import java.util.UUID;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 /** Abstract base class for Controllers. */
 public abstract class BaseController {
+
+  @Context() ContainerRequestContext context;
 
   public static String generateRequestUuid() {
     return UUID.randomUUID().toString();
@@ -35,5 +41,9 @@ public abstract class BaseController {
     errorResponse.setRequestUuid(requestUuid);
 
     return Response.status(exception.getStatusCode()).entity(errorResponse).build();
+  }
+
+  protected UserInfo getUserInfo() {
+    return (UserInfo) context.getProperty(ContainerContextProperties.USER_INFO.toString());
   }
 }
