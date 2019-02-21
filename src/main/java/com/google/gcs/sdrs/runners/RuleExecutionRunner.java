@@ -18,22 +18,48 @@
 
 package com.google.gcs.sdrs.runners;
 
+import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import com.google.gcs.sdrs.enums.ExecutionEventType;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Calls the Rule execution endpoint when run
  */
 public class RuleExecutionRunner implements Runnable {
 
+  private static String SERVICE_URL;
   private static final Logger logger = LoggerFactory.getLogger(RuleExecutionRunner.class);
 
+  public RuleExecutionRunner(){
+    try {
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      SERVICE_URL = config.getString("scheduler.serviceUrl");
+    } catch (ConfigurationException ex) {
+      logger.error("Configuration file could not be read: " + ex.getMessage());
+    }
+  }
+
   /**
-   * Calls the SDRS rule execution endpoint
+   * Calls the SDRS rule execution endpoint to run every retention rule
    */
   public void run(){
-    logger.info("Beginning rule execution runner...");
-    //TODO Call rule execution endpoint once available
-    logger.info("Rule execution runner complete.");
+    logger.info("Making request to execution service endpoint.");
+    Client client = ClientBuilder.newClient();
+
+    ExecutionEventRequest requestObject = new ExecutionEventRequest();
+    requestObject.setExecutionEventType(ExecutionEventType.POLICY);
+
+    client.target(SERVICE_URL).path("events/execution")
+        .request(MediaType.APPLICATION_JSON)
+        .post(Entity.entity(requestObject, MediaType.APPLICATION_JSON));
   }
 }

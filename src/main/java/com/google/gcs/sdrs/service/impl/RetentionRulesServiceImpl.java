@@ -26,19 +26,53 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
+  private static final String DEFAULT_STORAGE_NAME = "global";
+  private static String defaultProjectId;
+  private static String defaultStorageName;
+
+  private static final Logger logger = LoggerFactory.getLogger(RetentionRulesServiceImpl.class);
 
   RetentionRuleDao dao = SingletonDao.getRetentionRuleDao();
 
+  public RetentionRulesServiceImpl() {
+    try {
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      defaultProjectId = config.getString("sts.defaultProjectId");
+      defaultStorageName = config.getString("sts.defaultStorageName");
+    } catch (ConfigurationException ex) {
+      logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
+      defaultProjectId = DEFAULT_PROJECT_ID;
+      defaultStorageName = DEFAULT_STORAGE_NAME;
+    }
+  }
+
+  /**
+   * Creates a new retention rule in the database
+   * @param rule the {@link RetentionRuleCreateRequest} object input by the user
+   * @return the {@link Integer} id of the created rule
+   */
   @Override()
   public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
     return dao.save(entity);
   }
 
+  /**
+   * Updates an existing retention rule
+   * @param ruleId the identifier for the rule to update
+   * @param request the {@link RetentionRuleUpdateRequest} update request
+   * @return the {@link RetentionRuleResponse} object
+   */
   @Override
   public RetentionRuleResponse updateRetentionRule(
       Integer ruleId, RetentionRuleUpdateRequest request) {
@@ -69,7 +103,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setDatasetName(datasetName);
 
     if (entity.getType() == RetentionRuleType.GLOBAL) {
-      entity.setProjectId(DEFAULT_PROJECT_ID);
+      entity.setProjectId(defaultProjectId);
+      entity.setDataStorageName(defaultStorageName);
     }
 
     // Generate metadata
