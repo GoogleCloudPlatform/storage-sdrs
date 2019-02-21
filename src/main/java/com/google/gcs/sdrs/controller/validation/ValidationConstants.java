@@ -24,7 +24,6 @@ public class ValidationConstants {
   public static final String STORAGE_SEPARATOR = "/";
   public static final String GLOBAL_JSON_VALUE = "GLOBAL";
   public static final String DATASET_JSON_VALUE = "DATASET";
-  public static final String MARKER_JSON_VALUE = "MARKER";
   public static final String POLICY_JSON_VALUE = "POLICY";
   public static final String USER_JSON_VALUE = "USER";
 }

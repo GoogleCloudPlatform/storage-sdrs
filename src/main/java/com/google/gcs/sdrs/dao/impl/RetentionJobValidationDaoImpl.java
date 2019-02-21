@@ -67,7 +67,7 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     Join<RetentionJob, RetentionJobValidation> jobValidation =
         job.join("jobValidations", JoinType.INNER);
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
-    query.where(builder.equal(job.get("retentionRuleType"), RetentionRuleType.MARKER));
+    query.where(builder.equal(job.get("retentionRuleType"), RetentionRuleType.USER));
     return getCurrentSession().createQuery(query).getResultList();
   }
 
@@ -84,7 +84,7 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
         job.join("jobValidations", JoinType.LEFT);
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     query.where(
-        builder.equal(job.get("retentionRuleType"), RetentionRuleType.MARKER),
+        builder.equal(job.get("retentionRuleType"), RetentionRuleType.USER),
         builder.isNull(jobValidation.get("id")));
     return getCurrentSession().createQuery(query).getResultList();
   }
@@ -103,7 +103,7 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     Date oneDayAgo = Date.valueOf(LocalDate.now().atStartOfDay().toLocalDate());
     query.where(
-        builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.MARKER),
+        builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.USER),
         builder.greaterThanOrEqualTo(jobValidation.get("updatedAt"), oneDayAgo));
     return getCurrentSession().createQuery(query).getResultList();
   }
@@ -122,7 +122,7 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     Date oneDayAgo = Date.valueOf(LocalDate.now().atStartOfDay().toLocalDate());
     jobValidation.on(builder.greaterThanOrEqualTo(jobValidation.get("updatedAt"), oneDayAgo));
     query.where(
-        builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.MARKER),
+        builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.USER),
         builder.isNull(jobValidation.get("id")));
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     return getCurrentSession().createQuery(query).getResultList();
