@@ -29,8 +29,11 @@ import com.google.gcs.sdrs.service.RetentionRulesService;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
 
 
 /** Service implementation for managing retention rules including mapping. */
@@ -62,9 +65,16 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
    * @return the {@link Integer} id of the created rule
    */
   @Override()
-  public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
+  public Integer createRetentionRule(RetentionRuleCreateRequest rule) throws SQLException {
     RetentionRule entity = mapPojoToPersistenceEntity(rule);
-    return dao.save(entity);
+    try{
+      return dao.save(entity);
+    } catch (ConstraintViolationException ex) {
+      String message = String.format("Unique constraint violation. " +
+          "A rule already exists with project id: %s, data storage name: %s",
+          entity.getProjectId(), entity.getDataStorageName());
+      throw new SQLException(message);
+    }
   }
 
   /**
@@ -75,9 +85,13 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
    */
   @Override
   public RetentionRuleResponse updateRetentionRule(
-      Integer ruleId, RetentionRuleUpdateRequest request) {
+      Integer ruleId, RetentionRuleUpdateRequest request) throws SQLException {
 
     RetentionRule entity = dao.findById(ruleId);
+
+    if (entity == null) {
+      throw new SQLException(String.format("No rule exists with ID: %s", ruleId));
+    }
 
     entity.setVersion(entity.getVersion() + 1);
     entity.setRetentionPeriodInDays(request.getRetentionPeriod());
