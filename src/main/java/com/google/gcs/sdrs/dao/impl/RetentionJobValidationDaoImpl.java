@@ -47,8 +47,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     // skipped
     Set<RetentionJob> results = new HashSet<>();
 
-    results.addAll(findAllImmediatePendingJobs());
-    results.addAll(findAllImmediateJobsWithNoStatus());
+    results.addAll(findAllSingleRunPendingJobs());
+    results.addAll(findAllSingleRunJobsWithNoStatus());
     results.addAll(findAllDailyPendingJobs());
     results.addAll(findAllDailyJobsWithNoStatus());
 
@@ -56,27 +56,27 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
   }
 
   /**
-   * Get all immediate RetentionJobs with a RetentionJobValidation.status of pending
+   * Get all DATASET/USER RetentionJobs with a RetentionJobValidation.status of pending
    *
    * @return a list of RententionJob
    */
-  private List<RetentionJob> findAllImmediatePendingJobs() {
+  private List<RetentionJob> findAllSingleRunPendingJobs() {
     CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
     CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> job = query.from(RetentionJob.class);
     Join<RetentionJob, RetentionJobValidation> jobValidation =
         job.join("jobValidations", JoinType.INNER);
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
-    query.where(builder.equal(job.get("retentionRuleType"), RetentionRuleType.USER));
+    query.where(builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL));
     return getCurrentSession().createQuery(query).getResultList();
   }
 
   /**
-   * Get all immediate RetentionJobs without a corresponding RetentionJobValidation record
+   * Get all DATASET/USER RetentionJobs without a corresponding RetentionJobValidation record
    *
    * @return a list of RententionJob
    */
-  private List<RetentionJob> findAllImmediateJobsWithNoStatus() {
+  private List<RetentionJob> findAllSingleRunJobsWithNoStatus() {
     CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
     CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> job = query.from(RetentionJob.class);
@@ -84,13 +84,13 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
         job.join("jobValidations", JoinType.LEFT);
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     query.where(
-        builder.equal(job.get("retentionRuleType"), RetentionRuleType.USER),
+        builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));
     return getCurrentSession().createQuery(query).getResultList();
   }
 
   /**
-   * Get all daily RetentionJobs with a RetentionJobValidation.status of pending in the last 24h
+   * Get all GLOBAL RetentionJobs with a RetentionJobValidation.status of pending in the last 24h
    *
    * @return a list of RententionJob
    */
@@ -103,13 +103,13 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     Date oneDayAgo = Date.valueOf(LocalDate.now().atStartOfDay().toLocalDate());
     query.where(
-        builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.USER),
+        builder.equal(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.greaterThanOrEqualTo(jobValidation.get("updatedAt"), oneDayAgo));
     return getCurrentSession().createQuery(query).getResultList();
   }
 
   /**
-   * Get all daily RetentionJobs without a matching RetentionJobValidation record in the last 24h
+   * Get all GLOBAL RetentionJobs without a matching RetentionJobValidation record in the last 24h
    *
    * @return a list of RententionJob
    */
@@ -122,7 +122,7 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     Date oneDayAgo = Date.valueOf(LocalDate.now().atStartOfDay().toLocalDate());
     jobValidation.on(builder.greaterThanOrEqualTo(jobValidation.get("updatedAt"), oneDayAgo));
     query.where(
-        builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.USER),
+        builder.equal(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     return getCurrentSession().createQuery(query).getResultList();
