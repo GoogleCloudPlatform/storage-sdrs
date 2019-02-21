@@ -62,10 +62,11 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
   }
 
   /**
-   * Get a {@link List} of {@link RetentionRule}s with the provided dataStorage and dataSet
-   *
+   * Get the dataset {@link RetentionRule} with the provided dataStorageName and projectId
+   * @param projectId a {@link String} with the GCP project ID
    * @param dataStorage a {@link String} of the form 'gs://bucketName'
-   * @return a {@link List} of {@link RetentionRule}s
+   *
+   * @return a {@link RetentionRule} record
    */
   @Override
   public RetentionRule findDatasetRuleByBusinessKey(
@@ -80,10 +81,17 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
             builder.equal(root.get("projectId"), projectId),
             builder.equal(root.get("dataStorageName"), dataStorage));
 
-    return getSingleRuleWithCriteriaQuery(query);
+    return getSingleRecordWithCriteriaQuery(query);
   }
 
+  /**
+   * Gets the global {@link RetentionRule} with the provided dataStorage
+   *
+   * @param dataStorage a {@link String} of the form 'gs://bucketName'
+   * @return a {@link List} of {@link RetentionRule}s
+   */
   @Override
+  @Deprecated
   public RetentionRule findGlobalRuleByTarget(String dataStorage) {
     CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
     CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
@@ -94,18 +102,47 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
         .where(builder.equal(root.get("type"), RetentionRuleType.GLOBAL),
             builder.equal(root.get("dataStorageName"), dataStorage));
 
-    return getSingleRuleWithCriteriaQuery(query);
+    return getSingleRecordWithCriteriaQuery(query);
   }
 
-  private RetentionRule getSingleRuleWithCriteriaQuery(CriteriaQuery<RetentionRule> query) {
-    Query<RetentionRule> queryResults = getCurrentSession().createQuery(query);
-    List<RetentionRule> list = queryResults.getResultList();
+  /**
+   * Get a {@link List} of {@link RetentionRule}s starting with the provided dataStorage string
+   * @param dataStorage a {@link String} of the form 'gs://bucketName'
+   * @return a {@link List} of {@link RetentionRule}s
+   */
+  // TODO: Reimplement this once global rules can be scoped per project or bucket
+//  @Override
+//  public List<RetentionRule> findGlobalRulesContainingStorageName(String dataStorage) {
+//    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+//    CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
+//    Root<RetentionRule> root = query.from(RetentionRule.class);
+//
+//    query
+//        .select(root)
+//        .where(builder.equal(root.get("type"), RetentionRuleType.GLOBAL),
+//            builder.like(root.get("dataStorageName"), dataStorage + "%"));
+//
+//    Query<RetentionRule> result = getCurrentSession().createQuery(query);
+//    return result.getResultList();
+//  }
 
-    RetentionRule foundEntity = null;
-    if (!list.isEmpty()) {
-      foundEntity = list.get(0);
-    }
-    return foundEntity;
+  /**
+   * Gets the global rule based on its project id
+   * @param projectId the {@link String} project id to search by. Should be "global-default"
+   * @return the global {@link RetentionRule}
+   */
+  @Override
+  public RetentionRule findGlobalRuleByProjectId(String projectId) {
+    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
+    Root<RetentionRule> root = query.from(RetentionRule.class);
+
+    query
+        .select(root)
+        .where(builder.equal(root.get("type"), RetentionRuleType.GLOBAL),
+            builder.equal(root.get("projectId"), projectId));
+
+    return getSingleRecordWithCriteriaQuery(query);
   }
 
   /**

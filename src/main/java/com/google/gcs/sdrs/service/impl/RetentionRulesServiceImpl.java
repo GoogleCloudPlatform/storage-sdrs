@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
@@ -26,16 +27,18 @@ import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.service.RetentionRulesService;
+import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.impl.UpdateExternalJobWorker;
+import java.sql.SQLException;
+import java.util.List;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
-
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
@@ -46,7 +49,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
   private static final Logger logger = LoggerFactory.getLogger(RetentionRulesServiceImpl.class);
 
-  RetentionRuleDao dao = SingletonDao.getRetentionRuleDao();
+  RetentionRuleDao ruleDao = SingletonDao.getRetentionRuleDao();
 
   public RetentionRulesServiceImpl() {
     try {
@@ -69,7 +72,25 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user) throws SQLException {
     RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
     try{
-      return dao.save(entity);
+      int ruleId = ruleDao.save(entity);
+      entity.setId(ruleId);
+
+      if (entity.getType().equals(RetentionRuleType.DATASET)) {
+        RetentionRule globalRule = ruleDao.findGlobalRuleByProjectId(defaultProjectId);
+        if (globalRule != null) {
+          Worker updateWorker = new UpdateExternalJobWorker(globalRule, entity.getProjectId());
+          JobManager.getInstance().submitJob(updateWorker);
+        }
+      }
+
+      if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
+        List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+        for (String projectId : projectIds) {
+          // TODO Create default STS job
+        }
+      }
+
+      return ruleId;
     } catch (ConstraintViolationException ex) {
       String message = String.format("Unique constraint violation. " +
           "A rule already exists with project id: %s, data storage name: %s",
@@ -88,7 +109,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   public RetentionRuleResponse updateRetentionRule(
       Integer ruleId, RetentionRuleUpdateRequest request) throws SQLException {
 
-    RetentionRule entity = dao.findById(ruleId);
+    RetentionRule entity = ruleDao.findById(ruleId);
 
     if (entity == null) {
       throw new SQLException(String.format("No rule exists with ID: %s", ruleId));
@@ -97,7 +118,15 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setVersion(entity.getVersion() + 1);
     entity.setRetentionPeriodInDays(request.getRetentionPeriod());
 
-    dao.update(entity);
+    ruleDao.update(entity);
+
+    if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
+      List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+      for (String projectId : projectIds) {
+        Worker updateWorker = new UpdateExternalJobWorker(entity, projectId);
+        JobManager.getInstance().submitJob(updateWorker);
+      }
+    }
 
     return mapRuleToResponse(entity);
   }
