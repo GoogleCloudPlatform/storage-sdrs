@@ -6,6 +6,8 @@
     <sleepMins>60</sleepMins>
     <shutdownGracePeriodInSeconds>60</shutdownGracePeriodInSeconds>
     <useHttps>false</useHttps>
+    <protocol>http</protocol>
+    <serviceUrl>sdrs-api.endpoints.sdrs-server.cloud.goog</serviceUrl>
   </serverConfig>
   <jobManager>
     <threadPoolSize>7</threadPoolSize>
@@ -20,8 +22,6 @@
     <threadPoolSize>1</threadPoolSize>
     <shutdownWait>30</shutdownWait>
     <shutdownTimeUnit>SECONDS</shutdownTimeUnit>
-    <serviceProtocol>http</serviceProtocol>
-    <serviceUrl>sdrs-api.endpoints.sdrs-server.cloud.goog</serviceUrl>
     <task>
       <ruleExecution>
         <endpoint>events/execution</endpoint>
