@@ -37,4 +37,4 @@ def generate_jwt(sa_keyfile,
 
 
 generate_jwt("./credentials.json", "tflenniken@sdrs-server.iam.gserviceaccount.com",
-             "sdrs-api.endpoints.sdrs-server.cloud.goog")
+             "https://sdrs-api.endpoints.sdrs-server.cloud.goog")

@@ -20,7 +20,8 @@
     <threadPoolSize>1</threadPoolSize>
     <shutdownWait>30</shutdownWait>
     <shutdownTimeUnit>SECONDS</shutdownTimeUnit>
-    <serviceUrl>http://127.0.0.1:8080</serviceUrl>
+    <serviceProtocol>http</serviceProtocol>
+    <serviceUrl>sdrs-api.endpoints.sdrs-server.cloud.goog</serviceUrl>
     <task>
       <ruleExecution>
         <endpoint>events/execution</endpoint>
