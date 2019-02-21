@@ -21,12 +21,14 @@ package com.google.gcs.sdrs.dao.model;
 import com.google.gcs.sdrs.dao.converter.RetentionRuleTypeConverter;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import java.sql.Timestamp;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /** Note - coding to JPA specification, not Hibernate specific annotations */
@@ -60,6 +62,9 @@ public class RetentionJob {
 
   @Column(name = "created_at")
   private Timestamp createdAt;
+
+  @OneToMany(mappedBy = "retentionJobId")
+  private List<RetentionJobValidation> jobValidations;
 
   public RetentionJob() {}
 

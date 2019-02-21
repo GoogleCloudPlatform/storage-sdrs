@@ -24,6 +24,7 @@ public class DatabaseConstants {
   // this will be changed to "default" in the future
   public static final String POLICY_TYPE_GLOBAL = "global";
   public static final String POLICY_TYPE_DATASET = "dataset";
+  public static final String POLICY_TYPE_USER = "user";
   public static final String STS_JOB_STATUS_SUCCESS = "success";
   public static final String STS_JOB_STATUS_PENDING = "pending";
   public static final String STS_JOB_STATUS_ERROR = "error";

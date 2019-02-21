@@ -20,6 +20,8 @@ package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.BaseDao;
 import java.io.Serializable;
+import java.util.List;
+import org.hibernate.MultiIdentifierLoadAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,25 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
 
   public GenericDao(final Class<T> type) {
     super(type);
+  }
+
+  /* (non-Javadoc)
+   * @see com.google.gcs.sdrs.dao.impl.DAO#saveOrUpdateBatch(List<T>)
+   */
+  @Override
+  public void saveOrUpdateBatch(final List<T> entities) {
+    openCurrentSessionWithTransaction();
+    int i = 0;
+    for (T entity : entities) {
+      getCurrentSession().saveOrUpdate(entity);
+
+      if (++i % 20 == 0) { // 20, same as the JDBC batch size
+        // flush a batch of inserts and release memory:
+        getCurrentSession().flush();
+        getCurrentSession().clear();
+      }
+    }
+    closeCurrentSessionWithTransaction();
   }
 
   /* (non-Javadoc)
@@ -68,6 +89,18 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
     T entity = getCurrentSession().get(type, id);
     closeCurrentSession();
     return entity;
+  }
+
+  /* (non-Javadoc)
+   * @see com.google.gcs.sdrs.dao.impl.DAO#findAllByMultipleIds(Class<T>, Collection<Id>)
+   */
+  @Override
+  public List<T> findAllByMultipleIds(Class<T> cls, List<Id> ids) {
+    openCurrentSession();
+    MultiIdentifierLoadAccess<T> multiLoadAccess = getCurrentSession().byMultipleIds(cls);
+    List<T> entities = multiLoadAccess.multiLoad(ids);
+    closeCurrentSession();
+    return entities;
   }
 
   /* (non-Javadoc)

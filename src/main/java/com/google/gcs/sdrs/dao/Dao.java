@@ -19,6 +19,7 @@
 package com.google.gcs.sdrs.dao;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Interface for Data Access Object pattern
@@ -28,11 +29,15 @@ import java.io.Serializable;
  */
 public interface Dao<T, Id extends Serializable> {
 
+  void saveOrUpdateBatch(List<T> entities);
+
   Id save(T entity);
 
   void update(T entity);
 
   T findById(Id id);
+
+  List<T> findAllByMultipleIds(Class<T> cls, List<Id> ids);
 
   void delete(T entity);
 }
