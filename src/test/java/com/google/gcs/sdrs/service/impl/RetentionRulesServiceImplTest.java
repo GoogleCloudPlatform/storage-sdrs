@@ -121,7 +121,7 @@ public class RetentionRulesServiceImplTest {
     assertEquals(true, input.getIsActive());
     assertEquals(input.getProjectId(), "global-default");
     assertEquals(1, (int) input.getVersion());
-    assertNull(input.getDataStorageName());
+    assertEquals(input.getDataStorageName(), "global");
     assertNull(input.getDatasetName());
   }
 

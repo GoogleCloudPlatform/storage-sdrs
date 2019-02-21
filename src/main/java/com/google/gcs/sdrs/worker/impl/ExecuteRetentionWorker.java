@@ -79,15 +79,26 @@ public class ExecuteRetentionWorker extends BaseWorker {
       switch (executionEvent.getExecutionEventType()) {
         case USER_COMMANDED:
           rule = getEventDefinedRule();
-          ruleExecutor.executeDatasetRule(rule);
+          RetentionJob result = ruleExecutor.executeDatasetRule(rule);
+          retentionJobDao.save(result);
+          workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
           break;
         case POLICY:
           boolean dataStorageExists = !dataStorageName.isEmpty();
-          boolean projectIdExists = projectId != null && projectId.isEmpty();
+          boolean projectIdExists = projectId != null && !projectId.isEmpty();
 
           if (projectIdExists && dataStorageExists) {
             rule = retentionRuleDao.findDatasetRuleByBusinessKey(projectId, dataStorageName);
-            ruleExecutor.executeDatasetRule(rule);
+            if (rule != null) {
+              RetentionJob job = ruleExecutor.executeDatasetRule(rule);
+              retentionJobDao.save(job);
+            } else {
+              String message = String.format("No policy found for target project: %s, target: %s",
+                  projectId, dataStorageName);
+              logger.error(message);
+              throw new UnsupportedOperationException(message);
+            }
+
           } else if (projectIdExists) {
             executeAllDatasetRulesByProject(executionEvent.getProjectId());
           } else {
