@@ -19,11 +19,14 @@
 package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.JobScheduler.JobScheduler;
-import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
 import com.google.gcs.sdrs.runners.RuleExecutionRunner;
 import com.google.gcs.sdrs.runners.ValidationRunner;
 import com.google.gcs.sdrs.server.ServerShutdownHook;
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.TimeUnit;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -31,11 +34,6 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.UriBuilder;
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.TimeUnit;
 
 /** The main startup class for the SDRS service. */
 public class SdrsApplication {
