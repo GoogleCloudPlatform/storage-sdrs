@@ -20,7 +20,6 @@ package com.google.gcs.sdrs.util;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,21 +49,21 @@ public class SdrsRequestClientUtilTest {
   }
 
   @Test
-  public void bearerAuthHeaderInRequest() throws ConfigurationException {
+  public void bearerAuthHeaderInRequest() {
     SdrsRequestClientUtil.request(client, "something").post(null);
 
     verify(builder).header(eq("Authorization"), startsWith("Bearer ey"));
   }
 
   @Test
-  public void usesConfiguredProtocolAndServiceUrl() throws ConfigurationException {
+  public void usesConfiguredProtocolAndServiceUrl() {
     SdrsRequestClientUtil.request(client, "something").post(null);
 
-    verify(client).target(eq("http://sdrs-api.endpoints.sdrs-server.cloud.goog"));
+    verify(client).target(eq("http://localhost"));
   }
 
   @Test
-  public void usesPath() throws ConfigurationException {
+  public void usesPath() {
     SdrsRequestClientUtil.request(client, "something").post(null);
 
     verify(webTarget).path(eq("something"));

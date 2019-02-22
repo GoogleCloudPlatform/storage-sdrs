@@ -65,7 +65,8 @@ public class RetentionRulesControllerTest {
 
   @Test
   public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException {
-    when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class), any(UserInfo.class)))
+    when(controller.service.createRetentionRule(
+            any(RetentionRuleCreateRequest.class), any(UserInfo.class)))
         .thenReturn(543);
 
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();

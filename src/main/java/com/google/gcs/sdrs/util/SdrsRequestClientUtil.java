@@ -24,15 +24,13 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.util.Utils;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
+import com.google.gcs.sdrs.SdrsApplication;
 import java.io.IOException;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,10 +52,8 @@ public class SdrsRequestClientUtil {
    * @param client the client to use to make the request
    * @param path the path segment for the endpoint
    * @return a builder that can be used to invoke the request
-   * @throws ConfigurationException when application config is missing
    */
-  public static Invocation.Builder request(Client client, String path)
-      throws ConfigurationException {
+  public static Invocation.Builder request(Client client, String path) {
     String jwt = generateJwt(String.format("https://%s", getServiceUrl()));
 
     Invocation.Builder result =
@@ -99,18 +95,16 @@ public class SdrsRequestClientUtil {
     }
   }
 
-  private static String getServiceUrl() throws ConfigurationException {
+  private static String getServiceUrl() {
     if (serviceUrl == null) {
-      Configuration config = new Configurations().xml("applicationConfig.xml");
-      serviceUrl = config.getString("serverConfig.serviceUrl");
+      serviceUrl = SdrsApplication.getAppConfigProperty("serverConfig.serviceUrl", "localhost");
     }
     return serviceUrl;
   }
 
-  private static String getProtocol() throws ConfigurationException {
+  private static String getProtocol() {
     if (protocol == null) {
-      Configuration config = new Configurations().xml("applicationConfig.xml");
-      protocol = config.getString("serverConfig.protocol");
+      protocol = SdrsApplication.getAppConfigProperty("serverConfig.protocol");
     }
     return protocol;
   }

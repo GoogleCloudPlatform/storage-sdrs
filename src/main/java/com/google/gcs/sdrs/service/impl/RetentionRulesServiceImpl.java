@@ -122,7 +122,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       entity.setDataStorageName(defaultStorageName);
     }
 
-    entity.setUser(user.getId());
+    entity.setUser(user.getEmail());
 
     // Generate metadata
     entity.setIsActive(true);

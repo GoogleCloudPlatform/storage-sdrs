@@ -7,7 +7,7 @@
     <shutdownGracePeriodInSeconds>60</shutdownGracePeriodInSeconds>
     <useHttps>false</useHttps>
     <protocol>http</protocol>
-    <serviceUrl>sdrs-api.endpoints.sdrs-server.cloud.goog</serviceUrl>
+    <serviceUrl>${SERVICE_URL}</serviceUrl>
   </serverConfig>
   <jobManager>
     <threadPoolSize>7</threadPoolSize>

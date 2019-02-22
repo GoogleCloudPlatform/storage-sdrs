@@ -17,13 +17,12 @@
 
 package com.google.gcs.sdrs.controller.filter;
 
-import com.google.gcs.sdrs.controller.BaseController;
-import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import java.util.Base64;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,21 +36,17 @@ public class UserInfoRequestFilter implements ContainerRequestFilter {
   /** Adds user info to the RequestContext properties */
   @Override
   public void filter(ContainerRequestContext context) {
-    // ESP will add a header to authenticated incoming requests.
-    String base64EncodedUserInfo = context.getHeaders().getFirst("X-Endpoint-API-UserInfo");
+    UserInfo userInfo = new UserInfo();
 
-    // If the header is not present, the request didn't go through ESP and should be rejected.
-    if (base64EncodedUserInfo == null) {
-      logger.error("Attempted unauthenticated access.");
-      ErrorResponse error = new ErrorResponse();
-      error.setMessage("Unauthenticated");
-      context.abortWith(
-          Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(error).build());
-      return;
+    String authorizationHeader = context.getHeaders().getFirst("Authorization");
+
+    if (authorizationHeader != null) {
+      // Remove "Bearer " prefix
+      String bearerToken = authorizationHeader.substring(7);
+      DecodedJWT decodedJwt = JWT.decode(bearerToken);
+      String userInfoJson = new String(Base64.getDecoder().decode(decodedJwt.getPayload()));
+      userInfo = new Gson().fromJson(userInfoJson, UserInfo.class);
     }
-
-    String userInfoJson = new String(Base64.getDecoder().decode(base64EncodedUserInfo));
-    UserInfo userInfo = new Gson().fromJson(userInfoJson, UserInfo.class);
 
     context.setProperty(ContainerContextProperties.USER_INFO.toString(), userInfo);
   }
