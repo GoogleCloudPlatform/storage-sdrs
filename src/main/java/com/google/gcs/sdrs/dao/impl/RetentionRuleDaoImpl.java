@@ -86,9 +86,10 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    * @param entity the rule to deactivate
    */
   @Override
-  public void softDelete(RetentionRule entity) {
+  public Integer softDelete(RetentionRule entity) {
     entity.setIsActive(false);
     update(entity);
+    return entity.getId();
   }
 
   private RetentionRule getSingleRuleWithCriteriaQuery(CriteriaQuery<RetentionRule> query) {

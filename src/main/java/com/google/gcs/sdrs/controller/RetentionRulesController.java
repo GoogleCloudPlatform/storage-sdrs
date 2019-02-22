@@ -87,8 +87,9 @@ public class RetentionRulesController extends BaseController {
       @QueryParam("projectId") String projectId,
       @QueryParam("dataStorageName") String dataStorageName) {
     try {
-      service.deleteRetentionRuleByBusinessKey(projectId, dataStorageName);
+      Integer ruleId = service.deleteRetentionRuleByBusinessKey(projectId, dataStorageName);
       RetentionRuleDeleteResponse response = new RetentionRuleDeleteResponse();
+      response.setRuleId(ruleId);
       return successResponse(response);
     } catch (Exception exception) {
       return errorResponse(exception);

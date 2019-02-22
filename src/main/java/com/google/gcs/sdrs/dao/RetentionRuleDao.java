@@ -31,5 +31,5 @@ public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
 
   List<String> getAllDatasetRuleProjectIds();
 
-  void softDelete(RetentionRule rule);
+  Integer softDelete(RetentionRule rule);
 }

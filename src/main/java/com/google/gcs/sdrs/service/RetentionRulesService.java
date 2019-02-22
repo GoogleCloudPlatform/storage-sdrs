@@ -48,9 +48,8 @@ public interface RetentionRulesService {
 
   /**
    * Deletes the retention rule with the provided values
-   *
-   * @param projectId the project associated with the rule
+   *  @param projectId the project associated with the rule
    * @param dataStorageName the dataStorageName associated with the rule
    */
-  void deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName);
+  Integer deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName);
 }

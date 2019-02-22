@@ -17,4 +17,14 @@
 
 package com.google.gcs.sdrs.controller.pojo;
 
-public class RetentionRuleDeleteResponse extends BaseHttpResponse {}
+public class RetentionRuleDeleteResponse extends BaseHttpResponse {
+  private Integer ruleId;
+
+  public Integer getRuleId() {
+    return ruleId;
+  }
+
+  public void setRuleId(Integer ruleId) {
+    this.ruleId = ruleId;
+  }
+}
