@@ -46,7 +46,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRulePersistsDatasetEntity() {
+  public void createRulePersistsDatasetEntity() throws SQLException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
@@ -54,11 +54,7 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
 
-    try{
-      service.createRetentionRule(createRule);
-    } catch (SQLException ex){
-      fail(ex.getMessage());
-    }
+    service.createRetentionRule(createRule);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
@@ -75,18 +71,14 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRuleUsesBucketForDatasetWhenNoDataset() {
+  public void createRuleUsesBucketForDatasetWhenNoDataset() throws SQLException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDataStorageName("gs://b");
     createRule.setProjectId("projectId");
 
-    try{
-      service.createRetentionRule(createRule);
-    } catch (SQLException ex){
-      fail(ex.getMessage());
-    }
+    service.createRetentionRule(createRule);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
@@ -97,18 +89,14 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRuleUsesDataStorageDatasetForDataset() {
+  public void createRuleUsesDataStorageDatasetForDataset() throws SQLException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
 
-    try{
-      service.createRetentionRule(createRule);
-    } catch (SQLException ex){
-      fail(ex.getMessage());
-    }
+    service.createRetentionRule(createRule);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
@@ -119,16 +107,12 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRulePersistsGlobalEntity() {
+  public void createRulePersistsGlobalEntity() throws SQLException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
 
-    try{
-      service.createRetentionRule(createRule);
-    } catch (SQLException ex){
-      fail(ex.getMessage());
-    }
+    service.createRetentionRule(createRule);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
@@ -145,7 +129,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void updateRuleFetchesAndUpdatesEntity() {
+  public void updateRuleFetchesAndUpdatesEntity() throws SQLException {
     RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
     request.setRetentionPeriod(123);
     RetentionRule existingRule = new RetentionRule();
@@ -154,18 +138,14 @@ public class RetentionRulesServiceImplTest {
     existingRule.setVersion(3);
     when(service.dao.findById(2)).thenReturn(existingRule);
 
-    try{
-      RetentionRuleResponse result = service.updateRetentionRule(2, request);
+    RetentionRuleResponse result = service.updateRetentionRule(2, request);
 
-      ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-      verify(service.dao).update(captor.capture());
-      RetentionRule input = captor.getValue();
-      assertEquals(4, (int) input.getVersion());
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    verify(service.dao).update(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertEquals(4, (int) input.getVersion());
 
-      assertEquals(2, (int) result.getRuleId());
-      assertEquals(123, (int) result.getRetentionPeriod());
-    } catch (SQLException ex){
-      fail(ex.getMessage());
-    }
+    assertEquals(2, (int) result.getRuleId());
+    assertEquals(123, (int) result.getRetentionPeriod());
   }
 }

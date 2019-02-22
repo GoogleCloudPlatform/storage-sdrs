@@ -76,23 +76,19 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void createRuleWhenSuccessfulIncludesResponseFields() {
-    try{
-      when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
-          .thenReturn(543);
+  public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException {
+    when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
+        .thenReturn(543);
 
-      RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
-      rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
-      rule.setRetentionPeriod(1);
+    RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
+    rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
+    rule.setRetentionPeriod(1);
 
-      Response response = controller.create(rule);
+    Response response = controller.create(rule);
 
-      assertEquals(HttpStatus.OK_200, response.getStatus());
-      assertEquals(543, ((RetentionRuleCreateResponse) response.getEntity()).getRuleId());
-      assertNotNull(((RetentionRuleCreateResponse) response.getEntity()).getRequestUuid());
-    } catch (SQLException ex){
-      fail(ex.getMessage());
-    }
+    assertEquals(HttpStatus.OK_200, response.getStatus());
+    assertEquals(543, ((RetentionRuleCreateResponse) response.getEntity()).getRuleId());
+    assertNotNull(((RetentionRuleCreateResponse) response.getEntity()).getRequestUuid());
   }
 
   @Test
@@ -205,7 +201,7 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void updateRuleWithValidFieldsSucceeds() {
+  public void updateRuleWithValidFieldsSucceeds() throws SQLException {
     RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
     request.setRetentionPeriod(123);
     RetentionRuleResponse serviceResponse = new RetentionRuleResponse();
@@ -216,23 +212,19 @@ public class RetentionRulesControllerTest {
     serviceResponse.setRuleId(1);
     serviceResponse.setType(RetentionRuleType.DATASET);
 
-    try{
-      when(controller.service.updateRetentionRule(anyInt(), any(RetentionRuleUpdateRequest.class)))
-          .thenReturn(serviceResponse);
+    when(controller.service.updateRetentionRule(anyInt(), any(RetentionRuleUpdateRequest.class)))
+        .thenReturn(serviceResponse);
 
-      Response response = controller.update(1, request);
+    Response response = controller.update(1, request);
 
-      assertEquals(response.getStatus(), HttpStatus.OK_200);
-      RetentionRuleResponse body = (RetentionRuleResponse) response.getEntity();
-      assertEquals(body.getDatasetName(), "dataset");
-      assertEquals(body.getDataStorageName(), "gs://bucket/dataset");
-      assertEquals(body.getProjectId(), "projectId");
-      assertEquals((int) body.getRetentionPeriod(), 123);
-      assertEquals((int) body.getRuleId(), 1);
-      assertEquals(body.getType(), RetentionRuleType.DATASET);
-    } catch (SQLException ex){
-      fail(ex.getMessage());
-    }
+    assertEquals(response.getStatus(), HttpStatus.OK_200);
+    RetentionRuleResponse body = (RetentionRuleResponse) response.getEntity();
+    assertEquals(body.getDatasetName(), "dataset");
+    assertEquals(body.getDataStorageName(), "gs://bucket/dataset");
+    assertEquals(body.getProjectId(), "projectId");
+    assertEquals((int) body.getRetentionPeriod(), 123);
+    assertEquals((int) body.getRuleId(), 1);
+    assertEquals(body.getType(), RetentionRuleType.DATASET);
   }
 
   @Test

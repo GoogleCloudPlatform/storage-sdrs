@@ -1,6 +1,6 @@
 package com.google.gcs.sdrs.controller;
 
-import org.eclipse.jetty.http.HttpStatus;
+import javax.ws.rs.core.Response;
 
 public class PersistenceException extends HttpException {
 
@@ -26,6 +26,6 @@ public class PersistenceException extends HttpException {
   /** Gets the validation error HTTP status code */
   @Override
   public int getStatusCode() {
-    return HttpStatus.BAD_REQUEST_400;
+    return Response.Status.BAD_REQUEST.getStatusCode();
   }
 }
