@@ -107,4 +107,43 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     }
     return foundEntity;
   }
+
+  /**
+   * Gets all project ids associated with dataset rules
+   * @return a {@link List} of {@link String} project ids
+   */
+  @Override
+  public List<String> getAllDatasetRuleProjectIds() {
+    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    CriteriaQuery<String> query = builder.createQuery(String.class);
+    Root<RetentionRule> root = query.from(RetentionRule.class);
+
+    query
+        .select(root.get("projectId"))
+        .distinct(true)
+        .where(builder.equal(root.get("type"), RetentionRuleType.DATASET));
+
+    Query<String> result = getCurrentSession().createQuery(query);
+    return result.getResultList();
+  }
+
+  /**
+   * Gets all dataset rules associated with a given project id
+   * @param projectId the {@link String} project id
+   * @return a {@link List} of dataset {@link RetentionRule}s
+   */
+  @Override
+  public List<RetentionRule> findDatasetRulesByProjectId(String projectId) {
+    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
+    Root<RetentionRule> root = query.from(RetentionRule.class);
+
+    query
+        .select(root)
+        .where(builder.equal(root.get("type"), RetentionRuleType.DATASET),
+            builder.equal(root.get("projectId"), projectId));
+
+    Query<RetentionRule> result = getCurrentSession().createQuery(query);
+    return result.getResultList();
+  }
 }

@@ -31,10 +31,13 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.SQLException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -73,7 +76,7 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void createRuleWhenSuccessfulIncludesResponseFields() {
+  public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException {
     when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
         .thenReturn(543);
 
@@ -198,7 +201,7 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void updateRuleWithValidFieldsSucceeds() {
+  public void updateRuleWithValidFieldsSucceeds() throws SQLException {
     RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
     request.setRetentionPeriod(123);
     RetentionRuleResponse serviceResponse = new RetentionRuleResponse();
@@ -208,6 +211,7 @@ public class RetentionRulesControllerTest {
     serviceResponse.setRetentionPeriod(123);
     serviceResponse.setRuleId(1);
     serviceResponse.setType(RetentionRuleType.DATASET);
+
     when(controller.service.updateRetentionRule(anyInt(), any(RetentionRuleUpdateRequest.class)))
         .thenReturn(serviceResponse);
 

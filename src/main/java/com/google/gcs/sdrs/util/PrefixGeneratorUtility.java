@@ -80,6 +80,15 @@ public class PrefixGeneratorUtility {
 
   private static String formatPrefix(
       ZonedDateTime time, String pattern, DateTimeFormatter formatter) {
-    return String.format("%s/%s", pattern, formatter.withZone(ZoneOffset.UTC).format(time));
+
+    String formattedPrefix = String.format("%s/%s",
+        pattern, formatter.withZone(ZoneOffset.UTC).format(time));
+
+    // prefixes cannot begin with a /. If the pattern is empty, remove the leading slash
+    if (formattedPrefix.indexOf("/") == 0) {
+      formattedPrefix = formattedPrefix.replaceFirst("/", "");
+    }
+
+    return formattedPrefix;
   }
 }

@@ -26,24 +26,72 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
+
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
+  private static final String DEFAULT_STORAGE_NAME = "global";
+  private static String defaultProjectId;
+  private static String defaultStorageName;
+
+  private static final Logger logger = LoggerFactory.getLogger(RetentionRulesServiceImpl.class);
 
   RetentionRuleDao dao = SingletonDao.getRetentionRuleDao();
 
-  @Override()
-  public Integer createRetentionRule(RetentionRuleCreateRequest rule) {
-    RetentionRule entity = mapPojoToPersistenceEntity(rule);
-    return dao.save(entity);
+  public RetentionRulesServiceImpl() {
+    try {
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      defaultProjectId = config.getString("sts.defaultProjectId");
+      defaultStorageName = config.getString("sts.defaultStorageName");
+    } catch (ConfigurationException ex) {
+      logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
+      defaultProjectId = DEFAULT_PROJECT_ID;
+      defaultStorageName = DEFAULT_STORAGE_NAME;
+    }
   }
 
+  /**
+   * Creates a new retention rule in the database
+   * @param rule the {@link RetentionRuleCreateRequest} object input by the user
+   * @return the {@link Integer} id of the created rule
+   */
+  @Override()
+  public Integer createRetentionRule(RetentionRuleCreateRequest rule) throws SQLException {
+    RetentionRule entity = mapPojoToPersistenceEntity(rule);
+    try{
+      return dao.save(entity);
+    } catch (ConstraintViolationException ex) {
+      String message = String.format("Unique constraint violation. " +
+          "A rule already exists with project id: %s, data storage name: %s",
+          entity.getProjectId(), entity.getDataStorageName());
+      throw new SQLException(message);
+    }
+  }
+
+  /**
+   * Updates an existing retention rule
+   * @param ruleId the identifier for the rule to update
+   * @param request the {@link RetentionRuleUpdateRequest} update request
+   * @return the {@link RetentionRuleResponse} object
+   */
   @Override
   public RetentionRuleResponse updateRetentionRule(
-      Integer ruleId, RetentionRuleUpdateRequest request) {
+      Integer ruleId, RetentionRuleUpdateRequest request) throws SQLException {
 
     RetentionRule entity = dao.findById(ruleId);
+
+    if (entity == null) {
+      throw new SQLException(String.format("No rule exists with ID: %s", ruleId));
+    }
 
     entity.setVersion(entity.getVersion() + 1);
     entity.setRetentionPeriodInDays(request.getRetentionPeriod());
@@ -69,7 +117,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setDatasetName(datasetName);
 
     if (entity.getType() == RetentionRuleType.GLOBAL) {
-      entity.setProjectId(DEFAULT_PROJECT_ID);
+      entity.setProjectId(defaultProjectId);
+      entity.setDataStorageName(defaultStorageName);
     }
 
     // Generate metadata

@@ -88,7 +88,6 @@ public class StsUtil {
                                          ZonedDateTime startDateTime)
       throws IOException {
     Date date = convertToDate(startDateTime.toLocalDate());
-    TimeOfDay time = convertToTimeOfDay(startDateTime.toLocalTime());
     TransferJob transferJob =
         new TransferJob()
             .setProjectId(projectId)
@@ -105,7 +104,6 @@ public class StsUtil {
             .setSchedule(
                 new Schedule()
                     .setScheduleStartDate(date)
-                    .setStartTimeOfDay(time)
                     .setScheduleEndDate(date))
             .setStatus("ENABLED");
 

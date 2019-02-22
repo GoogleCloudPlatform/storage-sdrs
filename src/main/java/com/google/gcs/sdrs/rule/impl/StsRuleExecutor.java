@@ -119,8 +119,7 @@ public class StsRuleExecutor implements RuleExecutor {
     String sourceBucket = RetentionUtil.getBucketName(rule.getDataStorageName());
     String destinationBucket = RetentionUtil.getBucketName(rule.getDataStorageName(), suffix);
 
-    String description = String.format(
-        "Rule %s %s %s", rule.getId(), rule.getVersion(), zonedDateTimeNow.toString());
+    String description = buildDescription(rule, zonedDateTimeNow);
 
     logger.debug(
         String.format("Creating STS job with projectId: %s, " +
@@ -200,8 +199,7 @@ public class StsRuleExecutor implements RuleExecutor {
     String sourceBucket = RetentionUtil.getBucketName(defaultRule.getDataStorageName());
     String destinationBucket = RetentionUtil.getBucketName(defaultRule.getDataStorageName(), suffix);
 
-    String description = String.format(
-        "Rule %s %s %s", defaultRule.getId(), defaultRule.getVersion(), scheduledTime.toString());
+    String description = buildDescription(defaultRule, scheduledTime);
 
     logger.debug(
         String.format("Creating STS job with for rule %s, projectId: %s, " +
@@ -224,6 +222,20 @@ public class StsRuleExecutor implements RuleExecutor {
             defaultRule.getRetentionPeriodInDays());
 
     return buildRetentionJobEntity(job.getName(), defaultRule);
+  }
+
+  String buildDescription(RetentionRule rule, ZonedDateTime scheduledTime) {
+    String description;
+    if (rule.getId() == null && rule.getVersion() == null) {
+      // a null id and version indicates a user triggered rule. Set description accordingly
+      description = String.format("Rule User %s %s",
+          rule.getDataStorageName(), scheduledTime.toString());
+    } else {
+      description = String.format("Rule %s %s %s",
+          rule.getId(), rule.getVersion(), scheduledTime.toString());
+    }
+
+    return description;
   }
 
   RetentionJob buildRetentionJobEntity(String jobName, RetentionRule rule) {
