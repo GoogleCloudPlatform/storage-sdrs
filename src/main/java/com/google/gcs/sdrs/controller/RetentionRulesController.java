@@ -33,11 +33,13 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.eclipse.jetty.http.HttpStatus;
@@ -88,6 +90,27 @@ public class RetentionRulesController extends BaseController {
       logger.error(exception.getMessage());
       return generateExceptionResponse(new InternalServerException(exception));
     }
+  }
+
+  /** CRUD delete endpoint */
+  @DELETE
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response deleteByBusinessKey(
+      @QueryParam("project") String project,
+      @QueryParam("bucket") String bucket,
+      @QueryParam("dataset") String dataset) {
+
+    String requestUuid = generateRequestUuid();
+
+    RetentionRuleResponse response = new RetentionRuleResponse();
+    response.setRequestUuid(requestUuid);
+
+    try {
+      service.deleteRetentionRuleByBusinessKey(project, bucket, dataset);
+    } catch (Exception e) {
+      return Response.status(400).entity(null).build();
+    }
+    return Response.status(200).entity(response).build();
   }
 
   /**

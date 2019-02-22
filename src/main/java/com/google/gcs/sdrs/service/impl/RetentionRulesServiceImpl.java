@@ -102,7 +102,14 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     return mapRuleToResponse(entity);
   }
 
-  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo, UserInfo user) {
+  @Override
+  public void deleteRetentionRuleByBusinessKey(
+      String projectId, String dataStorageName, String datasetName) {
+    RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName, datasetName);
+    dao.softDelete(rule);
+  }
+
+  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {
     RetentionRule entity = new RetentionRule();
 
     // Map over input values

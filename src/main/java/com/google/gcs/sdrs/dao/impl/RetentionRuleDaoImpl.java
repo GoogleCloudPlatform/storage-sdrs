@@ -97,6 +97,39 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     return getSingleRuleWithCriteriaQuery(query);
   }
 
+  /**
+   * Finds the RetentionRule uniquely identified by the provided values
+   *
+   * @return a {@link RetentionRule}
+   */
+  @Override
+  public RetentionRule findByBusinessKey(
+      String projectId, String dataStorageName, String datasetName) {
+    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
+    Root<RetentionRule> root = query.from(RetentionRule.class);
+
+    query
+        .select(root)
+        .where(
+            builder.equal(root.get("projectId"), projectId),
+            builder.equal(root.get("dataStorageName"), dataStorageName),
+            builder.equal(root.get("datasetName"), datasetName));
+
+    return getSingleRuleWithCriteriaQuery(query);
+  }
+
+  /**
+   * Sets isActive to false for the provided RetentionRule
+   *
+   * @param entity the rule to deactivate
+   */
+  @Override
+  public void softDelete(RetentionRule entity) {
+    entity.setIsActive(false);
+    update(entity);
+  }
+
   private RetentionRule getSingleRuleWithCriteriaQuery(CriteriaQuery<RetentionRule> query) {
     Query<RetentionRule> queryResults = getCurrentSession().createQuery(query);
     List<RetentionRule> list = queryResults.getResultList();

@@ -45,4 +45,14 @@ public interface RetentionRulesService {
    */
   RetentionRuleResponse updateRetentionRule(Integer ruleId, RetentionRuleUpdateRequest request)
       throws SQLException;
+
+  /**
+   * Deletes the retention rule with the provided values
+   *
+   * @param projectId the project associated with the rule
+   * @param dataStorageName the dataStorageName associated with the rule
+   * @param datasetName the datasetName associated with the rule
+   */
+  void deleteRetentionRuleByBusinessKey(
+      String projectId, String dataStorageName, String datasetName);
 }
