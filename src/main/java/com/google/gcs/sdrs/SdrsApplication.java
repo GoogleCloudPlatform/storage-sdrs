@@ -37,9 +37,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
-/**
- * The main startup class for the SDRS service.
- */
+/** The main startup class for the SDRS service. */
 public class SdrsApplication {
 
   private static final Logger logger = LoggerFactory.getLogger(SdrsApplication.class);
@@ -49,6 +47,7 @@ public class SdrsApplication {
 
   /**
    * Starts the SDRS service
+   *
    * @param args Application startup arguments
    */
   public static void main(String[] args) {
@@ -65,16 +64,12 @@ public class SdrsApplication {
     }
   }
 
-  /**
-   * Triggers the shutdown hook and gracefully shuts down the SDRS service
-   */
+  /** Triggers the shutdown hook and gracefully shuts down the SDRS service */
   static void shutdown() {
     System.exit(0);
   }
 
-  /**
-   * Loads necessary configurations and starts the web server
-   */
+  /** Loads necessary configurations and starts the web server */
   private static void startWebServer() {
     try {
 
@@ -82,19 +77,23 @@ public class SdrsApplication {
       Boolean useHttps = xmlConfig.getBoolean("serverConfig.useHttps");
       String hostName = xmlConfig.getString("serverConfig.address");
       int port = xmlConfig.getInt("serverConfig.port");
-      long shutdownGracePeriodInSeconds = xmlConfig
-          .getLong("serverConfig.shutdownGracePeriodInSeconds");
+      long shutdownGracePeriodInSeconds =
+          xmlConfig.getLong("serverConfig.shutdownGracePeriodInSeconds");
 
       // Build server URI
-      URI baseUri = UriBuilder.fromUri((useHttps ? "https://" : "http://") + hostName + "/")
-          .port(port).build();
+      URI baseUri =
+          UriBuilder.fromUri((useHttps ? "https://" : "http://") + hostName + "/")
+              .port(port)
+              .build();
 
       server = GrizzlyHttpServerFactory.createHttpServer(baseUri, new AppResourceConfig());
 
       // Register shutdown hook so the monitoring thread is killed when the app is stopped
-      Runtime.getRuntime().addShutdownHook(new Thread(
-          new ServerShutdownHook(server, shutdownGracePeriodInSeconds, false),
-          "shutdownHook"));
+      Runtime.getRuntime()
+          .addShutdownHook(
+              new Thread(
+                  new ServerShutdownHook(server, shutdownGracePeriodInSeconds, false),
+                  "shutdownHook"));
 
       server.start();
       logger.info("SDRS Web Server Started.");
@@ -107,23 +106,25 @@ public class SdrsApplication {
     }
   }
 
-  private static void scheduleExecutionServiceJob(){
+  private static void scheduleExecutionServiceJob() {
     JobScheduler scheduler = JobScheduler.getInstance();
 
     int initialDelay = xmlConfig.getInt("scheduler.task.ruleExecution.initialDelay");
     int frequency = xmlConfig.getInt("scheduler.task.ruleExecution.frequency");
-    TimeUnit timeUnit = TimeUnit.valueOf(xmlConfig.getString("scheduler.task.ruleExecution.timeUnit"));
+    TimeUnit timeUnit =
+        TimeUnit.valueOf(xmlConfig.getString("scheduler.task.ruleExecution.timeUnit"));
 
     scheduler.submitScheduledJob(new RuleExecutionRunner(), initialDelay, frequency, timeUnit);
     logger.info("Rule execution scheduled successfully.");
   }
 
-  private static void scheduleValidationServiceJob(){
+  private static void scheduleValidationServiceJob() {
     JobScheduler scheduler = JobScheduler.getInstance();
 
     int initialDelay = xmlConfig.getInt("scheduler.task.validationService.initialDelay");
     int frequency = xmlConfig.getInt("scheduler.task.validationService.frequency");
-    TimeUnit timeUnit = TimeUnit.valueOf(xmlConfig.getString("scheduler.task.validationService.timeUnit"));
+    TimeUnit timeUnit =
+        TimeUnit.valueOf(xmlConfig.getString("scheduler.task.validationService.timeUnit"));
 
     scheduler.submitScheduledJob(new ValidationRunner(), initialDelay, frequency, timeUnit);
     logger.info("Validation service scheduled successfully.");
@@ -136,7 +137,6 @@ public class SdrsApplication {
       } catch (ConfigurationException ex) {
         logger.error("Failed to load applicationConfig.xml");
       }
-
     }
     return xmlConfig;
   }
@@ -148,27 +148,25 @@ public class SdrsApplication {
   public static String getAppConfigProperty(String key, String defaultValue) {
     Configuration config = getAppConfig();
     String propertyValue = config.getString(key);
+    if (isPropertyValueToken(propertyValue)) {
+      // get property value from environment if the value is a replacement token
+      propertyValue = getPropertyValueFromEnv(propertyValue);
+    }
     if (propertyValue == null) {
       propertyValue = defaultValue;
-    } else {
-      // get property value from environment if the value is a replacement token
-      if (isPropertyValueToken(propertyValue)) {
-        propertyValue = getPropertyValueFromEnv(propertyValue);
-      }
     }
     return propertyValue;
   }
 
   private static boolean isPropertyValueToken(String value) {
     // config property token is included in ${}. i.e ${PUBSUB_TOPIC}
-    return value.startsWith("${");
+    return value != null && value.startsWith("${");
   }
 
   private static String getPropertyValueFromEnv(String token) {
-    String envVariable = token.substring(2, token.length()-1);
+    String envVariable = token.substring(2, token.length() - 1);
     return System.getenv(envVariable);
   }
-
 
   private static void registerPubSub() {
     if (PubSubMessageQueueManagerImpl.getInstance().getPublisher() == null) {
