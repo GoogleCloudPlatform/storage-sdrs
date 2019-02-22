@@ -17,6 +17,10 @@
 
 package com.google.gcs.sdrs.controller.filter;
 
+/**
+ * A POJO describing the available UserInfo properties provided by ESP in the
+ * "X-Endpoint-API-UserInfo" header
+ */
 public class UserInfo {
   private String issuer;
   private String id;

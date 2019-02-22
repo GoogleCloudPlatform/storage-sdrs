@@ -31,6 +31,7 @@ public abstract class BaseController {
 
   @Context() ContainerRequestContext context;
 
+  /** Generates a UUID to be used as a unique identifier for an incoming HTTP request. */
   public static String generateRequestUuid() {
     return UUID.randomUUID().toString();
   }
