@@ -46,7 +46,7 @@ public class InvalidFormatExceptionMapperTest {
     Response response = mapper.toResponse(exception);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("value"));
-    assertEquals(((ErrorResponse) response.getEntity()).getRequestUuid().length(), 36);
+    assertEquals(((ErrorResponse) response.getEntity()).getUuid().length(), 36);
   }
 
   @Test

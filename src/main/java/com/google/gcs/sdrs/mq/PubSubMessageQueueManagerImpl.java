@@ -192,6 +192,17 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
     return event;
   }
 
+  public void shutdown() {
+    if (publisher != null) {
+      try {
+        publisher.shutdown();
+        logger.info("Pubsub publisher shutdown complete");
+      } catch (Exception e) {
+        logger.error("Failed to shutdown pubsub publisher");
+      }
+    }
+  }
+
   public static void main(String[] args) {
     // TODO eshen remove the main before release
 

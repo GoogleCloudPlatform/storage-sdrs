@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.server;
 
+import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
 import java.util.concurrent.TimeUnit;
 
 import com.google.gcs.sdrs.JobScheduler.JobScheduler;
@@ -73,6 +74,8 @@ public class ServerShutdownHook implements Runnable {
       jobScheduler.shutdownScheduler();
     }
     logger.info("Job Scheduler shutdown complete.");
+
+    PubSubMessageQueueManagerImpl.getInstance().shutdown();
 
     logger.info("Shutting down web server...");
     server.shutdown(GRACE_PERIOD_IN_SECONDS, TimeUnit.SECONDS);

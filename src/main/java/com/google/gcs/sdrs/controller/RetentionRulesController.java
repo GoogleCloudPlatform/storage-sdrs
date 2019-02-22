@@ -57,28 +57,18 @@ public class RetentionRulesController extends BaseController {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response create(RetentionRuleCreateRequest request) {
-    String requestUuid = generateRequestUuid();
-
     try {
       validateCreate(request);
-
       UserInfo userInfo = getUserInfo();
-
       int result = service.createRetentionRule(request, userInfo);
-
       RetentionRuleCreateResponse response = new RetentionRuleCreateResponse();
-      response.setRequestUuid(requestUuid);
       response.setRuleId(result);
-
       return Response.status(HttpStatus.OK_200).entity(response).build();
     } catch (HttpException exception) {
-      return generateExceptionResponse(exception, requestUuid);
-    } catch (SQLException exception) {
-      logger.error(exception.getMessage());
-      return generateExceptionResponse(new PersistenceException(exception), requestUuid);
+      return generateExceptionResponse(exception);
     } catch (Exception exception) {
       logger.error(exception.getMessage());
-      return generateExceptionResponse(new InternalServerException(exception), requestUuid);
+      return generateExceptionResponse(new InternalServerException(exception));
     }
   }
 
@@ -88,24 +78,15 @@ public class RetentionRulesController extends BaseController {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response update(@PathParam("ruleId") Integer ruleId, RetentionRuleUpdateRequest request) {
-    String requestUuid = generateRequestUuid();
-
     try {
       validateUpdate(request);
-
       RetentionRuleResponse response = service.updateRetentionRule(ruleId, request);
-
-      response.setRequestUuid(requestUuid);
-
       return Response.status(HttpStatus.OK_200).entity(response).build();
     } catch (HttpException exception) {
-      return generateExceptionResponse(exception, requestUuid);
-    } catch (SQLException exception) {
-      logger.error(exception.getMessage());
-      return generateExceptionResponse(new PersistenceException(exception), requestUuid);
+      return generateExceptionResponse(exception);
     } catch (Exception exception) {
       logger.error(exception.getMessage());
-      return generateExceptionResponse(new InternalServerException(exception), requestUuid);
+      return generateExceptionResponse(new InternalServerException(exception));
     }
   }
 

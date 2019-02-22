@@ -19,6 +19,7 @@
     </monitor>
   </jobManager>
   <scheduler>
+    <enabled>${SCHEDULER_ENABLED}</enabled>
     <threadPoolSize>1</threadPoolSize>
     <shutdownWait>30</shutdownWait>
     <shutdownTimeUnit>SECONDS</shutdownTimeUnit>

@@ -44,7 +44,6 @@ public class UserInfoRequestFilter implements ContainerRequestFilter {
     if (base64EncodedUserInfo == null) {
       logger.error("Attempted unauthenticated access.");
       ErrorResponse error = new ErrorResponse();
-      error.setRequestUuid(BaseController.generateRequestUuid());
       error.setMessage("Unauthenticated");
       context.abortWith(
           Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(error).build());

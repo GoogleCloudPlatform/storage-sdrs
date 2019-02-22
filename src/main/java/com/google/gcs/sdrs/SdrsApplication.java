@@ -19,6 +19,7 @@
 package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
 import com.google.gcs.sdrs.runners.RuleExecutionRunner;
 import com.google.gcs.sdrs.runners.ValidationRunner;
@@ -53,17 +54,15 @@ public class SdrsApplication {
   public static void main(String[] args) {
     logger.info("Starting SDRS...");
 
-    try {
-      xmlConfig = new Configurations().xml("applicationConfig.xml");
-    } catch(ConfigurationException ex) {
-      logger.error("The server could not start because the configuration file could not be read: "
-          + ex.getCause());
-    }
+    getAppConfig();
 
+    // if web server fails to start, consider it a fatal error and exit the application with error
     startWebServer();
     registerPubSub();
-    scheduleExecutionServiceJob();
-    scheduleValidationServiceJob();
+    if (Boolean.valueOf(getAppConfigProperty("scheduler.enabled", "false"))) {
+      scheduleExecutionServiceJob();
+      scheduleValidationServiceJob();
+    }
   }
 
   /**
@@ -101,6 +100,10 @@ public class SdrsApplication {
       logger.info("SDRS Web Server Started.");
     } catch (IOException ex) {
       logger.error("An error occurred during web server start up: " + ex.getCause());
+      if (server !=null && server.isStarted()) {
+        server.shutdownNow();
+      }
+      System.exit(1);
     }
   }
 
