@@ -110,7 +110,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   public void deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
     RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName);
     if (rule != null) {
-      dao.delete(rule);
+      dao.softDelete(rule);
     }
   }
 
