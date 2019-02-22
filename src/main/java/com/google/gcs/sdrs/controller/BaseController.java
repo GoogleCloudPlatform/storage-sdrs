@@ -22,6 +22,7 @@ import com.google.gcs.sdrs.controller.filter.ContainerContextProperties;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.BaseHttpResponse;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import java.sql.SQLException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -52,7 +53,10 @@ public abstract class BaseController {
   }
 
   protected Response errorResponse(Exception exception) {
-    if (exception instanceof HttpException) {
+    if (exception instanceof SQLException) {
+      logger.error(exception.getMessage());
+      return generateExceptionResponse(new PersistenceException(exception));
+    } else if (exception instanceof HttpException) {
       return generateExceptionResponse((HttpException) exception);
     } else {
       this.logger.error(String.format("Unhandled internal error: %s", exception.getMessage()));
