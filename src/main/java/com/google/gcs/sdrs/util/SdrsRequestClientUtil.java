@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -36,6 +36,10 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utility to provide authentication, protocol, and hostname details for a web request back to the
+ * SDRS app.
+ */
 public class SdrsRequestClientUtil {
 
   private static final Logger logger = LoggerFactory.getLogger(SdrsRequestClientUtil.class);
@@ -44,17 +48,26 @@ public class SdrsRequestClientUtil {
 
   private SdrsRequestClientUtil() {}
 
-  public static Invocation.Builder request(String path) throws ConfigurationException {
+  /**
+   * Makes an external request back to the SDRS application.
+   *
+   * @param client the client to use to make the request
+   * @param path the path segment for the endpoint
+   * @return a builder that can be used to invoke the request
+   * @throws ConfigurationException when application config is missing
+   */
+  public static Invocation.Builder request(Client client, String path)
+      throws ConfigurationException {
     String jwt = generateJwt(String.format("https://%s", getServiceUrl()));
 
-    Invocation.Builder client =
-        ClientBuilder.newClient()
+    Invocation.Builder result =
+        client
             .target(String.format("%s://%s", getProtocol(), getServiceUrl()))
             .path(path)
             .request()
             .header("Authorization", String.format("Bearer %s", jwt));
 
-    return client;
+    return result;
   }
 
   private static String generateJwt(String audience) {

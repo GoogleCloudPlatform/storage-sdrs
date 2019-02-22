@@ -17,10 +17,55 @@
 
 package com.google.gcs.sdrs.util;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.junit.Before;
 import org.junit.Test;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SdrsRequestClientUtilTest {
 
+  private Client client;
+  private Invocation.Builder builder;
+  private WebTarget webTarget;
+
+  @Before
+  public void setup() {
+    client = mock(Client.class);
+    builder = mock(Invocation.Builder.class);
+    webTarget = mock(WebTarget.class);
+    when(client.target(anyString())).thenReturn(webTarget);
+    when(webTarget.path(anyString())).thenReturn(webTarget);
+    when(webTarget.request()).thenReturn(builder);
+    when(builder.header(anyString(), anyString())).thenReturn(builder);
+  }
+
   @Test
-  public void patternPrecedesPrefix() {}
+  public void bearerAuthHeaderInRequest() throws ConfigurationException {
+    SdrsRequestClientUtil.request(client, "something").post(null);
+
+    verify(builder).header(eq("Authorization"), startsWith("Bearer ey"));
+  }
+
+  @Test
+  public void usesConfiguredProtocolAndServiceUrl() throws ConfigurationException {
+    SdrsRequestClientUtil.request(client, "something").post(null);
+
+    verify(client).target(eq("http://sdrs-api.endpoints.sdrs-server.cloud.goog"));
+  }
+
+  @Test
+  public void usesPath() throws ConfigurationException {
+    SdrsRequestClientUtil.request(client, "something").post(null);
+
+    verify(webTarget).path(eq("something"));
+  }
 }

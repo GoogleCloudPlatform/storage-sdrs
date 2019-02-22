@@ -18,6 +18,8 @@
 package com.google.gcs.sdrs.runners;
 
 import com.google.gcs.sdrs.util.SdrsRequestClientUtil;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -36,7 +38,8 @@ public class ValidationRunner implements Runnable {
       String endpoint = config.getString("scheduler.validationService.endpoint");
 
       logger.info("Making request to validation service endpoint.");
-      SdrsRequestClientUtil.request(endpoint).post(null);
+      Client client = ClientBuilder.newClient();
+      SdrsRequestClientUtil.request(client, endpoint).post(null);
 
     } catch (ConfigurationException ex) {
       logger.error(String.format("Configuration file could not be read: %s", ex.getMessage()));
