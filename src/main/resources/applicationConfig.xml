@@ -42,6 +42,7 @@
     <maxPrefixCount>1000</maxPrefixCount>
     <suffix>shadow</suffix>
     <defaultProjectId>global-default</defaultProjectId>
+    <defaultStorageName>global</defaultStorageName>
     <maxLookBackInDays>365</maxLookBackInDays>
   </sts>
   <pubsub>

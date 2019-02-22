@@ -28,6 +28,8 @@ import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
+
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
 import javax.ws.rs.Consumes;
@@ -71,6 +73,9 @@ public class RetentionRulesController extends BaseController {
       return Response.status(HttpStatus.OK_200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
+    } catch (SQLException exception) {
+      logger.error(exception.getMessage());
+      return generateExceptionResponse(new PersistenceException(exception), requestUuid);
     } catch (Exception exception) {
       logger.error(exception.getMessage());
       return generateExceptionResponse(new InternalServerException(exception), requestUuid);
@@ -95,6 +100,9 @@ public class RetentionRulesController extends BaseController {
       return Response.status(HttpStatus.OK_200).entity(response).build();
     } catch (HttpException exception) {
       return generateExceptionResponse(exception, requestUuid);
+    } catch (SQLException exception) {
+      logger.error(exception.getMessage());
+      return generateExceptionResponse(new PersistenceException(exception), requestUuid);
     } catch (Exception exception) {
       logger.error(exception.getMessage());
       return generateExceptionResponse(new InternalServerException(exception), requestUuid);

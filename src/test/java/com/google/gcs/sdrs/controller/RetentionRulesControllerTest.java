@@ -27,6 +27,7 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
+import java.sql.SQLException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 import org.eclipse.jetty.http.HttpStatus;
@@ -76,9 +77,8 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void createRuleWhenSuccessfulIncludesResponseFields() {
-    when(controller.service.createRetentionRule(
-            any(RetentionRuleCreateRequest.class), any(UserInfo.class)))
+  public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException {
+    when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
         .thenReturn(543);
 
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
@@ -202,7 +202,7 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void updateRuleWithValidFieldsSucceeds() {
+  public void updateRuleWithValidFieldsSucceeds() throws SQLException {
     RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
     request.setRetentionPeriod(123);
     RetentionRuleResponse serviceResponse = new RetentionRuleResponse();
@@ -212,6 +212,7 @@ public class RetentionRulesControllerTest {
     serviceResponse.setRetentionPeriod(123);
     serviceResponse.setRuleId(1);
     serviceResponse.setType(RetentionRuleType.DATASET);
+
     when(controller.service.updateRetentionRule(anyInt(), any(RetentionRuleUpdateRequest.class)))
         .thenReturn(serviceResponse);
 

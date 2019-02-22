@@ -33,7 +33,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -72,53 +73,57 @@ public class ExecuteRetentionWorker extends BaseWorker {
   @Override
   public void doWork() {
     String dataStorageName = getDataStorageName(executionEvent.getTarget());
+    String projectId = executionEvent.getProjectId();
     RetentionRule rule;
-    switch (executionEvent.getExecutionEventType()) {
-      case USER_COMMANDED:
-        rule = getEventDefinedRule();
-        break;
-      case POLICY:
-        // If the projectId is provided, the target can be assumed to be a Dataset rule.
-        if (executionEvent.getProjectId() != null) {
-          rule =
-              retentionRuleDao.findDatasetRuleByBusinessKey(
-                  executionEvent.getProjectId(),
-                  dataStorageName);
-        } else {
-          rule = retentionRuleDao.findGlobalRuleByTarget(dataStorageName);
-        }
-
-        if (rule == null) {
-          workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
-          throw new UnsupportedOperationException("No rule found matching description");
-        }
-        break;
-      default:
-        workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
-        throw new UnsupportedOperationException("Unknown execution event type");
-    }
-
-    try {
-      RetentionJob job;
-      switch (rule.getType()) {
-        case DATASET:
-          job = ruleExecutor.executeDatasetRule(rule);
+    try{
+      switch (executionEvent.getExecutionEventType()) {
+        case USER_COMMANDED:
+          rule = getEventDefinedRule();
+          RetentionJob result = ruleExecutor.executeDatasetRule(rule);
+          retentionJobDao.save(result);
+          workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
           break;
-        case GLOBAL:
-          Collection<RetentionRule> rules =
-              retentionRuleDao.findAllDatasetRulesInDataStorage(dataStorageName);
+        case POLICY:
+          boolean dataStorageExists = !dataStorageName.isEmpty();
+          boolean projectIdExists = projectId != null && !projectId.isEmpty();
 
-          job = ruleExecutor.executeDefaultRule(rule, rules, atMidnight());
-          break;
-        default:
-          workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
-          throw new UnsupportedOperationException("Unknown retention rule type");
+          if (projectIdExists && dataStorageExists) {
+            rule = retentionRuleDao.findDatasetRuleByBusinessKey(projectId, dataStorageName);
+            if (rule != null) {
+              RetentionJob job = ruleExecutor.executeDatasetRule(rule);
+              retentionJobDao.save(job);
+            } else {
+              String message = String.format("No policy found for target project: %s, target: %s",
+                  projectId, dataStorageName);
+              logger.error(message);
+              throw new UnsupportedOperationException(message);
+            }
+
+          } else if (projectIdExists) {
+            executeAllDatasetRulesByProject(executionEvent.getProjectId());
+          } else {
+            executeAllDatasetRules();
+          }
+          workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
       }
-      retentionJobDao.save(job);
-      workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
-    } catch (IOException exception) {
-      logger.error(String.format("Error executing rule: %s", exception.getMessage()));
+    } catch (IOException ex) {
+      logger.error(String.format("Error executing rule: %s", ex.getMessage()));
       workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
+    }
+  }
+
+  private void executeAllDatasetRules() throws IOException {
+    List<String> projectIds = retentionRuleDao.getAllDatasetRuleProjectIds();
+    for (String projectId : projectIds) {
+      executeAllDatasetRulesByProject(projectId);
+    }
+  }
+
+  private void executeAllDatasetRulesByProject(String projectId) throws IOException {
+    List<RetentionRule> datasetRules = retentionRuleDao.findDatasetRulesByProjectId(projectId);
+    for (RetentionRule rule : datasetRules) {
+      RetentionJob job = ruleExecutor.executeDatasetRule(rule);
+      retentionJobDao.save(job);
     }
   }
 

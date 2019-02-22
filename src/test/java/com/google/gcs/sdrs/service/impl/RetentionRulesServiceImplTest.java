@@ -28,8 +28,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.sql.SQLException;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,7 +47,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRulePersistsDatasetEntity() {
+  public void createRulePersistsDatasetEntity() throws SQLException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
@@ -69,7 +72,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRuleUsesBucketForDatasetWhenNoDataset() {
+  public void createRuleUsesBucketForDatasetWhenNoDataset() throws SQLException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
@@ -87,7 +90,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRuleUsesDataStorageDatasetForDataset() {
+  public void createRuleUsesDataStorageDatasetForDataset() throws SQLException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
@@ -105,7 +108,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRulePersistsGlobalEntity() {
+  public void createRulePersistsGlobalEntity() throws SQLException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
@@ -122,12 +125,12 @@ public class RetentionRulesServiceImplTest {
     assertEquals(true, input.getIsActive());
     assertEquals(input.getProjectId(), "global-default");
     assertEquals(1, (int) input.getVersion());
-    assertNull(input.getDataStorageName());
+    assertEquals(input.getDataStorageName(), "global");
     assertNull(input.getDatasetName());
   }
 
   @Test
-  public void updateRuleFetchesAndUpdatesEntity() {
+  public void updateRuleFetchesAndUpdatesEntity() throws SQLException {
     RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
     request.setRetentionPeriod(123);
     RetentionRule existingRule = new RetentionRule();

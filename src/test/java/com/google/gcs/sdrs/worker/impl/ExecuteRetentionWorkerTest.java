@@ -26,6 +26,8 @@ import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -64,48 +66,69 @@ public class ExecuteRetentionWorkerTest {
   }
 
   @Test
-  public void doWorkSuccessfullyHandlesPolicyRequestsWithProjectId() {
+  public void doWorkRunsAllWhenPolicyOnly(){
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
+    request.setProjectId(null);
+    request.setTarget(null);
     ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
-    RetentionRule rule = new RetentionRule();
-    rule.setType(RetentionRuleType.DATASET);
-    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(rule);
+    List<String> projectIds = new ArrayList<>();
+    String projectId = "testproject";
+    projectIds.add(projectId);
+    when(retentionRuleDaoMock.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
 
     worker.doWork();
 
+    verify(retentionRuleDaoMock).findDatasetRulesByProjectId(projectId);
     assertEquals(WorkerResult.WorkerResultStatus.SUCCESS, worker.getWorkerResult().getStatus());
   }
 
   @Test
-  public void doWorkSuccessfullyHandlesGlobalPolicyRequests() {
+  public void doWorkRunsProjectWhenSpecified(){
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
-    request.setProjectId(null);
+    request.setTarget(null);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
+    worker.ruleExecutor = ruleExecutorMock;
+    worker.retentionJobDao = retentionJobDaoMock;
+    worker.retentionRuleDao = retentionRuleDaoMock;
+
+    worker.doWork();
+
+    verify(retentionRuleDaoMock).findDatasetRulesByProjectId(request.getProjectId());
+    assertEquals(WorkerResult.WorkerResultStatus.SUCCESS, worker.getWorkerResult().getStatus());
+  }
+
+  @Test
+  public void doWorkRunsRuleWhenProjectAndTargetSpecified(){
+    ExecutionEventRequest request = createBasicRequest();
+    request.setExecutionEventType(ExecutionEventType.POLICY);
     ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
     RetentionRule rule = new RetentionRule();
-    rule.setType(RetentionRuleType.GLOBAL);
-    when(retentionRuleDaoMock.findGlobalRuleByTarget(any())).thenReturn(rule);
+    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(rule);
 
     worker.doWork();
 
+    verify(retentionRuleDaoMock)
+        .findDatasetRuleByBusinessKey(request.getProjectId(), request.getTarget());
     assertEquals(WorkerResult.WorkerResultStatus.SUCCESS, worker.getWorkerResult().getStatus());
   }
 
   @Test(expected = UnsupportedOperationException.class)
-  public void doWorkThrowsErrorWhenNoMatchingPolicy() {
+  public void doWorkErrorsWhenRuleNotFound(){
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
     ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
+    RetentionRule rule = new RetentionRule();
     when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(null);
 
     worker.doWork();

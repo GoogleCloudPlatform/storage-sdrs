@@ -261,4 +261,16 @@ public class PrefixGeneratorUtilityTest {
     assertEquals(1, result.size());
     assertEquals("test/2019/01/01/00", result.get(0));
   }
+
+  @Test
+  public void emptyPatternNoLeadingSlash() {
+    String pattern = "";
+    ZonedDateTime time1 = ZonedDateTime.of(2019, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    ZonedDateTime time2 = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+
+    List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
+
+    assertEquals(1, result.size());
+    assertEquals("2019", result.get(0));
+  }
 }
