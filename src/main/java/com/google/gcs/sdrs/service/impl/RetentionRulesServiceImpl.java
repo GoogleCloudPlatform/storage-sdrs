@@ -19,6 +19,7 @@ package com.google.gcs.sdrs.service.impl;
 
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
+import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;

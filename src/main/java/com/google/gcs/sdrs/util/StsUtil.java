@@ -287,8 +287,6 @@ public class StsUtil {
     return schedule;
   }
 
-
-
   private static String buildOperationFilterString(String projectId, List<String> jobNames) {
     return String.format("{\"project_id\": \"%s\", \"job_names\": %s}",
         projectId, new Gson().toJson(jobNames));
