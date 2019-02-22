@@ -21,6 +21,7 @@ package com.google.gcs.sdrs.rule.impl;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
+import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
@@ -28,9 +29,6 @@ import com.google.gcs.sdrs.rule.RuleExecutor;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +49,8 @@ public class StsRuleExecutor implements RuleExecutor {
   public static StsRuleExecutor instance;
   private final String DEFAULT_SUFFIX = "shadow";
   private final String DEFAULT_PROJECT_ID = "global-default";
-  private final int DEFAULT_MAX_PREFIX_COUNT = 1000;
-  private final int DEFAULT_LOOKBACK_IN_DAYS = 365;
+  private final String DEFAULT_MAX_PREFIX_COUNT = "1000";
+  private final String DEFAULT_LOOKBACK_IN_DAYS = "365";
   private String suffix;
   private String defaultProjectId;
   private int maxPrefixCount;
@@ -79,20 +77,17 @@ public class StsRuleExecutor implements RuleExecutor {
    * @throws IOException when the STS Client cannot be instantiated
    */
   private StsRuleExecutor() throws IOException {
-    try {
-      Configuration config = new Configurations().xml("applicationConfig.xml");
-      suffix = config.getString("sts.suffix");
-      maxPrefixCount = config.getInt("sts.maxPrefixCount");
-      defaultProjectId = config.getString("sts.defaultProjectId");
-      lookBackInDays = config.getInt("sts.maxLookBackInDays");
-      client = StsUtil.createStsClient();
-    } catch (ConfigurationException ex) {
-      logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
-      suffix = DEFAULT_SUFFIX;
-      maxPrefixCount = DEFAULT_MAX_PREFIX_COUNT;
-      defaultProjectId = DEFAULT_PROJECT_ID;
-      lookBackInDays = DEFAULT_LOOKBACK_IN_DAYS;
-    }
+
+    suffix = SdrsApplication.getAppConfigProperty("sts.suffix", DEFAULT_SUFFIX);
+    maxPrefixCount = Integer.valueOf(SdrsApplication.getAppConfigProperty(
+        "sts.maxPrefixCount",
+        DEFAULT_MAX_PREFIX_COUNT));
+    defaultProjectId = SdrsApplication.getAppConfigProperty(
+        "sts.defaultProjectId",
+        DEFAULT_PROJECT_ID);
+    lookBackInDays = Integer.valueOf(SdrsApplication.getAppConfigProperty(
+        "sts.maxLookBackInDays",
+        DEFAULT_LOOKBACK_IN_DAYS));
   }
 
   /**

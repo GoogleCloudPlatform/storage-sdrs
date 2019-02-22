@@ -15,10 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * A worker class for updating external instances of retention jobs
- */
-public class UpdateExternalJobWorker extends BaseWorker {
+/** A worker class for updating external instances of retention jobs */
+public class UpdateDefaultJobWorker extends BaseWorker {
 
   private RetentionRule globalRuleToUpdate;
   private String projectToUpdate;
@@ -26,14 +24,14 @@ public class UpdateExternalJobWorker extends BaseWorker {
   RetentionJobDao jobDao = SingletonDao.getRetentionJobDao();
   RetentionRuleDao ruleDao = SingletonDao.getRetentionRuleDao();
 
-  private final Logger logger = LoggerFactory.getLogger(UpdateExternalJobWorker.class);
+  private final Logger logger = LoggerFactory.getLogger(UpdateDefaultJobWorker.class);
 
   /**
    * A constructor for the External Job Update Worker
    * @param globalRule the global rule that needs to be updated
    * @param projectId the project ID where the global rule needs to be updated
    */
-  public UpdateExternalJobWorker(RetentionRule globalRule, String projectId) {
+  public UpdateDefaultJobWorker(RetentionRule globalRule, String projectId) {
     super();
 
     globalRuleToUpdate = globalRule;
@@ -41,9 +39,8 @@ public class UpdateExternalJobWorker extends BaseWorker {
     executor = StsRuleExecutor.getInstance();
   }
 
-  /**
-   * The function that will be existed when the worker is submitted
-   */
+  /** The function that will be executed when the worker is submitted */
+  @Override
   public void doWork(){
     RetentionJob job = jobDao
         .findJobByRuleIdAndProjectId(globalRuleToUpdate.getId(), projectToUpdate);
