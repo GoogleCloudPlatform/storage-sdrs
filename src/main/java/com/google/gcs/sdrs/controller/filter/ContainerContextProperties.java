@@ -15,11 +15,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.filter;
+package com.google.gcs.sdrs.controller.filter;
 
 /** Enumerated custom properties included as part of the container context */
 public enum ContainerContextProperties {
-  CORRELATION_UUID("correlationUuid");
+  CORRELATION_UUID("correlationUuid"),
+  USER_INFO("userInfo");
 
   private final String value;
 

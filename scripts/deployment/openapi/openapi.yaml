@@ -23,6 +23,8 @@ x-google-endpoints:
     name: your-api.endpoints.your-project.cloud.goog
     # Your target IP Address; Must be quoted
     target: 'your_target_ip'
+security:
+  - server_service_account: []
 paths:
   /retentionrules:
     post:
@@ -221,4 +223,12 @@ definitions:
     required:
       - retentionPeriod
     type: object
-
+securityDefinitions:
+  # This security definition will allow the app to call itself over HTTP/S
+  server_service_account:
+    authorizationUrl: ""
+    flow: implicit
+    type: oauth2
+    # The service account associated with this application should be used here
+    x-google-issuer: your-service-account-email-address
+    x-google-jwks_uri: https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email-address

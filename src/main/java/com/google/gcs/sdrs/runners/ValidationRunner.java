@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.runners;
 
+import com.google.gcs.sdrs.util.SdrsRequestClientUtil;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import org.apache.commons.configuration2.Configuration;
@@ -30,23 +31,18 @@ public class ValidationRunner implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(ValidationRunner.class);
 
-  private static String SERVICE_URL;
-
-  private ValidationRunner() {
-    try {
-      Configuration config = new Configurations().xml("applicationConfig.xml");
-      SERVICE_URL = config.getString("scheduler.serviceUrl");
-    } catch (ConfigurationException ex) {
-      logger.error("Configuration file could not be read: " + ex.getMessage());
-    }
-  }
-
   /** Calls the validate job execution status endpoint */
   public void run() {
-    // TODO: This URL should be the load balancer URL and protected by authorization (JWT/SA) that
-    // will need to be configured here
-    logger.info("Making request to validation service endpoint.");
-    Client client = ClientBuilder.newClient();
-    client.target(SERVICE_URL).path("events/validation").request().post(null);
+    try {
+      Configuration config = new Configurations().xml("applicationConfig.xml");
+      String endpoint = config.getString("scheduler.validationService.endpoint");
+
+      logger.info("Making request to validation service endpoint.");
+      Client client = ClientBuilder.newClient();
+      SdrsRequestClientUtil.request(client, endpoint).post(null);
+
+    } catch (ConfigurationException ex) {
+      logger.error(String.format("Configuration file could not be read: %s", ex.getMessage()));
+    }
   }
 }

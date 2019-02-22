@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
@@ -65,8 +66,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
    * @return the {@link Integer} id of the created rule
    */
   @Override()
-  public Integer createRetentionRule(RetentionRuleCreateRequest rule) throws SQLException {
-    RetentionRule entity = mapPojoToPersistenceEntity(rule);
+  public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user) throws SQLException {
+    RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
     try{
       return dao.save(entity);
     } catch (ConstraintViolationException ex) {
@@ -101,7 +102,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     return mapRuleToResponse(entity);
   }
 
-  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {
+  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo, UserInfo user) {
     RetentionRule entity = new RetentionRule();
 
     // Map over input values
@@ -121,12 +122,11 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       entity.setDataStorageName(defaultStorageName);
     }
 
+    entity.setUser(user.getId());
+
     // Generate metadata
     entity.setIsActive(true);
     entity.setVersion(1);
-
-    // TODO: pull actual user value from JWT
-    entity.setUser("user");
 
     return entity;
   }

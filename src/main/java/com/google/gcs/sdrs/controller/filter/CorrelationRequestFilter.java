@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.filter;
+package com.google.gcs.sdrs.controller.filter;
 
 import java.util.UUID;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -24,11 +24,7 @@ import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.gcs.sdrs.filter.ContainerContextProperties.CORRELATION_UUID;
-
-/**
- * Extracts the correlation-uuid from the HTTP headers to make it available to the application
- */
+/** Extracts the correlation-uuid from the HTTP headers to make it available to the application */
 @Provider
 public class CorrelationRequestFilter implements ContainerRequestFilter {
 
@@ -44,6 +40,6 @@ public class CorrelationRequestFilter implements ContainerRequestFilter {
       correlationUuid = UUID.randomUUID().toString();
       logger.info(String.format("Generating new Correlation UUID: %s", correlationUuid));
     }
-    context.setProperty(CORRELATION_UUID.toString(), correlationUuid);
+    context.setProperty(ContainerContextProperties.CORRELATION_UUID.toString(), correlationUuid);
   }
 }

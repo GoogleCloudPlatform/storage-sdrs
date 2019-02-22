@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
@@ -26,18 +27,17 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
+import java.sql.SQLException;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.SQLException;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -50,6 +50,8 @@ public class RetentionRulesControllerTest {
   @Before()
   public void setup() {
     controller = new RetentionRulesController();
+    controller.context = mock(ContainerRequestContext.class);
+    when(controller.context.getProperty(any())).thenReturn(new UserInfo());
     controller.service = mock(RetentionRulesServiceImpl.class);
   }
 
@@ -69,8 +71,7 @@ public class RetentionRulesControllerTest {
   @Test
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException(ValidationResult.fromString("test"));
-    Response response =
-        controller.generateExceptionResponse(testException, "requestUuid");
+    Response response = controller.generateExceptionResponse(testException, "requestUuid");
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: test");
   }

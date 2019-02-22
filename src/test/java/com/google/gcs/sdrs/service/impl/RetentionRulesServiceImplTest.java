@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
@@ -54,7 +55,7 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
 
-    service.createRetentionRule(createRule);
+    service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
@@ -78,7 +79,7 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://b");
     createRule.setProjectId("projectId");
 
-    service.createRetentionRule(createRule);
+    service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
@@ -96,7 +97,7 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
 
-    service.createRetentionRule(createRule);
+    service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
@@ -112,7 +113,7 @@ public class RetentionRulesServiceImplTest {
     createRule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
 
-    service.createRetentionRule(createRule);
+    service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 

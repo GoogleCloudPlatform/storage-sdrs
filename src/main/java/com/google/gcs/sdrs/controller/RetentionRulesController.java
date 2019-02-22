@@ -18,12 +18,13 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.FieldValidations;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
@@ -61,7 +62,9 @@ public class RetentionRulesController extends BaseController {
     try {
       validateCreate(request);
 
-      int result = service.createRetentionRule(request);
+      UserInfo userInfo = getUserInfo();
+
+      int result = service.createRetentionRule(request, userInfo);
 
       RetentionRuleCreateResponse response = new RetentionRuleCreateResponse();
       response.setRequestUuid(requestUuid);
