@@ -13,17 +13,17 @@
 # limitations under the License.
 
 imports:
-- path: container_igm.jinja
+- path: igm.jinja
 
 resources:
-- name: autoscaled_container
-  type: container_igm.jinja
+- name: sdrs
+  type: igm.jinja
   properties:
-    containerImage: cos-stable-71-11151-71-0
-    containerManifest: container_manifest.yaml
-    targetSize: 3
-    maxReplicas: 5
-    machineType: f1-micro
+    targetSize: 2
+    maxNumReplicas: 5
+    machineType: n1-standard-1
     externalIp: False
-    region: us-west1
-    
+    region: us-central1
+    email: pratap@sdrs-server.iam.gserviceaccount.com 
+    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b

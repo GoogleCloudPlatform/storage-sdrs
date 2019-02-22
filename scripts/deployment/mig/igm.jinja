@@ -16,6 +16,7 @@ limitations under the License.
 {% set BACK_END = env["deployment"] + "-bes" %}
 {% set HEALTH_CHECK = env["deployment"] + "-hc" %}
 {% set FWARD_RULE = env["deployment"] + "-fr" %}
+{% set COMPUTE_URL_BASE = 'https://www.googleapis.com/compute/v1/' %}
 
 resources:
 - name: {{ env["deployment"] }}-as
@@ -24,17 +25,20 @@ resources:
     region: {{ properties["region"] }}
     target: $(ref.{{ IGM }}.selfLink)
     autoscalingPolicy:
-      maxNumReplicas: {{ properties["maxReplicas"] }}
+      maxNumReplicas: {{ properties["maxNumReplicas"] }}
       cpuUtilization:
         utilizationTarget: 0.7
       coolDownPeriodSec: 90
 - name: {{ IGM }}
   type: compute.v1.regionInstanceGroupManagers
   properties:
-    baseInstanceName: {{ env["deployment"] }}-instance
+    baseInstanceName: {{ env["deployment"] }}-vm
     instanceTemplate: $(ref.{{ INSTANCE_TEMPLATE }}.selfLink)
     targetSize: {{ properties["targetSize"] }}
     region: {{ properties["region"] }}
+    updatePolicy:
+      minimalAction: REPLACE
+      type: PROACTIVE
 - name: {{ INSTANCE_TEMPLATE }}
   type: compute.v1.instanceTemplate
   properties:
@@ -45,21 +49,31 @@ resources:
         boot: true
         autoDelete: true
         initializeParams:
-          sourceImage: https://www.googleapis.com/compute/v1/projects/cos-cloud/global/images/{{ properties["containerImage"] }}
+          sourceImage: {{ COMPUTE_URL_BASE }}projects/{{ env['project'] }}/global/images/centos-docker-sd
       machineType: {{ properties["machineType"] }}
+      metadata:
+        items:
+        - key: startup-script-url
+          value: gs://sdrs-server/versions/demo-2/startup.sh
       networkInterfaces:
-      - network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-        subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-west1/subnetworks/subnet-a
+      - network: {{ properties["network"] }}
+        subnetwork: {{ properties["subnetwork"] }}
+      serviceAccounts:
+        - email: {{ properties["email"] }}
+          scopes:
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring.write
+          - https://www.googleapis.com/auth/source.read_write
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/servicecontrol
+          - https://www.googleapis.com/auth/service.management.readonly
+          - https://www.googleapis.com/auth/trace.append
+
         {% if properties["externalIp"] %}
         accessConfigs:
         - name: External-IP
           type: ONE_TO_ONE_NAT
         {% endif %}
-      metadata:
-        items:
-        - key: google-container-manifest
-          value: |
-            {{ imports[properties["containerManifest"]]|indent(12) }}
 - name: {{ BACK_END }}
   type: compute.v1.regionBackendService
   properties:
@@ -74,37 +88,31 @@ resources:
   type: compute.v1.healthCheck
   properties:
     type: "TCP"
-    tcpHealthCheck: 
+    tcpHealthCheck:
       port: 80
 - name: {{ FWARD_RULE }}
   type: compute.v1.forwardingRule
   properties:
     ports: [80]
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-west1/subnetworks/subnet-a
+    network: {{ properties["network"] }}
+    subnetwork: {{ properties["subnetwork"] }}
     region: {{ properties["region"] }}
     backendService: $(ref.{{ BACK_END }}.selfLink)
     loadBalancingScheme: INTERNAL
 - name: {{ env["deployment"] }}-allow-health-check-firewall-rule
   type: compute.v1.firewall
   properties:
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
+    network: {{ properties["network"] }}
     sourceRanges: ['130.211.0.0/22','35.191.0.0/16']
     allowed:
     - IPProtocol: 'TCP'
-    
+
 - name: {{ env["deployment"] }}-allow-internal-lb-firewall-rule
   type: compute.v1.firewall
   properties:
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-    sourceRanges: ['10.10.20.0/22']
+    network: {{ properties["network"] }}
+    sourceRanges: ['10.20.20.0/22']
     allowed:
     - IPProtocol: 'TCP'
       ports: ['80', '443']
-     
-    
 
-
-       
-  
-    

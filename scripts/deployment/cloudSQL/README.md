@@ -131,8 +131,12 @@ message: |-
 
    To fix these error provide the property password in mysql.yam file and re-run thee deployment.
 
-IMPORTANT: After the successful launch of deployment **remove the password from the mysql.yaml file**
+IMPORTANT: After the successful launch of deployment **remove the password from the my_cloudsql.yaml file**
 
 
-2. While trying to create Trigger on table, once the deployment is successfully created, you may encounter the following error. This is because the Deployment Scripts are not able to set log_bin_trust_function_creators to true.
+2. While trying to create Trigger on table, once the deployment is successfully created, you may encounter the following error.
+
+ERROR 1419 (HY000) at line 83: You do not have the SUPER privilege and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)
+
+This is because the Deployment Scripts are not able to set log_bin_trust_function_creators to true.
 This could be done via UI. [https://stackoverflow.com/questions/47359508/cant-create-trigger-on-mysql-table-within-google-cloud]
