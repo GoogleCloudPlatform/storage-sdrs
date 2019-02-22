@@ -109,7 +109,9 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   @Override
   public void deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
     RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName);
-    dao.softDelete(rule);
+    if (rule != null) {
+      dao.delete(rule);
+    }
   }
 
   private RetentionRule mapPojoToPersistenceEntity(
