@@ -15,23 +15,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  *
  */
-
 package com.google.gcs.sdrs.controller.pojo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.UUID;
+public class NotificationEventRequest {
+  private String projectId;
+  private String deletedObject;
+  private String deletedAt;
 
-/** Base class to be used by HTTP response objects */
-public abstract class BaseHttpResponse {
-
-  @JsonProperty("requestUuid")
-  private String uuid;
-
-  public BaseHttpResponse() {
-    this.uuid = UUID.randomUUID().toString();
+  public String getProjectId() {
+    return projectId;
   }
 
-  public String getUuid() {
-    return uuid;
+  public void setProjectId(String projectId) {
+    this.projectId = projectId;
+  }
+
+  public String getDeletedObject() {
+    return deletedObject;
+  }
+
+  public void setDeletedObject(String deletedObject) {
+    this.deletedObject = deletedObject;
+  }
+
+  public String getDeletedAt() {
+    return deletedAt;
+  }
+
+  public void setDeletedAt(String deletedAt) {
+    this.deletedAt = deletedAt;
   }
 }

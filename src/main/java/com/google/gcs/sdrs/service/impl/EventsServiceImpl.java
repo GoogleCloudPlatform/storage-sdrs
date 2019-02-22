@@ -19,8 +19,10 @@ package com.google.gcs.sdrs.service.impl;
 
 import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.impl.DeleteNotifcationWorker;
 import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
 import com.google.gcs.sdrs.worker.impl.ValidationWorker;
 import org.slf4j.Logger;
@@ -32,7 +34,7 @@ public class EventsServiceImpl implements EventsService {
   private static final Logger logger = LoggerFactory.getLogger(EventsServiceImpl.class);
 
   @Override
-  public void executeEvent(ExecutionEventRequest request) {
+  public void processExecutionEvent(ExecutionEventRequest request) {
     Worker worker = new ExecuteRetentionWorker(request);
     JobManager.getInstance().submitJob(worker);
   }
@@ -45,4 +47,19 @@ public class EventsServiceImpl implements EventsService {
     Worker worker = new ValidationWorker();
     JobManager.getInstance().submitJob(worker);
   }
+
+  /**
+   * Submits a notification job to the JobManager
+   *
+   * @param request
+   * @param correlationId
+   */
+  @Override
+  public void processDeleteNotificaitonEvent(NotificationEventRequest request,
+      String correlationId) {
+    Worker worker = new DeleteNotifcationWorker(request, correlationId);
+    JobManager.getInstance().submitJob(worker);
+  }
+
+
 }

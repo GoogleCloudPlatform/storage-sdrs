@@ -40,7 +40,6 @@ public abstract class JacksonExceptionMapper<T extends Throwable> implements Exc
     logger.debug(exception.getMessage());
     ErrorResponse errorResponse = new ErrorResponse();
     errorResponse.setMessage(createExceptionResponseMessage(exception));
-    errorResponse.setRequestUuid(UUID.randomUUID().toString());
 
     return Response.status(HttpStatus.BAD_REQUEST_400).entity(errorResponse).build();
   }

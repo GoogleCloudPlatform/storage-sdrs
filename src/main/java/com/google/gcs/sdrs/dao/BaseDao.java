@@ -22,6 +22,7 @@ import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import java.io.Serializable;
+import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -41,6 +42,12 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> {
 
   private static final Logger logger = LoggerFactory.getLogger(BaseDao.class);
+  private static final String HIBERNATE_CONNECTION_URL_ENV = "HIBERNATE_CONNECTION_URL";
+  private static final String HIBERNATE_CONNECTION_URL_PROPERTY_KEY = "hibernate.connection.url";
+  private static final String HIBERNATE_CONNECTION_USER_ENV = "HIBERNATE_CONNECTION_USER";
+  private static final String HIBERNATE_CONNECTION_USER_PROPERTY_KEY = "hibernate.connection.username";
+  private static final String HIBERNATE_CONNECTION_PASSWORD_ENV = "HIBERNATE_CONNECTION_PASSWORD";
+  private static final String HIBERNATE_CONNECTION_PASSWORD_PROPERTY_KEY = "hibernate.connection.password";
 
   private static StandardServiceRegistry registry;
   private static SessionFactory sessionFactory;
@@ -104,7 +111,12 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
     if (sessionFactory == null) {
       try {
         // Create registry
-        registry = new StandardServiceRegistryBuilder().configure().build();
+        StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder().configure();
+        registryBuilder.applySetting(HIBERNATE_CONNECTION_URL_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_URL_ENV));
+        registryBuilder.applySetting(HIBERNATE_CONNECTION_USER_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_USER_ENV));
+        registryBuilder.applySetting(HIBERNATE_CONNECTION_PASSWORD_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_PASSWORD_ENV));
+        registry = registryBuilder.build();
+
 
         // Create Metadata
         Metadata metadata =

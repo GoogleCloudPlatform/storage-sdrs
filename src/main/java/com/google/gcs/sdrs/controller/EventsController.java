@@ -19,10 +19,14 @@ package com.google.gcs.sdrs.controller;
 
 import com.google.gcs.sdrs.controller.pojo.EventResponse;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
 import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
+import com.google.gcs.sdrs.mq.pojo.DeleteNotificationMessage;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.HashSet;
 import javax.ws.rs.Consumes;
@@ -49,23 +53,16 @@ public class EventsController extends BaseController {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response executeEvent(ExecutionEventRequest request) {
-    String requestUuid = generateRequestUuid();
-
     try {
       validateExecutionEvent(request);
-
-      service.executeEvent(request);
-
-      EventResponse response = new EventResponse();
-      response.setRequestUuid(requestUuid);
-      response.setMessage("Event registered and awaiting execution.");
-
-      return Response.status(HttpStatus.OK_200).entity(response).build();
+      EventResponse eventResponse = generateResponse("Execution event received and being processed");
+      service.processExecutionEvent(request);
+      return Response.status(HttpStatus.OK_200).entity(eventResponse).build();
     } catch (HttpException exception) {
-      return generateExceptionResponse(exception, requestUuid);
+      return generateExceptionResponse(exception);
     } catch (Exception exception) {
       logger.error(exception.getMessage());
-      return generateExceptionResponse(new InternalServerException(exception), requestUuid);
+      return generateExceptionResponse(new InternalServerException(exception));
     }
   }
 
@@ -74,15 +71,28 @@ public class EventsController extends BaseController {
   @Path("/validation")
   @Produces(MediaType.APPLICATION_JSON)
   public Response executeValidation() {
-    String requestUuid = generateRequestUuid();
-
+    EventResponse eventResponse = generateResponse("Validation event received and being processed");
     service.processValidationEvent();
+    return Response.status(HttpStatus.OK_200).entity(eventResponse).build();
+  }
 
-    EventResponse response = new EventResponse();
-    response.setRequestUuid(requestUuid);
-    response.setMessage("Validation service run request registered.");
+  /** Accepts a request to invoke a delete notification service */
+  @POST
+  @Path("/notification")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response executeDeleteNotification(NotificationEventRequest request) {
+    try {
+      validateNotificationEvent(request);
 
-    return Response.status(HttpStatus.OK_200).entity(response).build();
+      EventResponse eventResponse = generateResponse("Delete notification event received and being processed");
+      service.processDeleteNotificaitonEvent(request, eventResponse.getUuid());
+      return Response.status(HttpStatus.OK_200).entity(eventResponse).build();
+    } catch (HttpException exception) {
+      return generateExceptionResponse(exception);
+    } catch (Exception exception) {
+      logger.error(exception.getMessage());
+      return generateExceptionResponse(new InternalServerException(exception));
+    }
   }
 
   /**
@@ -117,4 +127,47 @@ public class EventsController extends BaseController {
       throw new ValidationException(result);
     }
   }
+
+  /**
+   * Runs validation checks against the "Notificaiton" event request type
+   *
+   * @param request a NotificationEventRequest
+   * @throws ValidationException when the request is invalid
+   */
+  private void validateNotificationEvent(NotificationEventRequest request) throws ValidationException {
+    Collection<ValidationResult> partialValidations = new HashSet<>();
+
+    partialValidations.add(
+        FieldValidations.validateFieldFollowsBucketNamingStructure(
+            "deletedObject", request.getDeletedObject()));
+
+    if (request.getProjectId() == null) {
+      partialValidations.add(
+          ValidationResult.fromString("projectId must be provided."));
+    }
+
+    if (request.getDeletedAt() == null) {
+      partialValidations.add(
+          ValidationResult.fromString("deletedAt must be provided."));
+    } else {
+      try {
+        Instant.parse(request.getDeletedAt());
+      } catch (DateTimeParseException e) {
+        partialValidations.add(
+            ValidationResult.fromString("deletedAt is not ISO 8601 format."));
+      }
+    }
+
+    ValidationResult result = ValidationResult.compose(partialValidations);
+    if (!result.isValid) {
+      throw new ValidationException(result);
+    }
+  }
+
+  private EventResponse generateResponse(String eventMessage) {
+    EventResponse response = new EventResponse();
+    response.setMessage(eventMessage);
+    return response;
+  }
+
 }

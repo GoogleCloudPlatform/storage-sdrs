@@ -41,23 +41,11 @@ public class EventsControllerTest {
     controller = new EventsController();
   }
 
-  @Test
-  public void generateRequestUuidOutputs36Characters() {
-    String uuid = controller.generateRequestUuid();
-    assertEquals(uuid.length(), 36);
-  }
-
-  @Test
-  public void generateRequestUuidOutputsNewResults() {
-    String uuid1 = controller.generateRequestUuid();
-    String uuid2 = controller.generateRequestUuid();
-    assertNotSame(uuid1, uuid2);
-  }
 
   @Test
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException(ValidationResult.fromString("test"));
-    Response response = controller.generateExceptionResponse(testException, "requestUuid");
+    Response response = controller.generateExceptionResponse(testException);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: test");
   }
@@ -71,7 +59,7 @@ public class EventsControllerTest {
 
     assertEquals(response.getStatus(), HttpStatus.OK_200);
     assertTrue(((EventResponse) response.getEntity()).getMessage().length() > 0);
-    assertNotNull(((EventResponse) response.getEntity()).getRequestUuid());
+    assertNotNull(((EventResponse) response.getEntity()).getUuid());
   }
 
   @Test

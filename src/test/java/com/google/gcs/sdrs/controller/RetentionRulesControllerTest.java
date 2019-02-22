@@ -56,29 +56,16 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void generateRequestUuidOutputs36Characters() {
-    String uuid = controller.generateRequestUuid();
-    assertEquals(uuid.length(), 36);
-  }
-
-  @Test
-  public void generateRequestUuidOutputsNewResults() {
-    String uuid1 = controller.generateRequestUuid();
-    String uuid2 = controller.generateRequestUuid();
-    assertNotSame(uuid1, uuid2);
-  }
-
-  @Test
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException(ValidationResult.fromString("test"));
-    Response response = controller.generateExceptionResponse(testException, "requestUuid");
+    Response response = controller.generateExceptionResponse(testException);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: test");
   }
 
   @Test
   public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException {
-    when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class)))
+    when(controller.service.createRetentionRule(any(RetentionRuleCreateRequest.class), any(UserInfo.class)))
         .thenReturn(543);
 
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
@@ -89,7 +76,7 @@ public class RetentionRulesControllerTest {
 
     assertEquals(HttpStatus.OK_200, response.getStatus());
     assertEquals(543, ((RetentionRuleCreateResponse) response.getEntity()).getRuleId());
-    assertNotNull(((RetentionRuleCreateResponse) response.getEntity()).getRequestUuid());
+    assertNotNull(((RetentionRuleCreateResponse) response.getEntity()).getUuid());
   }
 
   @Test

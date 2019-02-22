@@ -18,13 +18,17 @@
 package com.google.gcs.sdrs.service;
 
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
 
 /** Interface exposing event behaviors. */
 public interface EventsService {
 
-  /** Executes an execution event asynchronously */
-  void executeEvent(ExecutionEventRequest request);
+  /** Process an execution service event asynchronously */
+  void processExecutionEvent(ExecutionEventRequest request);
 
-  /** Runs the validation service asynchronously */
+  /** Procees the validation service event asynchronously */
   void processValidationEvent();
+
+  /** Process the notification service event asynchronously */
+  void processDeleteNotificaitonEvent(NotificationEventRequest request, String correlationId);
 }
