@@ -81,6 +81,12 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     }
   }
 
+  @Override
+  public RetentionRuleResponse getRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
+    RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName);
+    return mapRuleToResponse(rule);
+  }
+
   /**
    * Updates an existing retention rule
    *
