@@ -21,6 +21,7 @@ package com.google.gcs.sdrs.controller;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.RetentionRuleDeleteResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.FieldValidations;
@@ -28,27 +29,22 @@ import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
-
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.eclipse.jetty.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Controller for handling /retentionrules endpoints to manage retention rules. */
 @Path("/retentionrules")
 public class RetentionRulesController extends BaseController {
-
-  private static final Logger logger = LoggerFactory.getLogger(RetentionRulesController.class);
 
   RetentionRulesService service = new RetentionRulesServiceImpl();
 
@@ -63,12 +59,9 @@ public class RetentionRulesController extends BaseController {
       int result = service.createRetentionRule(request, userInfo);
       RetentionRuleCreateResponse response = new RetentionRuleCreateResponse();
       response.setRuleId(result);
-      return Response.status(HttpStatus.OK_200).entity(response).build();
-    } catch (HttpException exception) {
-      return generateExceptionResponse(exception);
+      return successResponse(response);
     } catch (Exception exception) {
-      logger.error(exception.getMessage());
-      return generateExceptionResponse(new InternalServerException(exception));
+      return errorResponse(exception);
     }
   }
 
@@ -81,12 +74,25 @@ public class RetentionRulesController extends BaseController {
     try {
       validateUpdate(request);
       RetentionRuleResponse response = service.updateRetentionRule(ruleId, request);
-      return Response.status(HttpStatus.OK_200).entity(response).build();
-    } catch (HttpException exception) {
-      return generateExceptionResponse(exception);
+      return successResponse(response);
     } catch (Exception exception) {
-      logger.error(exception.getMessage());
-      return generateExceptionResponse(new InternalServerException(exception));
+      return errorResponse(exception);
+    }
+  }
+
+  /** CRUD delete endpoint */
+  @DELETE
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response deleteByBusinessKey(
+      @QueryParam("projectId") String projectId,
+      @QueryParam("dataStorageName") String dataStorageName) {
+    try {
+      Integer ruleId = service.deleteRetentionRuleByBusinessKey(projectId, dataStorageName);
+      RetentionRuleDeleteResponse response = new RetentionRuleDeleteResponse();
+      response.setRuleId(ruleId);
+      return successResponse(response);
+    } catch (Exception exception) {
+      return errorResponse(exception);
     }
   }
 
