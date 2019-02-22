@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 
-
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
@@ -62,24 +61,29 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
   /**
    * Creates a new retention rule in the database
+   *
    * @param rule the {@link RetentionRuleCreateRequest} object input by the user
    * @return the {@link Integer} id of the created rule
    */
   @Override()
-  public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user) throws SQLException {
+  public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user)
+      throws SQLException {
     RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
-    try{
+    try {
       return dao.save(entity);
     } catch (ConstraintViolationException ex) {
-      String message = String.format("Unique constraint violation. " +
-          "A rule already exists with project id: %s, data storage name: %s",
-          entity.getProjectId(), entity.getDataStorageName());
+      String message =
+          String.format(
+              "Unique constraint violation. "
+                  + "A rule already exists with project id: %s, data storage name: %s",
+              entity.getProjectId(), entity.getDataStorageName());
       throw new SQLException(message);
     }
   }
 
   /**
    * Updates an existing retention rule
+   *
    * @param ruleId the identifier for the rule to update
    * @param request the {@link RetentionRuleUpdateRequest} update request
    * @return the {@link RetentionRuleResponse} object
@@ -103,13 +107,13 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   }
 
   @Override
-  public void deleteRetentionRuleByBusinessKey(
-      String projectId, String dataStorageName, String datasetName) {
-    RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName, datasetName);
+  public void deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
+    RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName);
     dao.softDelete(rule);
   }
 
-  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo) {
+  private RetentionRule mapPojoToPersistenceEntity(
+      RetentionRuleCreateRequest pojo, UserInfo user) {
     RetentionRule entity = new RetentionRule();
 
     // Map over input values

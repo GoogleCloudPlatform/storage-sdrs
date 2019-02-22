@@ -20,14 +20,19 @@ package com.google.gcs.sdrs.controller;
 
 import com.google.gcs.sdrs.controller.filter.ContainerContextProperties;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
+import com.google.gcs.sdrs.controller.pojo.BaseHttpResponse;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
-import java.util.UUID;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import org.eclipse.jetty.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Abstract base class for Controllers. */
 public abstract class BaseController {
+
+  protected final Logger logger = LoggerFactory.getLogger(getClass());
 
   @Context() ContainerRequestContext context;
 
@@ -40,5 +45,19 @@ public abstract class BaseController {
 
   protected UserInfo getUserInfo() {
     return (UserInfo) context.getProperty(ContainerContextProperties.USER_INFO.toString());
+  }
+
+  protected Response successResponse(BaseHttpResponse responseBody) {
+    return Response.status(HttpStatus.OK_200).entity(responseBody).build();
+  }
+
+  protected Response errorResponse(Exception exception) {
+    if (exception instanceof HttpException) {
+      return generateExceptionResponse((HttpException) exception);
+    } else {
+      this.logger.error(String.format("Unhandled internal error: %s", exception.getMessage()));
+      logger.error(String.format("Caused by: %s", exception.getCause().getMessage()));
+      return generateExceptionResponse(new InternalServerException(exception));
+    }
   }
 }
