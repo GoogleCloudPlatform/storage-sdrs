@@ -60,15 +60,15 @@ public class JobManagerTest {
     assertEquals(instance.activeWorkerCount.get(), 0);
   }
 
-//  /**
-//   * Test that the same JobManager instance is returned when getInstance is called more than once
-//   */
-//  @Test
-//  public void getInstanceWhenInstanceAlreadyExists() {
-//    assertNotNull(instance);
-//    JobManager secondInstance = JobManager.getInstance();
-//    assertEquals(instance, secondInstance);
-//  }
+  /**
+   * Test that the same JobManager instance is returned when getInstance is called more than once
+   */
+  @Test
+  public void getInstanceWhenInstanceAlreadyExists() {
+    assertNotNull(instance);
+    JobManager secondInstance = JobManager.getInstance();
+    assertEquals(instance, secondInstance);
+  }
 
   /**
    * Test that the worker count is incremented when a job is submitted
