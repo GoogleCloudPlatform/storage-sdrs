@@ -22,17 +22,7 @@ package com.google.gcs.sdrs.controller.filter;
  * "X-Endpoint-API-UserInfo" header
  */
 public class UserInfo {
-  private String issuer;
-  private String id;
   private String email;
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
 
   public String getEmail() {
     return email;
@@ -40,13 +30,5 @@ public class UserInfo {
 
   public void setEmail(String email) {
     this.email = email;
-  }
-
-  public String getIssuer() {
-    return issuer;
-  }
-
-  public void setIssuer(String issuer) {
-    this.issuer = issuer;
   }
 }

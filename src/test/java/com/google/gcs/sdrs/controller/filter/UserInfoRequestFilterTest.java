@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -41,26 +42,35 @@ public class UserInfoRequestFilterTest {
   }
 
   @Test
-  public void filterAbortsWith403WhenNoHeaderPresent() {
+  public void filterAddsEmptyUserInfoWhenNoHeaderPresent() {
     MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
     ContainerRequestContext mockRequestContext = spy(ContainerRequestContext.class);
     when(mockRequestContext.getHeaders()).thenReturn(requestHeaders);
 
     filter.filter(mockRequestContext);
 
-    ArgumentCaptor<Response> captor = ArgumentCaptor.forClass(Response.class);
-    verify(mockRequestContext).abortWith(captor.capture());
-    Response response = captor.getValue();
-    assertEquals(403, response.getStatus());
+    ArgumentCaptor<UserInfo> captor = ArgumentCaptor.forClass(UserInfo.class);
+    verify(mockRequestContext)
+        .setProperty(eq(ContainerContextProperties.USER_INFO.toString()), captor.capture());
+    UserInfo userInfo = captor.getValue();
+    assertNull(userInfo.getEmail());
   }
 
   @Test
   public void filterCreatesUserInfo() {
     MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
     requestHeaders.add(
-        "X-Endpoint-API-UserInfo",
-        "ewogICJpc3N1ZXIiOiBUT0tFTl9JU1NVRVIsCiAgImlkI"
-            + "jogVVNFUl9JRCwKICAiZW1haWwiIDogVVNFUl9FTUFJTAp9");
+        "Authorization",
+        "Bearer eyJ0eXAiOiAiSldUIiwgImFsZyI6ICJSUzI1NiIsICJraWQiOiAiODE2MmU1ZGJkZWUzZDk2MWZhYWFj"
+            + "NzVjYjZmODdiYWM0MDVhZGJiNyJ9.eyJpYXQiOiAxNTUwODU4NDUyLCAiZXhwIjogMTU1MDg2MjA1MiwgIm"
+            + "lzcyI6ICJ0Zmxlbm5pa2VuQHNkcnMtc2VydmVyLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwgImF1ZCI6I"
+            + "CJodHRwczovL3NkcnMtYXBpLmVuZHBvaW50cy5zZHJzLXNlcnZlci5jbG91ZC5nb29nIiwgInN1YiI6ICJ0"
+            + "Zmxlbm5pa2VuQHNkcnMtc2VydmVyLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwgImVtYWlsIjogInRmbGV"
+            + "ubmlrZW5Ac2Rycy1zZXJ2ZXIuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20ifQ==.CKNx-3FguEv2OSoGwWvLu"
+            + "MHpFPd9jY3HoQ86Jxb0UZxGx2WDlhLgCTSi0ruZ5eINC3EJr3qJ9zv3MFmEnA4DGk1nFJdzXJfD-VL5Q56o"
+            + "W-WjleL1ZiPRMwcoSdfjRVsmr15tb0Y10Z1DWFWNNSo8sUvfRkOqnaZCx1vm-yLH3t5B7XqWZCuAE-TkX2i"
+            + "KYnValkrqVlgiqDkuMCmiehIHcogMB7DjZKStRPlxOmm_RfT--Pj_o_Fax47jNoDxfpQiGmUO1Zqe33dJkf"
+            + "KHC96spwlc7p8ulUrpzIDHlL0Ek7da88pAWRIf24ojrhYVm6ldmwvzR8ZW-i-CZyl9wHyQrA==");
 
     ContainerRequestContext mockRequestContext = spy(ContainerRequestContext.class);
     when(mockRequestContext.getHeaders()).thenReturn(requestHeaders);
@@ -71,8 +81,6 @@ public class UserInfoRequestFilterTest {
     verify(mockRequestContext)
         .setProperty(eq(ContainerContextProperties.USER_INFO.toString()), captor.capture());
     UserInfo userInfo = captor.getValue();
-    assertEquals("USER_EMAIL", userInfo.getEmail());
-    assertEquals("TOKEN_ISSUER", userInfo.getIssuer());
-    assertEquals("USER_ID", userInfo.getId());
+    assertEquals("tflenniken@sdrs-server.iam.gserviceaccount.com", userInfo.getEmail());
   }
 }
