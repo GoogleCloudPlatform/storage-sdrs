@@ -23,6 +23,8 @@ import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.enums.ExecutionEventType;
 import javax.ws.rs.core.Response;
+
+import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class EventsControllerTest {
 
@@ -39,8 +42,8 @@ public class EventsControllerTest {
   @Before()
   public void setup() {
     controller = new EventsController();
+    controller.service = mock(EventsServiceImpl.class);
   }
-
 
   @Test
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {

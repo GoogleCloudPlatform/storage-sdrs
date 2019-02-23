@@ -50,6 +50,7 @@ public class RetentionRulesServiceImplTest {
   @Before
   public void setup() {
     service.ruleDao = mock(RetentionRuleDaoImpl.class);
+    service.jobManager.shutDownJobManagerNow();
     service.jobManager = mock(JobManager.class);
     globalRule = new RetentionRule();
     globalRule.setId(10);
