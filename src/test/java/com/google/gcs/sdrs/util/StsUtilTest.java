@@ -71,10 +71,8 @@ public class StsUtilTest {
 
     Schedule schedule = StsUtil.buildSchedule(startDateTime, false);
     Date startDate = StsUtil.convertToDate(startDateTime.toLocalDate().minusDays(1));
-    TimeOfDay timeOfDay = StsUtil.convertToTimeOfDay(startDateTime.toLocalTime());
 
     assertEquals(startDate, schedule.getScheduleStartDate());
-    assertEquals(timeOfDay, schedule.getStartTimeOfDay());
     assertNull(schedule.getScheduleEndDate());
   }
 
@@ -84,10 +82,8 @@ public class StsUtilTest {
 
     Schedule schedule = StsUtil.buildSchedule(startDateTime, true);
     Date startDate = StsUtil.convertToDate(startDateTime.toLocalDate().minusDays(1));
-    TimeOfDay timeOfDay = StsUtil.convertToTimeOfDay(startDateTime.toLocalTime());
 
     assertEquals(startDate, schedule.getScheduleStartDate());
-    assertEquals(timeOfDay, schedule.getStartTimeOfDay());
     assertEquals(startDate, schedule.getScheduleEndDate());
   }
 

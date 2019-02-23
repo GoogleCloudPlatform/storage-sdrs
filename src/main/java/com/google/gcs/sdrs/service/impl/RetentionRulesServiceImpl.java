@@ -28,7 +28,6 @@ import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
-import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.impl.CreateDefaultJobWorker;
@@ -41,6 +40,9 @@ import org.slf4j.LoggerFactory;
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
+
+  JobManager jobManager;
+
   private static final String DEFAULT_PROJECT_ID = "global-default";
   private static final String DEFAULT_STORAGE_NAME = "global";
   private static String defaultProjectId;
@@ -56,6 +58,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
         "sts.defaultProjectId",
         DEFAULT_PROJECT_ID);
     defaultStorageName = SdrsApplication.getAppConfigProperty("sts.defaultStorageName", DEFAULT_STORAGE_NAME);
+    jobManager = JobManager.getInstance();
   }
 
   /**
@@ -74,7 +77,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
         RetentionRule globalRule = ruleDao.findGlobalRuleByProjectId(defaultProjectId);
         if (globalRule != null) {
           Worker updateWorker = new UpdateDefaultJobWorker(globalRule, entity.getProjectId());
-          JobManager.getInstance().submitJob(updateWorker);
+          jobManager.submitJob(updateWorker);
         }
       }
 
@@ -82,7 +85,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
         List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
         for (String projectId : projectIds) {
           Worker createDefaultWorker = new CreateDefaultJobWorker(entity, projectId);
-          JobManager.getInstance().submitJob(createDefaultWorker);
+          jobManager.submitJob(createDefaultWorker);
         }
       }
 
@@ -121,7 +124,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
       for (String projectId : projectIds) {
         Worker updateWorker = new UpdateDefaultJobWorker(entity, projectId);
-        JobManager.getInstance().submitJob(updateWorker);
+        jobManager.submitJob(updateWorker);
       }
     }
 
