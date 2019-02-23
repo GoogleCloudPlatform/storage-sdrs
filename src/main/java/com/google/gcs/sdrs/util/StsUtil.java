@@ -247,8 +247,8 @@ public class StsUtil {
         .setObjectConditions(buildObjectConditions(prefixes, isExcludePrefixes, retentionInDays))
         .setTransferOptions(
             new TransferOptions()
-                //TODO: Flip this flag to true when out of development
-                .setDeleteObjectsFromSourceAfterTransfer(false)
+                // flip the delete flag to false if you want to test without losing your data
+                .setDeleteObjectsFromSourceAfterTransfer(true)
                 .setOverwriteObjectsAlreadyExistingInSink(true));
   }
 
