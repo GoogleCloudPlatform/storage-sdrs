@@ -15,23 +15,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.dao;
+package com.google.gcs.sdrs.controller.pojo;
 
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import java.util.List;
+public class RetentionRuleDeleteResponse extends BaseHttpResponse {
+  private Integer ruleId;
 
-/** Defines available persistence operations for RetentionRule entities */
-public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
+  public Integer getRuleId() {
+    return ruleId;
+  }
 
-  RetentionRule findByBusinessKey(String projectId, String dataStorageName);
-
-  RetentionRule findDatasetRuleByBusinessKey(String projectId, String dataStorage);
-
-  List<RetentionRule> findDatasetRulesByProjectId(String projectId);
-
-  List<String> getAllDatasetRuleProjectIds();
-
-  Integer softDelete(RetentionRule rule);
-
-  RetentionRule findGlobalRuleByProjectId(String projectId);
+  public void setRuleId(Integer ruleId) {
+    this.ruleId = ruleId;
+  }
 }

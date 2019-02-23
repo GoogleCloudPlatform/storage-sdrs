@@ -22,6 +22,7 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 
+import com.google.gcs.sdrs.dao.model.RetentionRule;
 import java.sql.SQLException;
 
 /** Service implementation for managing retention rules. */
@@ -37,6 +38,14 @@ public interface RetentionRulesService {
   Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user) throws SQLException;
 
   /**
+   * Gets the retention rule with the provided values
+   *
+   * @param projectId the project associated with the rule
+   * @param dataStorageName the dataStorageName associated with the rule
+   */
+  RetentionRuleResponse getRetentionRuleByBusinessKey(String projectId, String dataStorageName);
+
+  /**
    * Updates a retention rule and returns the rule with updates
    *
    * @param ruleId the identifier for the rule to update
@@ -45,4 +54,11 @@ public interface RetentionRulesService {
    */
   RetentionRuleResponse updateRetentionRule(Integer ruleId, RetentionRuleUpdateRequest request)
       throws SQLException;
+
+  /**
+   * Deletes the retention rule with the provided values
+   *  @param projectId the project associated with the rule
+   * @param dataStorageName the dataStorageName associated with the rule
+   */
+  Integer deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName);
 }

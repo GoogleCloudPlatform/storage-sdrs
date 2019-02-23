@@ -38,6 +38,8 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
+
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
 
@@ -63,11 +65,13 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
   /**
    * Creates a new retention rule in the database
+   *
    * @param rule the {@link RetentionRuleCreateRequest} object input by the user
    * @return the {@link Integer} id of the created rule
    */
   @Override()
-  public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user) throws SQLException {
+  public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user)
+      throws SQLException {
     RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
     try{
       int ruleId = ruleDao.save(entity);
@@ -91,16 +95,24 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
       return ruleId;
     } catch (ConstraintViolationException ex) {
-      String message = String.format("Unique constraint violation. " +
-          "A rule already exists with project id: %s, data storage name: %s",
-          entity.getProjectId(), entity.getDataStorageName());
-      logger.error(message);
+      String message =
+          String.format(
+              "Unique constraint violation. "
+                  + "A rule already exists with project id: %s, data storage name: %s",
+              entity.getProjectId(), entity.getDataStorageName());
       throw new SQLException(message);
     }
   }
 
+  @Override
+  public RetentionRuleResponse getRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
+    RetentionRule rule = ruleDao.findByBusinessKey(projectId, dataStorageName);
+    return mapRuleToResponse(rule);
+  }
+
   /**
    * Updates an existing retention rule
+   *
    * @param ruleId the identifier for the rule to update
    * @param request the {@link RetentionRuleUpdateRequest} update request
    * @return the {@link RetentionRuleResponse} object
@@ -131,7 +143,17 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     return mapRuleToResponse(entity);
   }
 
-  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo, UserInfo user) {
+  @Override
+  public Integer deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
+    RetentionRule rule = ruleDao.findByBusinessKey(projectId, dataStorageName);
+    if (rule != null) {
+      return ruleDao.softDelete(rule);
+    }
+    return null;
+  }
+
+  private RetentionRule mapPojoToPersistenceEntity(
+      RetentionRuleCreateRequest pojo, UserInfo user) {
     RetentionRule entity = new RetentionRule();
 
     // Map over input values

@@ -93,17 +93,12 @@ paths:
       parameters:
         - description: The rule's projectId
           in: query
-          name: project
+          name: projectId
           required: true
           type: string
         - description: The rule's dataStorageName
           in: query
-          name: bucket
-          required: true
-          type: string
-        - description: The rule's datasetName
-          in: query
-          name: dataset
+          name: dataStorageName
           required: true
           type: string
       responses:

@@ -22,7 +22,6 @@ import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
 import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
-import com.google.gcs.sdrs.mq.pojo.DeleteNotificationMessage;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
 import java.time.Instant;
@@ -35,15 +34,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.eclipse.jetty.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Controller for exposing event based behavior */
 @Path("/events")
 public class EventsController extends BaseController {
-
-  private static final Logger logger = LoggerFactory.getLogger(EventsController.class);
 
   EventsService service = new EventsServiceImpl();
 
@@ -55,14 +49,12 @@ public class EventsController extends BaseController {
   public Response executeEvent(ExecutionEventRequest request) {
     try {
       validateExecutionEvent(request);
-      EventResponse eventResponse = generateResponse("Execution event received and being processed");
+      EventResponse eventResponse =
+          generateResponse("Execution event received and being processed");
       service.processExecutionEvent(request);
-      return Response.status(HttpStatus.OK_200).entity(eventResponse).build();
-    } catch (HttpException exception) {
-      return generateExceptionResponse(exception);
+      return successResponse(eventResponse);
     } catch (Exception exception) {
-      logger.error(exception.getMessage());
-      return generateExceptionResponse(new InternalServerException(exception));
+      return errorResponse(exception);
     }
   }
 
@@ -71,9 +63,14 @@ public class EventsController extends BaseController {
   @Path("/validation")
   @Produces(MediaType.APPLICATION_JSON)
   public Response executeValidation() {
-    EventResponse eventResponse = generateResponse("Validation event received and being processed");
-    service.processValidationEvent();
-    return Response.status(HttpStatus.OK_200).entity(eventResponse).build();
+    try {
+      EventResponse eventResponse =
+          generateResponse("Validation event received and being processed");
+      service.processValidationEvent();
+      return successResponse(eventResponse);
+    } catch (Exception exception) {
+      return errorResponse(exception);
+    }
   }
 
   /** Accepts a request to invoke a delete notification service */
@@ -83,15 +80,12 @@ public class EventsController extends BaseController {
   public Response executeDeleteNotification(NotificationEventRequest request) {
     try {
       validateNotificationEvent(request);
-
-      EventResponse eventResponse = generateResponse("Delete notification event received and being processed");
+      EventResponse eventResponse =
+          generateResponse("Delete notification event received and being processed");
       service.processDeleteNotificaitonEvent(request, eventResponse.getUuid());
-      return Response.status(HttpStatus.OK_200).entity(eventResponse).build();
-    } catch (HttpException exception) {
-      return generateExceptionResponse(exception);
+      return successResponse(eventResponse);
     } catch (Exception exception) {
-      logger.error(exception.getMessage());
-      return generateExceptionResponse(new InternalServerException(exception));
+      return errorResponse(exception);
     }
   }
 
@@ -129,12 +123,13 @@ public class EventsController extends BaseController {
   }
 
   /**
-   * Runs validation checks against the "Notificaiton" event request type
+   * Runs validation checks against the "Notification" event request type
    *
    * @param request a NotificationEventRequest
    * @throws ValidationException when the request is invalid
    */
-  private void validateNotificationEvent(NotificationEventRequest request) throws ValidationException {
+  private void validateNotificationEvent(NotificationEventRequest request)
+      throws ValidationException {
     Collection<ValidationResult> partialValidations = new HashSet<>();
 
     partialValidations.add(
@@ -142,19 +137,16 @@ public class EventsController extends BaseController {
             "deletedObject", request.getDeletedObject()));
 
     if (request.getProjectId() == null) {
-      partialValidations.add(
-          ValidationResult.fromString("projectId must be provided."));
+      partialValidations.add(ValidationResult.fromString("projectId must be provided."));
     }
 
     if (request.getDeletedAt() == null) {
-      partialValidations.add(
-          ValidationResult.fromString("deletedAt must be provided."));
+      partialValidations.add(ValidationResult.fromString("deletedAt must be provided."));
     } else {
       try {
         Instant.parse(request.getDeletedAt());
       } catch (DateTimeParseException e) {
-        partialValidations.add(
-            ValidationResult.fromString("deletedAt is not ISO 8601 format."));
+        partialValidations.add(ValidationResult.fromString("deletedAt is not ISO 8601 format."));
       }
     }
 
@@ -169,5 +161,4 @@ public class EventsController extends BaseController {
     response.setMessage(eventMessage);
     return response;
   }
-
 }
