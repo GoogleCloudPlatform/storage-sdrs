@@ -30,6 +30,7 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
 import com.google.gcs.sdrs.worker.impl.CreateDefaultJobWorker;
 import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
 import java.sql.SQLException;
@@ -55,7 +56,6 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   RetentionRuleDao ruleDao = SingletonDao.getRetentionRuleDao();
 
   public RetentionRulesServiceImpl() {
-
     defaultProjectId = SdrsApplication.getAppConfigProperty(
         "sts.defaultProjectId",
         DEFAULT_PROJECT_ID);
@@ -78,11 +78,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       entity.setId(ruleId);
 
       if (entity.getType().equals(RetentionRuleType.DATASET)) {
-        RetentionRule globalRule = ruleDao.findGlobalRuleByProjectId(defaultProjectId);
-        if (globalRule != null) {
-          Worker updateWorker = new UpdateDefaultJobWorker(globalRule, entity.getProjectId());
-          jobManager.submitJob(updateWorker);
-        }
+        updateParentGlobalRule(entity);
       }
 
       if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
@@ -104,6 +100,13 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     }
   }
 
+  /**
+   * Gets a {@link RetentionRule} by projectId and dataStorageName
+   *
+   * @param projectId the project associated with the rule
+   * @param dataStorageName the dataStorageName associated with the rule
+   * @return a {@link RetentionRuleResponse} object
+   */
   @Override
   public RetentionRuleResponse getRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
     RetentionRule rule = ruleDao.findByBusinessKey(projectId, dataStorageName);
@@ -147,9 +150,29 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   public Integer deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
     RetentionRule rule = ruleDao.findByBusinessKey(projectId, dataStorageName);
     if (rule != null) {
-      return ruleDao.softDelete(rule);
+      int deletedRule = ruleDao.softDelete(rule);
+
+      if (rule.getType() == RetentionRuleType.DATASET) {
+        updateParentGlobalRule(rule);
+      } else if (rule.getType() == RetentionRuleType.GLOBAL) {
+        List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+        for (String selectedProjectId : projectIds) {
+          Worker updateWorker = new CancelDefaultJobWorker(rule, selectedProjectId);
+          jobManager.submitJob(updateWorker);
+        }
+      }
+
+      return deletedRule;
     }
     return null;
+  }
+
+  private void updateParentGlobalRule(RetentionRule childRule) {
+    RetentionRule globalRule = ruleDao.findGlobalRuleByProjectId(defaultProjectId);
+    if (globalRule != null) {
+      Worker updateWorker = new UpdateDefaultJobWorker(globalRule, childRule.getProjectId());
+      jobManager.submitJob(updateWorker);
+    }
   }
 
   private RetentionRule mapPojoToPersistenceEntity(

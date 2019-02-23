@@ -19,7 +19,6 @@
 package com.google.gcs.sdrs.worker.impl;
 
 import com.google.gcs.sdrs.dao.RetentionJobDao;
-import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -31,28 +30,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 
-/** A worker class for updating external instances of retention jobs */
-public class UpdateDefaultJobWorker extends BaseWorker {
+public class CancelDefaultJobWorker extends BaseWorker {
 
-  private RetentionRule globalRuleToUpdate;
+  private RetentionRule globalRuleToCancel;
   private String projectToUpdate;
   private RuleExecutor executor;
   RetentionJobDao jobDao = SingletonDao.getRetentionJobDao();
-  RetentionRuleDao ruleDao = SingletonDao.getRetentionRuleDao();
 
-  private final Logger logger = LoggerFactory.getLogger(UpdateDefaultJobWorker.class);
+  private final Logger logger = LoggerFactory.getLogger(CancelDefaultJobWorker.class);
 
-  /**
-   * A constructor for the External Job Update Worker
-   * @param globalRule the global rule that needs to be updated
-   * @param projectId the project ID where the global rule needs to be updated
-   */
-  public UpdateDefaultJobWorker(RetentionRule globalRule, String projectId) {
+  public CancelDefaultJobWorker(RetentionRule globalRule, String projectId) {
     super();
 
-    globalRuleToUpdate = globalRule;
+    globalRuleToCancel = globalRule;
     projectToUpdate = projectId;
     executor = StsRuleExecutor.getInstance();
   }
@@ -61,11 +52,10 @@ public class UpdateDefaultJobWorker extends BaseWorker {
   @Override
   public void doWork(){
     RetentionJob job = jobDao
-        .findJobByRuleIdAndProjectId(globalRuleToUpdate.getId(), projectToUpdate);
+        .findJobByRuleIdAndProjectId(globalRuleToCancel.getId(), projectToUpdate);
     if (job != null) {
-      List<RetentionRule> childRules = ruleDao.findDatasetRulesByProjectId(projectToUpdate);
       try{
-        executor.updateDefaultRule(job, globalRuleToUpdate, childRules);
+        executor.cancelDefaultJob(job, globalRuleToCancel);
         workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
       } catch (IOException ex) {
         logger.error(String.format("Error executing rule: %s", ex.getMessage()));

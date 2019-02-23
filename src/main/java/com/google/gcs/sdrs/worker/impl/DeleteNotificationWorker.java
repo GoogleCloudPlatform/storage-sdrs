@@ -23,11 +23,11 @@ import com.google.gcs.sdrs.mq.pojo.DeleteNotificationMessage;
 import com.google.gcs.sdrs.worker.BaseWorker;
 import java.time.Instant;
 
-public class DeleteNotifcationWorker extends BaseWorker {
+public class DeleteNotificationWorker extends BaseWorker {
   private NotificationEventRequest request;
   private String correlationId;
 
-  public DeleteNotifcationWorker(NotificationEventRequest request, String correlationId) {
+  public DeleteNotificationWorker(NotificationEventRequest request, String correlationId) {
     super();
     this.request = request;
     this.correlationId = correlationId;

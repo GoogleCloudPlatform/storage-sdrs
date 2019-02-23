@@ -19,6 +19,8 @@
 package com.google.gcs.sdrs.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
+import com.google.api.services.storagetransfer.v1.model.Date;
+import com.google.api.services.storagetransfer.v1.model.Schedule;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.gcs.sdrs.SdrsApplication;
@@ -88,6 +90,8 @@ public class StsRuleExecutor implements RuleExecutor {
     lookBackInDays = Integer.valueOf(SdrsApplication.getAppConfigProperty(
         "sts.maxLookBackInDays",
         DEFAULT_LOOKBACK_IN_DAYS));
+
+    client = StsUtil.createStsClient();
   }
 
   /**
@@ -205,23 +209,9 @@ public class StsRuleExecutor implements RuleExecutor {
                                         Collection<RetentionRule> bucketDatasetRules)
       throws IOException, IllegalArgumentException {
 
-    if (defaultRule.getType().equals(RetentionRuleType.DATASET)) {
-      String message = "DATASET retention rule type is invalid for this function";
-      logger.error(message);
-      throw new IllegalArgumentException(message);
-    }
-
     // get the existing transfer job from STS
-    TransferJob existingTransferJob = StsUtil.getExistingJob(
-        client, defaultJob.getRetentionRuleProjectId(), defaultJob.getName());
+    TransferJob existingTransferJob = getGlobalTransferJob(defaultJob, defaultRule);
 
-    if (existingTransferJob == null) {
-      String message = String.format(
-          "Update failed. The requested transfer job %s does not exist in STS",
-          defaultJob.getName());
-      logger.error(message);
-      throw new IllegalArgumentException(message);
-    }
     // Get existing job from STS
     TransferSpec transferSpec = existingTransferJob.getTransferSpec();
 
@@ -265,7 +255,48 @@ public class StsRuleExecutor implements RuleExecutor {
     }
   }
 
-  String buildDescription(RetentionRule rule, ZonedDateTime scheduledTime) {
+  public RetentionJob cancelDefaultJob(RetentionJob job, RetentionRule defaultRule)
+      throws IOException, IllegalArgumentException {
+
+    // get the existing transfer job from STS
+    TransferJob existingTransferJob = getGlobalTransferJob(job, defaultRule);
+
+    // Get existing schedule from STS
+    Schedule schedule = existingTransferJob.getSchedule();
+
+    //Set end date to cancel job
+    Date startDate = schedule.getScheduleStartDate();
+    schedule.setScheduleEndDate(startDate);
+    existingTransferJob.setSchedule(schedule);
+
+    TransferJob updatedJob = StsUtil.updateExistingJob(client, existingTransferJob);
+
+    return buildRetentionJobEntity(updatedJob.getName(), defaultRule);
+  }
+
+  private TransferJob getGlobalTransferJob(RetentionJob job, RetentionRule defaultRule) throws IOException, IllegalArgumentException {
+    if (defaultRule.getType().equals(RetentionRuleType.DATASET)) {
+      String message = "DATASET retention rule type is invalid for this function";
+      logger.error(message);
+      throw new IllegalArgumentException(message);
+    }
+
+    // get the existing transfer job from STS
+    TransferJob existingTransferJob =  StsUtil.getExistingJob(
+        client, job.getRetentionRuleProjectId(), job.getName());
+
+    if (existingTransferJob == null) {
+      String message = String.format(
+          "Update failed. The requested transfer job %s does not exist in STS",
+          job.getName());
+      logger.error(message);
+      throw new IllegalArgumentException(message);
+    }
+
+    return existingTransferJob;
+  }
+
+  private String buildDescription(RetentionRule rule, ZonedDateTime scheduledTime) {
     String description;
     if (rule.getId() == null && rule.getVersion() == null) {
       // a null id and version indicates a user triggered rule. Set description accordingly
@@ -279,9 +310,7 @@ public class StsRuleExecutor implements RuleExecutor {
     return description;
   }
 
-
-
-  boolean isSamePrefixList(List<String> oldList, List<String> newList) {
+  private boolean isSamePrefixList(List<String> oldList, List<String> newList) {
     if (oldList == null && newList == null) {
       return true;
     }
@@ -304,7 +333,7 @@ public class StsRuleExecutor implements RuleExecutor {
     return false;
   }
 
-  String extractProjectId(RetentionRule defaultRule, Collection<RetentionRule> datasetRules) {
+  private String extractProjectId(RetentionRule defaultRule, Collection<RetentionRule> datasetRules) {
     String projectId = defaultRule.getProjectId();
     // if the default rule doesn't have a projectId, get it from a child dataset rule
     if (defaultRule.getProjectId().isEmpty()
@@ -323,7 +352,7 @@ public class StsRuleExecutor implements RuleExecutor {
     return projectId;
   }
 
-  List<String> buildExcludePrefixList(Collection<RetentionRule> datasetRules)
+  private List<String> buildExcludePrefixList(Collection<RetentionRule> datasetRules)
       throws IllegalArgumentException {
 
     List<String> prefixesToExclude = new ArrayList<>();

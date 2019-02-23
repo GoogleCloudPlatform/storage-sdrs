@@ -39,4 +39,7 @@ public interface RuleExecutor {
                                  RetentionRule defaultRule,
                                  Collection<RetentionRule> bucketDatasetRules)
       throws IOException, IllegalArgumentException;
+
+  RetentionJob cancelDefaultJob(RetentionJob job, RetentionRule defaultRule)
+      throws IOException, IllegalArgumentException;
 }

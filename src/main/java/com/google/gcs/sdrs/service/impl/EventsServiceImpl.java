@@ -29,7 +29,7 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.impl.CreateDefaultJobWorker;
-import com.google.gcs.sdrs.worker.impl.DeleteNotifcationWorker;
+import com.google.gcs.sdrs.worker.impl.DeleteNotificationWorker;
 import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
 import com.google.gcs.sdrs.worker.impl.ValidationWorker;
 import java.util.List;
@@ -81,7 +81,7 @@ public class EventsServiceImpl implements EventsService {
   @Override
   public void processDeleteNotificaitonEvent(NotificationEventRequest request,
       String correlationId) {
-    Worker worker = new DeleteNotifcationWorker(request, correlationId);
+    Worker worker = new DeleteNotificationWorker(request, correlationId);
     JobManager.getInstance().submitJob(worker);
   }
 

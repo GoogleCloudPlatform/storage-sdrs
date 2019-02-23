@@ -26,6 +26,8 @@ import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
+import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -206,5 +208,59 @@ public class RetentionRulesServiceImplTest {
     assertEquals(RetentionRuleType.GLOBAL, result.getType());
     assertEquals(2, (int) result.getRuleId());
     assertEquals(123, (int) result.getRetentionPeriod());
+  }
+
+  @Test
+  public void deleteDatasetRule() {
+
+    RetentionRule datasetRule = new RetentionRule();
+    datasetRule.setId(3);
+    datasetRule.setRetentionPeriodInDays(123);
+    datasetRule.setVersion(2);
+    datasetRule.setType(RetentionRuleType.DATASET);
+
+    RetentionRule globalRule = new RetentionRule();
+    globalRule.setId(2);
+    globalRule.setRetentionPeriodInDays(12);
+    globalRule.setVersion(3);
+    globalRule.setType(RetentionRuleType.GLOBAL);
+
+    when(service.ruleDao.findByBusinessKey(any(), any())).thenReturn(datasetRule);
+    when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(globalRule);
+
+    service.deleteRetentionRuleByBusinessKey("project", "storage");
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(UpdateDefaultJobWorker.class);
+
+    verify(service.ruleDao).softDelete(captor.capture());
+    verify(service.jobManager).submitJob(workerCaptor.capture());
+  }
+
+  @Test
+  public void deleteGlobalRule() {
+
+    RetentionRule datasetRule = new RetentionRule();
+    datasetRule.setId(3);
+    datasetRule.setRetentionPeriodInDays(123);
+    datasetRule.setVersion(2);
+    datasetRule.setType(RetentionRuleType.DATASET);
+
+    RetentionRule globalRule = new RetentionRule();
+    globalRule.setId(2);
+    globalRule.setRetentionPeriodInDays(12);
+    globalRule.setVersion(3);
+    globalRule.setType(RetentionRuleType.GLOBAL);
+
+    when(service.ruleDao.findByBusinessKey(any(), any())).thenReturn(globalRule);
+    when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
+
+    service.deleteRetentionRuleByBusinessKey("project", "storage");
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(CancelDefaultJobWorker.class);
+
+    verify(service.ruleDao).softDelete(captor.capture());
+    verify(service.jobManager).submitJob(workerCaptor.capture());
   }
 }
