@@ -17,7 +17,9 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
+import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
@@ -27,9 +29,12 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
+import com.google.gcs.sdrs.worker.impl.CreateDefaultJobWorker;
+import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
+import java.sql.SQLException;
+import java.util.List;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +43,9 @@ import java.sql.SQLException;
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
+
+  JobManager jobManager;
+
   private static final String DEFAULT_PROJECT_ID = "global-default";
   private static final String DEFAULT_STORAGE_NAME = "global";
   private static String defaultProjectId;
@@ -45,18 +53,14 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
   private static final Logger logger = LoggerFactory.getLogger(RetentionRulesServiceImpl.class);
 
-  RetentionRuleDao dao = SingletonDao.getRetentionRuleDao();
+  RetentionRuleDao ruleDao = SingletonDao.getRetentionRuleDao();
 
   public RetentionRulesServiceImpl() {
-    try {
-      Configuration config = new Configurations().xml("applicationConfig.xml");
-      defaultProjectId = config.getString("sts.defaultProjectId");
-      defaultStorageName = config.getString("sts.defaultStorageName");
-    } catch (ConfigurationException ex) {
-      logger.error("Configuration could not be read. Using default values: " + ex.getMessage());
-      defaultProjectId = DEFAULT_PROJECT_ID;
-      defaultStorageName = DEFAULT_STORAGE_NAME;
-    }
+    defaultProjectId = SdrsApplication.getAppConfigProperty(
+        "sts.defaultProjectId",
+        DEFAULT_PROJECT_ID);
+    defaultStorageName = SdrsApplication.getAppConfigProperty("sts.defaultStorageName", DEFAULT_STORAGE_NAME);
+    jobManager = JobManager.getInstance();
   }
 
   /**
@@ -69,8 +73,23 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user)
       throws SQLException {
     RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
-    try {
-      return dao.save(entity);
+    try{
+      int ruleId = ruleDao.save(entity);
+      entity.setId(ruleId);
+
+      if (entity.getType().equals(RetentionRuleType.DATASET)) {
+        updateParentGlobalRule(entity);
+      }
+
+      if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
+        List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+        for (String projectId : projectIds) {
+          Worker createDefaultWorker = new CreateDefaultJobWorker(entity, projectId);
+          jobManager.submitJob(createDefaultWorker);
+        }
+      }
+
+      return ruleId;
     } catch (ConstraintViolationException ex) {
       String message =
           String.format(
@@ -81,9 +100,16 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     }
   }
 
+  /**
+   * Gets a {@link RetentionRule} by projectId and dataStorageName
+   *
+   * @param projectId the project associated with the rule
+   * @param dataStorageName the dataStorageName associated with the rule
+   * @return a {@link RetentionRuleResponse} object
+   */
   @Override
   public RetentionRuleResponse getRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
-    RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName);
+    RetentionRule rule = ruleDao.findByBusinessKey(projectId, dataStorageName);
     return mapRuleToResponse(rule);
   }
 
@@ -98,7 +124,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   public RetentionRuleResponse updateRetentionRule(
       Integer ruleId, RetentionRuleUpdateRequest request) throws SQLException {
 
-    RetentionRule entity = dao.findById(ruleId);
+    RetentionRule entity = ruleDao.findById(ruleId);
 
     if (entity == null) {
       throw new SQLException(String.format("No rule exists with ID: %s", ruleId));
@@ -107,18 +133,46 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     entity.setVersion(entity.getVersion() + 1);
     entity.setRetentionPeriodInDays(request.getRetentionPeriod());
 
-    dao.update(entity);
+    ruleDao.update(entity);
+
+    if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
+      List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+      for (String projectId : projectIds) {
+        Worker updateWorker = new UpdateDefaultJobWorker(entity, projectId);
+        jobManager.submitJob(updateWorker);
+      }
+    }
 
     return mapRuleToResponse(entity);
   }
 
   @Override
   public Integer deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
-    RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName);
+    RetentionRule rule = ruleDao.findByBusinessKey(projectId, dataStorageName);
     if (rule != null) {
-      return dao.softDelete(rule);
+      int deletedRule = ruleDao.softDelete(rule);
+
+      if (rule.getType() == RetentionRuleType.DATASET) {
+        updateParentGlobalRule(rule);
+      } else if (rule.getType() == RetentionRuleType.GLOBAL) {
+        List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+        for (String selectedProjectId : projectIds) {
+          Worker updateWorker = new CancelDefaultJobWorker(rule, selectedProjectId);
+          jobManager.submitJob(updateWorker);
+        }
+      }
+
+      return deletedRule;
     }
     return null;
+  }
+
+  private void updateParentGlobalRule(RetentionRule childRule) {
+    RetentionRule globalRule = ruleDao.findGlobalRuleByProjectId(defaultProjectId);
+    if (globalRule != null) {
+      Worker updateWorker = new UpdateDefaultJobWorker(globalRule, childRule.getProjectId());
+      jobManager.submitJob(updateWorker);
+    }
   }
 
   private RetentionRule mapPojoToPersistenceEntity(

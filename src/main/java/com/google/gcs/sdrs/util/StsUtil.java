@@ -37,10 +37,13 @@ import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
+import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -53,8 +56,11 @@ import java.util.List;
  */
 public class StsUtil {
 
+  private static final String STS_ENABLED_STRING = "ENABLED";
   private static final String TRANSFER_OPERATION_STRING = "transferOperations";
   private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
+
+
 
   /**
    * Creates an instance of the STS Client
@@ -87,25 +93,12 @@ public class StsUtil {
                                          String description,
                                          ZonedDateTime startDateTime)
       throws IOException {
-    Date date = convertToDate(startDateTime.toLocalDate());
-    TransferJob transferJob =
-        new TransferJob()
-            .setProjectId(projectId)
-            .setDescription(description)
-            .setTransferSpec(
-                new TransferSpec()
-                    .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
-                    .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
-                    .setObjectConditions(new ObjectConditions().setIncludePrefixes(prefixes))
-                    .setTransferOptions(
-                        new TransferOptions()
-                            .setDeleteObjectsFromSourceAfterTransfer(false)
-                            .setOverwriteObjectsAlreadyExistingInSink(true)))
-            .setSchedule(
-                new Schedule()
-                    .setScheduleStartDate(date)
-                    .setScheduleEndDate(date))
-            .setStatus("ENABLED");
+
+    // Subtracting a day to force STS to trigger the job immediately
+    TransferJob transferJob = buildTransferJob(projectId, sourceBucket, destinationBucket,
+        prefixes, description, startDateTime, true, null);
+
+    logger.info("Creating one time transfer job in STS: ", transferJob.toPrettyString());
 
     return client.transferJobs().create(transferJob).execute();
   }
@@ -119,44 +112,66 @@ public class StsUtil {
    * @param prefixesToExclude a {@link List} of prefixes to exclude from the job
    * @param description the description of the job as it will appear in the STS console
    * @param startDateTime a {@link ZonedDateTime} of when you would like the job to begin
+   * @param retentionInDays the period in days for which to retain records
    * @return the {@link TransferJob} object that is created
    * @throws IOException when the client or job cannot be created
    */
   public static TransferJob createDefaultStsJob(Storagetransfer client,
-                                                  String projectId,
-                                                  String sourceBucket,
-                                                  String destinationBucket,
-                                                  List<String> prefixesToExclude,
-                                                  String description,
-                                                  ZonedDateTime startDateTime,
-                                                  int retentionInDays)
-      throws IOException{
-    Date date = convertToDate(startDateTime.toLocalDate());
-    TimeOfDay time = convertToTimeOfDay(startDateTime.toLocalTime());
-    TransferJob transferJob =
-        new TransferJob()
-            .setProjectId(projectId)
-            .setDescription(description)
-            .setTransferSpec(
-                new TransferSpec()
-                    .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
-                    .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
-                    .setObjectConditions(
-                        new ObjectConditions()
-                            .setExcludePrefixes(prefixesToExclude)
-                            .setMinTimeElapsedSinceLastModification(
-                                convertRetentionInDaysToDuration(retentionInDays)))
-                    .setTransferOptions(
-                        new TransferOptions()
-                            .setDeleteObjectsFromSourceAfterTransfer(false)
-                            .setOverwriteObjectsAlreadyExistingInSink(true)))
-            .setSchedule(
-                new Schedule()
-                    .setScheduleStartDate(date)
-                    .setStartTimeOfDay(time))
-            .setStatus("ENABLED");
+                                                String projectId,
+                                                String sourceBucket,
+                                                String destinationBucket,
+                                                List<String> prefixesToExclude,
+                                                String description,
+                                                ZonedDateTime startDateTime,
+                                                Integer retentionInDays)
+      throws IOException {
+
+    TransferJob transferJob = buildTransferJob(projectId,
+        sourceBucket, destinationBucket, prefixesToExclude,
+        description, startDateTime, false, retentionInDays);
+
+    logger.info("Creating recurring transfer job in STS: ", transferJob.toPrettyString());
 
     return client.transferJobs().create(transferJob).execute();
+  }
+
+  /**
+   * Updates an existing transfer job within STS
+   * @param client the {@link Storagetransfer} client to use
+   * @param jobToUpdate the {@link TransferJob} object to submit as an update
+   * @return the updated {@link TransferJob} object
+   * @throws IOException when the client connection can't be established or the request fails
+   */
+  public static TransferJob updateExistingJob(Storagetransfer client, TransferJob jobToUpdate)
+      throws IOException{
+
+    UpdateTransferJobRequest requestBody = new UpdateTransferJobRequest();
+
+    requestBody.setProjectId(jobToUpdate.getProjectId());
+    requestBody.setTransferJob(jobToUpdate);
+
+    Storagetransfer.TransferJobs.Patch request =
+        client.transferJobs().patch(jobToUpdate.getName(), requestBody);
+
+    logger.info("Updating transfer job in STS: ", jobToUpdate.toPrettyString());
+
+    return request.execute();
+  }
+
+  /**
+   * Gets the record from STS for an existing job
+   * @param client the {@link Storagetransfer} client to use
+   * @param projectId the project ID of the target GCP project
+   * @param jobName the name of the transfer job to retrieve
+   * @return the {@link TransferJob} object, if it exists
+   * @throws IOException when the client can't establish a connection
+   */
+  public static TransferJob getExistingJob(
+      Storagetransfer client, String projectId, String jobName) throws IOException {
+    Storagetransfer.TransferJobs.Get request = client.transferJobs().get(jobName);
+    request.setProjectId(projectId);
+
+    return request.execute();
   }
 
   /**
@@ -193,6 +208,85 @@ public class StsUtil {
     return operations;
   }
 
+  /**
+   * Converts an int value to a Google Duration string
+   * @param retentionInDays the retention period in days
+   * @return the Google Duration string
+   */
+  public static @NotNull String convertRetentionInDaysToDuration(int retentionInDays) {
+    int ONE_DAY_IN_SECS = 3600 * 24;
+    return (retentionInDays * ONE_DAY_IN_SECS) + "s";
+  }
+
+  static TransferJob buildTransferJob(String projectId,
+                                      String sourceBucket,
+                                      String destinationBucket,
+                                      List<String> prefixes,
+                                      String description,
+                                      ZonedDateTime startDateTime,
+                                      Boolean isOneTimeSchedule,
+                                      Integer retentionInDays) {
+    return new TransferJob()
+        .setProjectId(projectId)
+        .setDescription(description)
+        .setTransferSpec(
+            buildTransferSpec(sourceBucket, destinationBucket,
+                prefixes, true, retentionInDays))
+        .setSchedule(buildSchedule(startDateTime, isOneTimeSchedule))
+        .setStatus(STS_ENABLED_STRING);
+  }
+
+  static TransferSpec buildTransferSpec(String sourceBucket,
+                                        String destinationBucket,
+                                        List<String> prefixes,
+                                        Boolean isExcludePrefixes,
+                                        Integer retentionInDays) {
+    return new TransferSpec()
+        .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
+        .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
+        .setObjectConditions(buildObjectConditions(prefixes, isExcludePrefixes, retentionInDays))
+        .setTransferOptions(
+            new TransferOptions()
+                // flip the delete flag to false if you want to test without losing your data
+                .setDeleteObjectsFromSourceAfterTransfer(true)
+                .setOverwriteObjectsAlreadyExistingInSink(true));
+  }
+
+
+  static ObjectConditions buildObjectConditions(
+      List<String> prefixes, Boolean isExcludePrefixes, Integer retentionInDays){
+
+    ObjectConditions objectConditions = new ObjectConditions();
+
+    if (retentionInDays != null) {
+      objectConditions.setMinTimeElapsedSinceLastModification(
+          convertRetentionInDaysToDuration(retentionInDays));
+    }
+
+    if (isExcludePrefixes) {
+      objectConditions.setExcludePrefixes(prefixes);
+    } else {
+      objectConditions.setIncludePrefixes(prefixes);
+    }
+
+    return objectConditions;
+  }
+
+  static Schedule buildSchedule(ZonedDateTime startDateTime, Boolean isOneTimeSchedule) {
+
+    // Subtracting a day to force STS to trigger the job immediately
+    Date date = convertToDate(startDateTime.toLocalDate().minusDays(1));
+
+    Schedule schedule = new Schedule()
+        .setScheduleStartDate(date);
+
+    if (isOneTimeSchedule) {
+      schedule.setScheduleEndDate(date);
+    }
+
+    return schedule;
+  }
+
   private static String buildOperationFilterString(String projectId, List<String> jobNames) {
     return String.format("{\"project_id\": \"%s\", \"job_names\": %s}",
         projectId, new Gson().toJson(jobNames));
@@ -217,12 +311,7 @@ public class StsUtil {
         .build();
   }
 
-  static String convertRetentionInDaysToDuration(int retentionInDays) {
-    int ONE_DAY_IN_SECS = 3600 * 24;
-    return (retentionInDays * ONE_DAY_IN_SECS) + "s";
-  }
-
-  static Date convertToDate(LocalDate startDate) {
+  static @NotNull Date convertToDate(LocalDate startDate) {
     Date googleDate = new Date();
     googleDate.setYear(startDate.getYear());
     googleDate.setMonth(startDate.getMonthValue());
@@ -231,7 +320,7 @@ public class StsUtil {
     return googleDate;
   }
 
-  static TimeOfDay convertToTimeOfDay(LocalTime startTime) {
+  static @NotNull TimeOfDay convertToTimeOfDay(LocalTime startTime) {
     TimeOfDay timeOfDay = new TimeOfDay();
     timeOfDay.setHours(startTime.getHour());
     timeOfDay.setMinutes(startTime.getMinute());

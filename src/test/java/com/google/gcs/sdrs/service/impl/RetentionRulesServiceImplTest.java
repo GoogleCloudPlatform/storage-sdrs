@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
@@ -24,15 +25,20 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.worker.Worker;
+import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
+import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,10 +46,21 @@ import static org.mockito.Mockito.when;
 public class RetentionRulesServiceImplTest {
 
   private RetentionRulesServiceImpl service = new RetentionRulesServiceImpl();
+  private RetentionRule globalRule;
+  private List<String> projectIds = new ArrayList<>();
 
   @Before
   public void setup() {
-    service.dao = mock(RetentionRuleDaoImpl.class);
+    service.ruleDao = mock(RetentionRuleDaoImpl.class);
+    service.jobManager.shutDownJobManagerNow();
+    service.jobManager = mock(JobManager.class);
+    globalRule = new RetentionRule();
+    globalRule.setId(10);
+    globalRule.setProjectId("global-default");
+    globalRule.setDataStorageName("global");
+    globalRule.setRetentionPeriodInDays(365);
+    String projectId = "test";
+    projectIds.add(projectId);
   }
 
   @Test
@@ -55,19 +72,25 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
 
+    when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(globalRule);
+    when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
+    when(service.ruleDao.save(any())).thenReturn(1);
+
     service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
 
-    verify(service.dao).save(captor.capture());
+    verify(service.ruleDao).save(captor.capture());
+    verify(service.jobManager).submitJob(workerCaptor.capture());
     RetentionRule input = captor.getValue();
-    assertNull(input.getId());
+    assertEquals(1, (int) input.getId());
     assertEquals(RetentionRuleType.DATASET, input.getType());
     assertEquals(123, (int) input.getRetentionPeriodInDays());
     assertEquals(true, input.getIsActive());
-    assertEquals(input.getProjectId(), "projectId");
-    assertEquals(input.getDataStorageName(), "gs://b/d");
-    assertEquals(input.getDatasetName(), "dataset");
+    assertEquals("projectId", input.getProjectId());
+    assertEquals("gs://b/d", input.getDataStorageName());
+    assertEquals("dataset", input.getDatasetName());
     assertEquals(1, (int) input.getVersion());
   }
 
@@ -79,11 +102,13 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://b");
     createRule.setProjectId("projectId");
 
+    when(service.ruleDao.save(any())).thenReturn(1);
+
     service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).save(captor.capture());
+    verify(service.ruleDao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertEquals("gs://b", input.getDataStorageName());
     assertEquals("b", input.getDatasetName());
@@ -97,11 +122,13 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
 
+    when(service.ruleDao.save(any())).thenReturn(1);
+
     service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).save(captor.capture());
+    verify(service.ruleDao).save(captor.capture());
     RetentionRule input = captor.getValue();
     assertEquals("gs://b/d", input.getDataStorageName());
     assertEquals("d", input.getDatasetName());
@@ -113,40 +140,127 @@ public class RetentionRulesServiceImplTest {
     createRule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
 
+    when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(globalRule);
+    when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
+    when(service.ruleDao.save(any())).thenReturn(1);
+
     service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
 
-    verify(service.dao).save(captor.capture());
+    verify(service.ruleDao).save(captor.capture());
+    verify(service.jobManager).submitJob(workerCaptor.capture());
     RetentionRule input = captor.getValue();
-    assertNull(input.getId());
+    assertEquals(1, (int) input.getId());
     assertEquals(RetentionRuleType.GLOBAL, input.getType());
     assertEquals(123, (int) input.getRetentionPeriodInDays());
     assertEquals(true, input.getIsActive());
-    assertEquals(input.getProjectId(), "global-default");
+    assertEquals("global-default", input.getProjectId());
     assertEquals(1, (int) input.getVersion());
-    assertEquals(input.getDataStorageName(), "global");
+    assertEquals("global", input.getDataStorageName());
     assertNull(input.getDatasetName());
   }
 
   @Test
-  public void updateRuleFetchesAndUpdatesEntity() throws SQLException {
+  public void updateDatasetRuleFetchesAndUpdatesEntity() throws SQLException {
     RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
     request.setRetentionPeriod(123);
     RetentionRule existingRule = new RetentionRule();
     existingRule.setId(2);
     existingRule.setRetentionPeriodInDays(12);
     existingRule.setVersion(3);
-    when(service.dao.findById(2)).thenReturn(existingRule);
+    existingRule.setType(RetentionRuleType.DATASET);
+    when(service.ruleDao.findById(2)).thenReturn(existingRule);
 
     RetentionRuleResponse result = service.updateRetentionRule(2, request);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-    verify(service.dao).update(captor.capture());
+    verify(service.ruleDao).update(captor.capture());
     RetentionRule input = captor.getValue();
     assertEquals(4, (int) input.getVersion());
-
+    assertEquals(RetentionRuleType.DATASET, result.getType());
     assertEquals(2, (int) result.getRuleId());
     assertEquals(123, (int) result.getRetentionPeriod());
+  }
+
+  @Test
+  public void updateGlobalRuleFetchesAndUpdatesEntity() throws SQLException {
+    RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
+    request.setRetentionPeriod(123);
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setId(2);
+    existingRule.setRetentionPeriodInDays(12);
+    existingRule.setVersion(3);
+    existingRule.setType(RetentionRuleType.GLOBAL);
+    when(service.ruleDao.findById(2)).thenReturn(existingRule);
+    when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
+
+    RetentionRuleResponse result = service.updateRetentionRule(2, request);
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
+
+    verify(service.ruleDao).update(captor.capture());
+    verify(service.jobManager).submitJob(workerCaptor.capture());
+    RetentionRule input = captor.getValue();
+    assertEquals(4, (int) input.getVersion());
+    assertEquals(RetentionRuleType.GLOBAL, result.getType());
+    assertEquals(2, (int) result.getRuleId());
+    assertEquals(123, (int) result.getRetentionPeriod());
+  }
+
+  @Test
+  public void deleteDatasetRule() {
+
+    RetentionRule datasetRule = new RetentionRule();
+    datasetRule.setId(3);
+    datasetRule.setRetentionPeriodInDays(123);
+    datasetRule.setVersion(2);
+    datasetRule.setType(RetentionRuleType.DATASET);
+
+    RetentionRule globalRule = new RetentionRule();
+    globalRule.setId(2);
+    globalRule.setRetentionPeriodInDays(12);
+    globalRule.setVersion(3);
+    globalRule.setType(RetentionRuleType.GLOBAL);
+
+    when(service.ruleDao.findByBusinessKey(any(), any())).thenReturn(datasetRule);
+    when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(globalRule);
+
+    service.deleteRetentionRuleByBusinessKey("project", "storage");
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(UpdateDefaultJobWorker.class);
+
+    verify(service.ruleDao).softDelete(captor.capture());
+    verify(service.jobManager).submitJob(workerCaptor.capture());
+  }
+
+  @Test
+  public void deleteGlobalRule() {
+
+    RetentionRule datasetRule = new RetentionRule();
+    datasetRule.setId(3);
+    datasetRule.setRetentionPeriodInDays(123);
+    datasetRule.setVersion(2);
+    datasetRule.setType(RetentionRuleType.DATASET);
+
+    RetentionRule globalRule = new RetentionRule();
+    globalRule.setId(2);
+    globalRule.setRetentionPeriodInDays(12);
+    globalRule.setVersion(3);
+    globalRule.setType(RetentionRuleType.GLOBAL);
+
+    when(service.ruleDao.findByBusinessKey(any(), any())).thenReturn(globalRule);
+    when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
+
+    service.deleteRetentionRuleByBusinessKey("project", "storage");
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(CancelDefaultJobWorker.class);
+
+    verify(service.ruleDao).softDelete(captor.capture());
+    verify(service.jobManager).submitJob(workerCaptor.capture());
   }
 }

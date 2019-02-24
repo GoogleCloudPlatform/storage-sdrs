@@ -32,4 +32,6 @@ public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
   List<String> getAllDatasetRuleProjectIds();
 
   Integer softDelete(RetentionRule rule);
+
+  RetentionRule findGlobalRuleByProjectId(String projectId);
 }

@@ -85,7 +85,7 @@ public class PrefixGeneratorUtility {
         pattern, formatter.withZone(ZoneOffset.UTC).format(time));
 
     // prefixes cannot begin with a /. If the pattern is empty, remove the leading slash
-    if (formattedPrefix.indexOf("/") == 0) {
+    if (formattedPrefix.startsWith("/")) {
       formattedPrefix = formattedPrefix.replaceFirst("/", "");
     }
 
