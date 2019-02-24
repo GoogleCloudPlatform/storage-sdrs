@@ -1,7 +1,7 @@
 imports:
   - path: cloudsql.jinja
 resources:
-  - name: twitter
+  - name: sdrs
     type: cloudsql.jinja
     properties:
       cloudsql:

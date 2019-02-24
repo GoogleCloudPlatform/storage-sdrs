@@ -54,7 +54,7 @@ resources:
       metadata:
         items:
         - key: startup-script-url
-          value: gs://sdrs-server/versions/demo-2/startup.sh
+          value: gs://sdrs-server/versions/demo/startup.sh
       networkInterfaces:
       - network: {{ properties["network"] }}
         subnetwork: {{ properties["subnetwork"] }}
@@ -115,4 +115,3 @@ resources:
     allowed:
     - IPProtocol: 'TCP'
       ports: ['80', '443']
-

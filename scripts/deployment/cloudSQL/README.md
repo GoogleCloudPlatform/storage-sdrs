@@ -87,6 +87,7 @@ See the `properties` section in the schema file(s)
     gcloud deployment-manager deployments create <YOUR_DEPLOYMENT_NAME> \
         --config my_cloudsql.yaml
 ```
+
 6. To list your deployment:
 
 ```shell
@@ -112,6 +113,8 @@ See the `properties` section in the schema file(s)
 ```shell
     gcloud deployment-manager deployments delete <YOUR_DEPLOYMENT_NAME>
 ```
+
+10. Set "log_bin_trust_function_creators" to "On" via GCP console [manually](https://cloud.google.com/sql/docs/mysql/flags)
 
 
 

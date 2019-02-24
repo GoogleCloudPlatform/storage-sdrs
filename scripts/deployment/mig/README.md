@@ -35,7 +35,7 @@ See the `properties` section in the [schema file(s)](https://cloud.google.com/de
 
 The property in the configuration file can be changed without changing the template file.
 
-For e.g in configuration file (igm.yaml), the following properties could be modified to customize your deployment.
+For example in configuration file (igm.yaml), the following properties could be modified to customize your deployment.
 
 1. targetSize - Specifies the intended number of instances to be created from the instanceTemplate.
 2. maxNumReplicas - The maximum number of instances that the autoscaler can scale up to.

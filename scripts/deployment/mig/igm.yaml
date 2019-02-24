@@ -24,6 +24,6 @@ resources:
     machineType: n1-standard-1
     externalIp: False
     region: us-central1
-    email: pratap@sdrs-server.iam.gserviceaccount.com 
+    email: default
     network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
     subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
