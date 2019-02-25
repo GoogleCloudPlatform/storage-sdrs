@@ -1,8 +1,10 @@
 package com.google.gcs.sdrs.worker.impl;
 
 import com.google.gcs.sdrs.SdrsApplication;
+import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.rule.RuleExecutor;
 import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
@@ -21,6 +23,7 @@ import java.util.List;
 public class CreateDefaultJobWorker extends BaseWorker {
 
   RetentionRuleDao ruleDao = SingletonDao.getRetentionRuleDao();
+  RetentionJobDao retentionJobDao = SingletonDao.getRetentionJobDao();
 
   private RetentionRule globalRuleToUpdate;
   private String projectToUpdate;
@@ -52,7 +55,10 @@ public class CreateDefaultJobWorker extends BaseWorker {
   public void doWork(){
     List<RetentionRule> childRules = ruleDao.findDatasetRulesByProjectId(projectToUpdate);
     try{
-      executor.executeDefaultRule(globalRuleToUpdate, childRules, atMidnight());
+      List<RetentionJob> retentionJobs = executor.executeDefaultRule(globalRuleToUpdate, childRules, atMidnight());
+      for (RetentionJob retentionJob : retentionJobs) {
+        retentionJobDao.save(retentionJob);
+      }
       workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
     } catch (IOException ex) {
       logger.error(String.format("Error creating global job: %s", ex.getMessage()));

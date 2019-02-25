@@ -38,7 +38,8 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
     query
         .select(root)
         .where(builder.equal(root.get("retentionRuleId"), ruleId),
-            builder.equal(root.get("retentionProjectId"), projectId));
+            builder.equal(root.get("retentionRuleProjectId"), projectId));
+
 
     return getSingleRecordWithCriteriaQuery(query);
   }
