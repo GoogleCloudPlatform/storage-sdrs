@@ -48,6 +48,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
   private static final String DEFAULT_PROJECT_ID = "global-default";
   private static final String DEFAULT_STORAGE_NAME = "global";
+  private static final String DEFAULT_UNKNOWN_USER = "unknown";
   private static String defaultProjectId;
   private static String defaultStorageName;
 
@@ -72,7 +73,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   @Override()
   public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user)
       throws SQLException {
-    RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
+    String userName = user.getEmail() == null ? DEFAULT_UNKNOWN_USER : user.getEmail();
+    RetentionRule entity = mapPojoToPersistenceEntity(rule, userName);
     try{
       int ruleId = ruleDao.save(entity);
       entity.setId(ruleId);
@@ -176,7 +178,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   }
 
   private RetentionRule mapPojoToPersistenceEntity(
-      RetentionRuleCreateRequest pojo, UserInfo user) {
+      RetentionRuleCreateRequest pojo, String user) {
     RetentionRule entity = new RetentionRule();
 
     // Map over input values
@@ -196,7 +198,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       entity.setDataStorageName(defaultStorageName);
     }
 
-    entity.setUser(user.getEmail());
+    entity.setUser(user);
 
     // Generate metadata
     entity.setIsActive(true);
@@ -206,6 +208,9 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   }
 
   private RetentionRuleResponse mapRuleToResponse(RetentionRule rule) {
+    if (rule == null) {
+      return null;
+    }
     RetentionRuleResponse response = new RetentionRuleResponse();
 
     response.setDatasetName(rule.getDatasetName());

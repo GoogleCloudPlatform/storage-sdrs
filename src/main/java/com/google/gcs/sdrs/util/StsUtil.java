@@ -248,7 +248,7 @@ public class StsUtil {
         .setTransferOptions(
             new TransferOptions()
                 // flip the delete flag to false if you want to test without losing your data
-                .setDeleteObjectsFromSourceAfterTransfer(true)
+                .setDeleteObjectsFromSourceAfterTransfer(false)
                 .setOverwriteObjectsAlreadyExistingInSink(true));
   }
 

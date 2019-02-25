@@ -31,6 +31,9 @@ import com.google.gcs.sdrs.rule.RuleExecutor;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +56,7 @@ public class StsRuleExecutor implements RuleExecutor {
   private final String DEFAULT_PROJECT_ID = "global-default";
   private final String DEFAULT_MAX_PREFIX_COUNT = "1000";
   private final String DEFAULT_LOOKBACK_IN_DAYS = "365";
+  private final String[] DEFAULT_LOG_CAT_BUCKET_PREFIX = {"2017/", "2018/", "2019/", "2020/"};
   private String suffix;
   private String defaultProjectId;
   private int maxPrefixCount;
@@ -151,7 +155,7 @@ public class StsRuleExecutor implements RuleExecutor {
    * @return A {@link Collection} of {@link RetentionJob} records
    */
   @Override
-  public RetentionJob executeDefaultRule(
+  public List<RetentionJob> executeDefaultRule(
       RetentionRule defaultRule,
       Collection<RetentionRule> bucketDatasetRules,
       ZonedDateTime scheduledTime)
@@ -163,33 +167,49 @@ public class StsRuleExecutor implements RuleExecutor {
       throw new IllegalArgumentException(message);
     }
 
-    List<String> prefixesToExclude = buildExcludePrefixList(bucketDatasetRules);
-    String projectId = extractProjectId(defaultRule, bucketDatasetRules);
-    String sourceBucket = RetentionUtil.getBucketName(defaultRule.getDataStorageName());
-    String destinationBucket = RetentionUtil.getBucketName(defaultRule.getDataStorageName(), suffix);
-    String description = buildDescription(defaultRule, scheduledTime);
+    List<RetentionJob> defaultRuleJobs = new ArrayList<>();
+    Map<String, Set<String>> prefixsToExlucdeMap = RetentionUtil.getPrefixMap(bucketDatasetRules);
+    for (String mapKey : prefixsToExlucdeMap.keySet()) {
+      String[] combinedString = mapKey.split(";");
+      String projectId = combinedString[0];
+      String sourceBucket = combinedString[1];
+      String destinationBucket = sourceBucket + suffix;
+      String description = buildDescription(defaultRule, scheduledTime);
+      List<String> prefixesToExclude = new ArrayList<>(prefixsToExlucdeMap.get(mapKey));
+      if (prefixesToExclude.isEmpty()) {
+        prefixesToExclude.addAll(Arrays.asList(DEFAULT_LOG_CAT_BUCKET_PREFIX));
+      }
 
-    logger.debug(
-        String.format("Creating STS job with for rule %s, projectId: %s, " +
-                "description: %s, source: %s, destination: %s",
-            defaultRule.getId(),
-            projectId,
-            description,
-            sourceBucket,
-            destinationBucket));
+      // STS has a restriction of 1000 values in any prefix collection. This should never happen.
+      if (prefixesToExclude.size() > maxPrefixCount) {
+        String message = String.format(
+            "There are too many dataset rules associated with this bucket. " +
+                "A maximum of %s rules are allowed.", maxPrefixCount);
+        logger.error(message);
+        throw new IllegalArgumentException(message);
+      }
 
-    TransferJob job =
-        StsUtil.createDefaultStsJob(
-            client,
-            projectId,
-            sourceBucket,
-            destinationBucket,
-            prefixesToExclude,
-            description,
-            scheduledTime,
-            defaultRule.getRetentionPeriodInDays());
+      logger.debug(
+          String.format(
+              "Creating STS job with for rule %s, projectId: %s, "
+                  + "description: %s, source: %s, destination: %s",
+              defaultRule.getId(), projectId, description, sourceBucket, destinationBucket));
 
-    return buildRetentionJobEntity(job.getName(), defaultRule);
+      TransferJob job =
+          StsUtil.createDefaultStsJob(
+              client,
+              projectId,
+              sourceBucket,
+              destinationBucket,
+              prefixesToExclude,
+              description,
+              scheduledTime,
+              defaultRule.getRetentionPeriodInDays());
+
+      defaultRuleJobs.add(buildRetentionJobEntity(job.getName(), defaultRule));
+    }
+
+    return defaultRuleJobs;
   }
 
   /**
