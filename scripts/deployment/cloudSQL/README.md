@@ -65,6 +65,8 @@ See the `properties` section in the schema file(s)
         properties:
           cloudsql:
             tier: db-n1-standard-1 # <== change values to match your desired Instance tier
+            region: us-central1  # <== change values to match your desired region
+            zone: us-central1-c  # <== change values to match your desired zone from the region above
             dataDiskSizeGb: 150
             privateNetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc  # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
 

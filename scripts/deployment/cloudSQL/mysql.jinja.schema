@@ -64,7 +64,7 @@ properties:
         default: us-west1
       zone:
         type: string
-        description: i.e. us-central1-a
+        description: i.e. us-central1-a. Must be a zone in the region specified in property 'region' (above)
         default: us-west1-a
       privateNetwork:
         type: string
