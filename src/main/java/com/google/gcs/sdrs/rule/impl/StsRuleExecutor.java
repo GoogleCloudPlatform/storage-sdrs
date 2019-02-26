@@ -115,10 +115,18 @@ public class StsRuleExecutor implements RuleExecutor {
 
     ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
 
-    List<String> prefixes = PrefixGeneratorUtility.generateTimePrefixes(
-        RetentionUtil.getDatasetPath(rule.getDataStorageName()),
-        zonedDateTimeNow.minusDays(lookBackInDays),
-        zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()));
+    List<String> prefixes = null;
+    if (rule.getType() == RetentionRuleType.USER) {
+      prefixes = new ArrayList<>();
+      String prefix = RetentionUtil.getDatasetPath(rule.getDataStorageName());
+      prefix = prefix.substring(0, prefix.lastIndexOf("/") + 1);
+      prefixes.add(prefix);
+    } else {
+      prefixes = PrefixGeneratorUtility.generateTimePrefixes(
+          RetentionUtil.getDatasetPath(rule.getDataStorageName()),
+          zonedDateTimeNow.minusDays(lookBackInDays),
+          zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()));
+    }
 
     String projectId = rule.getProjectId();
     String sourceBucket = RetentionUtil.getBucketName(rule.getDataStorageName());
