@@ -71,21 +71,23 @@ public class ValidationWorker extends BaseWorker {
                 .collect(Collectors.toMap(RetentionJobValidation::getJobOperationName, x -> x)));
       }
 
-      // Our map of STS validations may or may not already exist in the DB. We need to query the DB
-      // for each one to see if it exists.
-      List<RetentionJobValidation> existingValidations =
-          dao.findAllByRetentionJobNames(new ArrayList<>(stsValidations.keySet()));
+      if (stsValidations.size() > 0) {
+        // Our map of STS validations may or may not already exist in the DB. We need to query the
+        // DB for each one to see if it exists.
+        List<RetentionJobValidation> existingValidations =
+            dao.findAllByRetentionJobNames(new ArrayList<>(stsValidations.keySet()));
 
-      // For each validation that exists in the DB, update the matching STS validation with the Id
-      // so it can be properly updated
-      for (RetentionJobValidation existingValidation : existingValidations) {
-        RetentionJobValidation stsValidation =
-            stsValidations.get(existingValidation.getJobOperationName());
+        // For each validation that exists in the DB, update the matching STS validation with the Id
+        // so it can be properly updated
+        for (RetentionJobValidation existingValidation : existingValidations) {
+          RetentionJobValidation stsValidation =
+              stsValidations.get(existingValidation.getJobOperationName());
 
-        stsValidation.setId(existingValidation.getId());
+          stsValidation.setId(existingValidation.getId());
+        }
+
+        dao.saveOrUpdateBatch(new ArrayList<>(stsValidations.values()));
       }
-
-      dao.saveOrUpdateBatch(new ArrayList<>(stsValidations.values()));
     }
   }
 }
