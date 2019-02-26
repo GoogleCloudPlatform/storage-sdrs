@@ -1,5 +1,5 @@
 {#
-Copyright 2019 Google Inc. All rights reserved.
+Copyright 2016 Google Inc. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,13 +13,32 @@ limitations under the License.
 
 {% set INSTANCE_TEMPLATE = env["deployment"] + "-it" %}
 {% set IGM = env["deployment"] + "-igm" %}
+{% set AUTO_SCALER = env["deployment"] + "-as" %}
 {% set BACK_END = env["deployment"] + "-bes" %}
 {% set HEALTH_CHECK = env["deployment"] + "-hc" %}
 {% set FWARD_RULE = env["deployment"] + "-fr" %}
 {% set COMPUTE_URL_BASE = 'https://www.googleapis.com/compute/v1/' %}
 
 resources:
-- name: {{ env["deployment"] }}-as
+- name: {{ INSTANCE_TEMPLATE }}
+  type: instance-template.jinja
+  properties:
+    machineType: {{ properties['machineType'] }}
+    itName: {{ INSTANCE_TEMPLATE }}
+    value: {{ properties['value'] }}
+    subnetwork: {{ properties["subnetwork"] }}
+    network: {{ properties["network"] }}
+    email: {{ properties["email"] }}
+
+- name: {{ IGM }}
+  type: compute.v1.regionInstanceGroupManagers
+  properties:
+    baseInstanceName: {{ env["deployment"] }}-vm
+    instanceTemplate: $(ref.{{ INSTANCE_TEMPLATE }}.selfLink)
+    targetSize: {{ properties["targetSize"] }}
+    region: {{ properties["region"] }}
+
+- name: {{ AUTO_SCALER }}
   type: compute.v1.regionAutoscaler
   properties:
     region: {{ properties["region"] }}
@@ -29,51 +48,7 @@ resources:
       cpuUtilization:
         utilizationTarget: 0.7
       coolDownPeriodSec: 90
-- name: {{ IGM }}
-  type: compute.v1.regionInstanceGroupManagers
-  properties:
-    baseInstanceName: {{ env["deployment"] }}-vm
-    instanceTemplate: $(ref.{{ INSTANCE_TEMPLATE }}.selfLink)
-    targetSize: {{ properties["targetSize"] }}
-    region: {{ properties["region"] }}
-    updatePolicy:
-      minimalAction: REPLACE
-      type: PROACTIVE
-- name: {{ INSTANCE_TEMPLATE }}
-  type: compute.v1.instanceTemplate
-  properties:
-    properties:
-      disks:
-      - deviceName: boot
-        type: PERSISTENT
-        boot: true
-        autoDelete: true
-        initializeParams:
-          sourceImage: {{ COMPUTE_URL_BASE }}projects/{{ env['project'] }}/global/images/centos-docker-sd
-      machineType: {{ properties["machineType"] }}
-      metadata:
-        items:
-        - key: startup-script-url
-          value: gs://sdrs-server/versions/demo/startup.sh
-      networkInterfaces:
-      - network: {{ properties["network"] }}
-        subnetwork: {{ properties["subnetwork"] }}
-      serviceAccounts:
-        - email: {{ properties["email"] }}
-          scopes:
-          - https://www.googleapis.com/auth/logging.write
-          - https://www.googleapis.com/auth/monitoring.write
-          - https://www.googleapis.com/auth/source.read_write
-          - https://www.googleapis.com/auth/devstorage.read_only
-          - https://www.googleapis.com/auth/servicecontrol
-          - https://www.googleapis.com/auth/service.management.readonly
-          - https://www.googleapis.com/auth/trace.append
 
-        {% if properties["externalIp"] %}
-        accessConfigs:
-        - name: External-IP
-          type: ONE_TO_ONE_NAT
-        {% endif %}
 - name: {{ BACK_END }}
   type: compute.v1.regionBackendService
   properties:
@@ -84,12 +59,14 @@ resources:
     loadBalancingScheme: INTERNAL
     region: {{ properties["region"] }}
     healthChecks: [$(ref.{{ HEALTH_CHECK }}.selfLink)]
+
 - name: {{ HEALTH_CHECK }}
   type: compute.v1.healthCheck
   properties:
     type: "TCP"
     tcpHealthCheck:
       port: 80
+
 - name: {{ FWARD_RULE }}
   type: compute.v1.forwardingRule
   properties:
@@ -99,6 +76,7 @@ resources:
     region: {{ properties["region"] }}
     backendService: $(ref.{{ BACK_END }}.selfLink)
     loadBalancingScheme: INTERNAL
+
 - name: {{ env["deployment"] }}-allow-health-check-firewall-rule
   type: compute.v1.firewall
   properties:

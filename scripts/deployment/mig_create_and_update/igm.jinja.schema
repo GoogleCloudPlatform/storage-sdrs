@@ -19,6 +19,10 @@ info:
   version: 0.1
 
 
+imports:
+- path: instance-template.jinja
+- path: igm.jinja
+
 required:
 - targetSize
 - maxNumReplicas

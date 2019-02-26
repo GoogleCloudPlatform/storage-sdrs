@@ -1,4 +1,4 @@
-# Copyright 2019 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-imports:
-- path: igm.jinja
+{% set topic = env['deployment'] + '-' + env['name'] + '-topic' %}
+{% set subscription = env['deployment'] + '-' + env['name'] + '-subscription' %}
 
 resources:
-- name: sdrs
-  type: igm.jinja
+- name: my-topic
+  type: gcp-types/pubsub-v1:projects.topics
   properties:
-    targetSize: 2
-    maxNumReplicas: 5
-    machineType: n1-standard-1
-    externalIp: False
-    region: us-central1
-    email: default
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
+    topic: {{ topic }}
+- name: my-subscription
+  type: gcp-types/pubsub-v1:projects.subscriptions
+  properties:
+    subscription: {{ subscription }}
+    topic: $(ref.my-topic.name)
+    retainAckedMessages: {{ properties["retainAckedMessages"] }}
+    ackDeadlineSeconds: {{ properties["ackDeadlineSeconds"] }}
+    
