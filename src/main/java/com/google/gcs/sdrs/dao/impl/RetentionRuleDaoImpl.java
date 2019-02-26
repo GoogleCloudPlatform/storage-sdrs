@@ -41,10 +41,11 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
   }
 
   /**
-   * Get a {@link List} of {@link RetentionRule}s with the provided dataStorage and dataSet
-   *
+   * Get the dataset {@link RetentionRule} with the provided dataStorageName and projectId
+   * @param projectId a {@link String} with the GCP project ID
    * @param dataStorage a {@link String} of the form 'gs://bucketName'
-   * @return a {@link List} of {@link RetentionRule}s
+   *
+   * @return a {@link RetentionRule} record
    */
   @Override
   public RetentionRule findDatasetRuleByBusinessKey(String projectId, String dataStorage) {
@@ -60,7 +61,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
             builder.equal(root.get("projectId"), projectId),
             builder.equal(root.get("dataStorageName"), dataStorage));
 
-    return getSingleRuleWithCriteriaQuery(query);
+    return getSingleRecordWithCriteriaQuery(query);
   }
 
   /**
@@ -98,7 +99,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     predicateArray = predicates.toArray(predicateArray);
 
     query.select(root).where(predicateArray);
-    return getSingleRuleWithCriteriaQuery(query);
+    return getSingleRecordWithCriteriaQuery(query);
   }
 
   /**
@@ -162,7 +163,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     return result;
   }
 
-  private RetentionRule getSingleRuleWithCriteriaQuery(CriteriaQuery<RetentionRule> query) {
+  private RetentionRule getSingleRecordWithCriteriaQuery(CriteriaQuery<RetentionRule> query) {
     Query<RetentionRule> queryResults = getCurrentSession().createQuery(query);
     List<RetentionRule> list = queryResults.getResultList();
 

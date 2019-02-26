@@ -18,6 +18,12 @@
 package com.google.gcs.sdrs.util;
 
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A class of helper methods for retention rules, job, and validations.
@@ -74,4 +80,28 @@ public class RetentionUtil {
 
     return datasetPath;
   }
+
+  public static Map<String, Set<String>> getPrefixMap(Collection<RetentionRule> datasetRules) {
+    Map<String, Set<String>> prefixMap = new HashMap<>();
+    for (RetentionRule datasetRule : datasetRules) {
+      String bucketName = RetentionUtil.getBucketName(datasetRule.getDataStorageName());
+      String projectId = datasetRule.getProjectId();
+      String mapKey = projectId + ";" + bucketName;
+
+      String datasetPath = getDatasetPath(datasetRule.getDataStorageName());
+      if (prefixMap.containsKey(mapKey)) {
+        if (datasetPath != null && !datasetPath.isEmpty()) {
+          prefixMap.get(mapKey).add(datasetPath + "/");
+        }
+      } else {
+        Set<String> s = new HashSet<>();
+        if (datasetPath != null && !datasetPath.isEmpty()) {
+          s.add(datasetPath + "/");
+        }
+        prefixMap.put(mapKey, s);
+      }
+    }
+    return prefixMap;
+  }
+
 }

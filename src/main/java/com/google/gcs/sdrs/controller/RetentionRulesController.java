@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.exception.ValidationException;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
@@ -28,6 +29,7 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
+import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import java.util.Collection;
@@ -72,11 +74,35 @@ public class RetentionRulesController extends BaseController {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response get(
+      @QueryParam("type") String retentionRuleType,
       @QueryParam("projectId") String projectId,
       @QueryParam("dataStorageName") String dataStorageName) {
     try {
+
+      Collection<ValidationResult> partialValidations =
+          validateCompositeKey(retentionRuleType, projectId, dataStorageName);
+      ValidationResult result = ValidationResult.compose(partialValidations);
+
+      if (!result.isValid) {
+        throw new ValidationException(result);
+      }
+
+      if (retentionRuleType.equalsIgnoreCase(RetentionRuleType.GLOBAL.toString())) {
+        if (projectId == null) {
+          projectId = SdrsApplication.getAppConfigProperty("sts.defaultProjectId");
+        }
+        if (dataStorageName == null) {
+          dataStorageName = SdrsApplication.getAppConfigProperty("sts.defaultStorageName");
+        }
+      }
       RetentionRuleResponse response =
           service.getRetentionRuleByBusinessKey(projectId, dataStorageName);
+      if (response == null) {
+        throw new ResourceNotFoundException(
+            String.format(
+                "Retention rule doesn't exist for projectId: %s, dataStorageName: %s",
+                projectId, dataStorageName));
+      }
       return successResponse(response);
     } catch (Exception exception) {
       return errorResponse(exception);
@@ -100,15 +126,43 @@ public class RetentionRulesController extends BaseController {
 
   /** CRUD delete endpoint */
   @DELETE
+  @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response deleteByBusinessKey(
+      @QueryParam("type") String retentionRuleType,
       @QueryParam("projectId") String projectId,
       @QueryParam("dataStorageName") String dataStorageName) {
     try {
+
+      Collection<ValidationResult> partialValidations =
+          validateCompositeKey(retentionRuleType, projectId, dataStorageName);
+      ValidationResult result = ValidationResult.compose(partialValidations);
+
+      if (!result.isValid) {
+        throw new ValidationException(result);
+      }
+
+      if (retentionRuleType.equalsIgnoreCase(RetentionRuleType.GLOBAL.toString())) {
+        if (projectId == null) {
+          projectId = SdrsApplication.getAppConfigProperty("sts.defaultProjectId");
+        }
+        if (dataStorageName == null) {
+          dataStorageName = SdrsApplication.getAppConfigProperty("sts.defaultStorageName");
+        }
+      }
+
       Integer ruleId = service.deleteRetentionRuleByBusinessKey(projectId, dataStorageName);
-      RetentionRuleDeleteResponse response = new RetentionRuleDeleteResponse();
-      response.setRuleId(ruleId);
-      return successResponse(response);
+
+      if (ruleId == null) {
+        throw new ResourceNotFoundException(
+            String.format(
+                "Retention rule doesn't exist for projectId: %s, dataStorageName: %s",
+                projectId, dataStorageName));
+      } else {
+        RetentionRuleDeleteResponse response = new RetentionRuleDeleteResponse();
+        response.setRuleId(ruleId);
+        return successResponse(response);
+      }
     } catch (Exception exception) {
       return errorResponse(exception);
     }
@@ -121,36 +175,51 @@ public class RetentionRulesController extends BaseController {
    * @throws ValidationException when the request is invalid
    */
   private void validateCreate(RetentionRuleCreateRequest request) throws ValidationException {
-    Collection<ValidationResult> partialValidations = new HashSet<>();
+    String retentionRuleType = null;
 
-    partialValidations.add(validateRetentionPeriod(request.getRetentionPeriod()));
-
-    if (request.getRetentionRuleType() == null) {
-      partialValidations.add(ValidationResult.fromString("type must be provided"));
-    } else {
-      switch (request.getRetentionRuleType()) {
-        case GLOBAL:
-          break;
-        case DATASET:
-          partialValidations.add(
-              FieldValidations.validateFieldFollowsBucketNamingStructure(
-                  "dataStorageName", request.getDataStorageName()));
-
-          if (request.getProjectId() == null) {
-            partialValidations.add(
-                ValidationResult.fromString("projectId must be provided if type is DATASET"));
-          }
-          break;
-        default:
-          break;
-      }
+    if (request.getRetentionRuleType() != null) {
+      retentionRuleType = request.getRetentionRuleType().toString();
     }
-
+    Collection<ValidationResult> partialValidations =
+        validateCompositeKey(
+            retentionRuleType, request.getProjectId(), request.getDataStorageName());
+    partialValidations.add(validateRetentionPeriod(request.getRetentionPeriod()));
     ValidationResult result = ValidationResult.compose(partialValidations);
 
     if (!result.isValid) {
       throw new ValidationException(result);
     }
+  }
+
+  private Collection<ValidationResult> validateCompositeKey(
+      String retentionRuleType, String projectId, String dataStorageName) {
+    Collection<ValidationResult> partialValidations = new HashSet<>();
+    if (retentionRuleType == null) {
+      partialValidations.add(
+          ValidationResult.fromString(String.format(
+              "type, one of [%s, %s],  must be provided.",
+              RetentionRuleType.GLOBAL.toString(), RetentionRuleType.DATASET.toString())));
+    } else {
+      switch (retentionRuleType.toUpperCase()) {
+        case ValidationConstants.GLOBAL_JSON_VALUE:
+          break;
+        case ValidationConstants.DATASET_JSON_VALUE:
+          partialValidations.add(
+              FieldValidations.validateFieldFollowsBucketNamingStructure(
+                  "dataStorageName", dataStorageName));
+
+          if (projectId == null) {
+            partialValidations.add(
+                ValidationResult.fromString("projectId must be provided if type is DATASET"));
+          }
+          break;
+        default:
+          partialValidations.add(ValidationResult.fromString(String.format(
+              "type, one of [%s, %s],  must be provided.",
+              RetentionRuleType.GLOBAL.toString(), RetentionRuleType.DATASET.toString())));
+      }
+    }
+    return partialValidations;
   }
 
   private void validateUpdate(RetentionRuleUpdateRequest request) throws ValidationException {

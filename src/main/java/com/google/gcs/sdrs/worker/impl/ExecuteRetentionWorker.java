@@ -18,7 +18,7 @@
 package com.google.gcs.sdrs.worker.impl;
 
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
-import com.google.gcs.sdrs.dao.Dao;
+import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
@@ -30,46 +30,32 @@ import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.worker.BaseWorker;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
-
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** A worker class for executing dataset retention jobs */
 public class ExecuteRetentionWorker extends BaseWorker {
 
   private final ExecutionEventRequest executionEvent;
   private final Logger logger = LoggerFactory.getLogger(ExecuteRetentionWorker.class);
-  private final ZoneId DEFAULT_TIMEZONE = ZoneId.of("America/Los_Angeles");
-  private ZoneId executionTimezone;
 
   RetentionRuleDao retentionRuleDao = SingletonDao.getRetentionRuleDao();
-  Dao<RetentionJob, Integer> retentionJobDao = SingletonDao.getRetentionJobDao();
+  RetentionJobDao retentionJobDao = SingletonDao.getRetentionJobDao();
   RuleExecutor ruleExecutor;
 
+  /** The Execute Retention Worker construct
+   *
+   * @param executionEvent the {@link ExecutionEventRequest} to execute
+   */
   public ExecuteRetentionWorker(ExecutionEventRequest executionEvent) {
     super();
 
     this.executionEvent = executionEvent;
-
-    try {
-      Configuration config = new Configurations().xml("applicationConfig.xml");
-      executionTimezone = ZoneId.of(config.getString("scheduler.task.ruleExecution.timezone"));
-    } catch (ConfigurationException ex) {
-      logger.error(
-          String.format(
-              "Configuration could not be read. Using default values: %s", ex.getMessage()));
-      executionTimezone = DEFAULT_TIMEZONE;
-    }
-
     ruleExecutor = StsRuleExecutor.getInstance();
   }
 
+  /** The function that will be executed when the worker is submitted */
   @Override
   public void doWork() {
     String dataStorageName = getDataStorageName(executionEvent.getTarget());
@@ -127,11 +113,6 @@ public class ExecuteRetentionWorker extends BaseWorker {
     }
   }
 
-  private ZonedDateTime atMidnight() {
-    ZonedDateTime midnight = LocalDate.now().atStartOfDay().plusDays(1).atZone(executionTimezone);
-    return midnight;
-  }
-
   private RetentionRule getEventDefinedRule() {
     RetentionRule rule = new RetentionRule();
 
@@ -142,7 +123,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
     rule.setRetentionPeriodInDays(0);
     rule.setProjectId(executionEvent.getProjectId());
-    rule.setType(RetentionRuleType.DATASET);
+    rule.setType(RetentionRuleType.USER);
 
     return rule;
   }

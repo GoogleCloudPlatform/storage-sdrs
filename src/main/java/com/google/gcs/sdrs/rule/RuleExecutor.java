@@ -24,14 +24,23 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.List;
 
 public interface RuleExecutor {
 
   RetentionJob executeDatasetRule(RetentionRule rule) throws IOException, IllegalArgumentException;
 
-  RetentionJob executeDefaultRule(
+  List<RetentionJob> executeDefaultRule(
       RetentionRule defaultRule,
       Collection<RetentionRule> bucketDatasetRules,
       ZonedDateTime scheduledTime)
+      throws IOException, IllegalArgumentException;
+
+  RetentionJob updateDefaultRule(RetentionJob defaultJob,
+                                 RetentionRule defaultRule,
+                                 Collection<RetentionRule> bucketDatasetRules)
+      throws IOException, IllegalArgumentException;
+
+  RetentionJob cancelDefaultJob(RetentionJob job, RetentionRule defaultRule)
       throws IOException, IllegalArgumentException;
 }

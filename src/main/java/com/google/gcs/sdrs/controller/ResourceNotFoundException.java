@@ -14,27 +14,30 @@
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
+package com.google.gcs.sdrs.controller;
 
-package com.google.gcs.sdrs.dao;
+import javax.ws.rs.core.Response;
 
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import java.util.List;
+/**
+ * Exception thrown in case of resource not found errors. Supports messages including multiple
+ * identified errors.
+ */
+public class ResourceNotFoundException extends HttpException {
 
-/** Defines available persistence operations for RetentionRule entities */
-public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
+  private String message;
 
-  RetentionRule findByBusinessKey(String projectId, String dataStorageName);
+  public ResourceNotFoundException(String message) {
+    this.message = message;
+  }
 
-  RetentionRule findDatasetRuleByBusinessKey(String projectId, String dataStorage);
+  @Override
+  public String getMessage() {
+    return message;
+  }
 
-  List<RetentionRule> findDatasetRulesByProjectId(String projectId);
-
-  List<String> getAllDatasetRuleProjectIds();
-
-  RetentionRule findByBusinessKey(
-      String projectId, String dataStorageName, Boolean includeDeactivated);
-
-  Integer softDelete(RetentionRule rule);
-
-  RetentionRule findGlobalRuleByProjectId(String projectId);
+  /** Gets the validation error HTTP status code */
+  @Override
+  public int getStatusCode() {
+    return Response.Status.NOT_FOUND.getStatusCode();
+  }
 }
