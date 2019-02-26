@@ -28,6 +28,7 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
 
     Query<RetentionJob> query = getCurrentSession().createQuery(criteria);
     List<RetentionJob> result = query.getResultList();
+    closeCurrentSession();
     return result;
   }
 
@@ -43,6 +44,7 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
 
     Query<RetentionJob> query = getCurrentSession().createQuery(criteria);
     List<RetentionJob> result = query.getResultList();
+    closeCurrentSession();
     return result;
   }
 }
