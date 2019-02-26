@@ -1,4 +1,4 @@
-# Copyright 2019 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-imports:
-- path: igm.jinja
-
 resources:
-- name: sdrs
-  type: igm.jinja
+- name: pub10
+  action: gcp-types/pubsub-v1:pubsub.projects.topics.publish
   properties:
-    targetSize: 2
-    maxNumReplicas: 5
-    machineType: n1-standard-1
-    externalIp: False
-    region: us-central1
-    email: default
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
+    topic: projects/sdrs-server/topics/pub10-pubsub-topic
+    messages:
+    - data: SGVsbG8gU0RSUw==
+  metadata:
+    runtimePolicy:
+    - CREATE
