@@ -60,8 +60,11 @@ public class RetentionJob {
   @Column(name = "retention_rule_project_id")
   private String retentionRuleProjectId;
 
-  @Column(name = "created_at")
+  @Column(name = "created_at", updatable = false)
   private Timestamp createdAt;
+
+  @Column(name = "updated_at", updatable = false)
+  private Timestamp updatedAt;
 
   @OneToMany(mappedBy = "retentionJobId")
   private List<RetentionJobValidation> jobValidations;
@@ -120,8 +123,8 @@ public class RetentionJob {
     return createdAt;
   }
 
-  public void setCreatedAt(Timestamp createdAt) {
-    this.createdAt = createdAt;
+  public Timestamp getUpdatedAt() {
+    return updatedAt;
   }
 
   public Integer getRetentionRuleVersion() {

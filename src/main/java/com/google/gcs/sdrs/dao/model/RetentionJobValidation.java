@@ -50,10 +50,10 @@ public class RetentionJobValidation {
   @Column(name = "status")
   private RetentionJobStatusType status;
 
-  @Column(name = "created_at")
+  @Column(name = "created_at", updatable = false)
   private Timestamp createdAt;
 
-  @Column(name = "updated_at")
+  @Column(name = "updated_at", updatable = false)
   private Timestamp updatedAt;
 
   public RetentionJobValidation() {}
@@ -94,15 +94,7 @@ public class RetentionJobValidation {
     return createdAt;
   }
 
-  public void setCreatedAt(Timestamp createdAt) {
-    this.createdAt = createdAt;
-  }
-
   public Timestamp getUpdatedAt() {
     return updatedAt;
-  }
-
-  public void setUpdatedAt(Timestamp updatedAt) {
-    this.updatedAt = updatedAt;
   }
 }
