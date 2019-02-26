@@ -19,6 +19,8 @@ package com.google.gcs.sdrs.util;
 
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gson.Gson;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -111,8 +113,14 @@ public class RetentionUtil {
     return prefixMap;
   }
 
+  /**
+   * Generates the key used in the retention rule map object
+   *
+   * @param projectId the project id of the rule
+   * @param bucketName the bucket name affected by the rule
+   * @return a single string of format "projectId;bucketName"
+   */
   public static String generatePrefixMapKey(String projectId, String bucketName) {
     return projectId + ";" + bucketName;
   }
-
 }
