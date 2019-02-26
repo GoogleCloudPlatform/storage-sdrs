@@ -96,7 +96,7 @@ public class StsUtil {
 
     // Subtracting a day to force STS to trigger the job immediately
     TransferJob transferJob = buildTransferJob(projectId, sourceBucket, destinationBucket,
-        prefixes, description, startDateTime, true, null);
+        prefixes, description, startDateTime, true, false, null);
 
     logger.info("Creating one time transfer job in STS: ", transferJob.toPrettyString());
 
@@ -128,7 +128,7 @@ public class StsUtil {
 
     TransferJob transferJob = buildTransferJob(projectId,
         sourceBucket, destinationBucket, prefixesToExclude,
-        description, startDateTime, false, retentionInDays);
+        description, startDateTime, false, true, retentionInDays);
 
     logger.info("Creating recurring transfer job in STS: ", transferJob.toPrettyString());
 
@@ -225,13 +225,14 @@ public class StsUtil {
                                       String description,
                                       ZonedDateTime startDateTime,
                                       Boolean isOneTimeSchedule,
+                                      Boolean isExcludePrefixes,
                                       Integer retentionInDays) {
     return new TransferJob()
         .setProjectId(projectId)
         .setDescription(description)
         .setTransferSpec(
             buildTransferSpec(sourceBucket, destinationBucket,
-                prefixes, true, retentionInDays))
+                prefixes, isExcludePrefixes, retentionInDays))
         .setSchedule(buildSchedule(startDateTime, isOneTimeSchedule))
         .setStatus(STS_ENABLED_STRING);
   }
@@ -247,8 +248,8 @@ public class StsUtil {
         .setObjectConditions(buildObjectConditions(prefixes, isExcludePrefixes, retentionInDays))
         .setTransferOptions(
             new TransferOptions()
-                // flip the delete flag to false if you want to test without losing your data
-                .setDeleteObjectsFromSourceAfterTransfer(false)
+                // flip the delete flag to false if you want to test without actual deleting  your data
+                .setDeleteObjectsFromSourceAfterTransfer(true)
                 .setOverwriteObjectsAlreadyExistingInSink(true));
   }
 

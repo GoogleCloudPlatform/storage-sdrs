@@ -123,7 +123,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
     rule.setRetentionPeriodInDays(0);
     rule.setProjectId(executionEvent.getProjectId());
-    rule.setType(RetentionRuleType.DATASET);
+    rule.setType(RetentionRuleType.USER);
 
     return rule;
   }
