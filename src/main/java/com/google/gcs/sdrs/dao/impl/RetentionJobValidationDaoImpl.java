@@ -68,7 +68,9 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
         job.join("jobValidations", JoinType.INNER);
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     query.where(builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL));
-    return getCurrentSession().createQuery(query).getResultList();
+    List<RetentionJob> results = getCurrentSession().createQuery(query).getResultList();
+    closeCurrentSession();
+    return results;
   }
 
   /**
@@ -85,7 +87,9 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     query.where(
         builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));
-    return getCurrentSession().createQuery(query).getResultList();
+    List<RetentionJob> results = getCurrentSession().createQuery(query).getResultList();
+    closeCurrentSession();
+    return results;
   }
 
   /**
@@ -104,7 +108,9 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     query.where(
         builder.equal(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.greaterThanOrEqualTo(jobValidation.get("updatedAt"), oneDayAgo));
-    return getCurrentSession().createQuery(query).getResultList();
+    List<RetentionJob> results = getCurrentSession().createQuery(query).getResultList();
+    closeCurrentSession();
+    return results;
   }
 
   /**
@@ -123,7 +129,9 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     query.where(
         builder.equal(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));
-    return getCurrentSession().createQuery(query).getResultList();
+    List<RetentionJob> results = getCurrentSession().createQuery(query).getResultList();
+    closeCurrentSession();
+    return results;
   }
 
   /**
@@ -141,7 +149,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
 
     query.where(root.get("jobOperationName").in(retentionJobNames));
 
-    Query<RetentionJobValidation> result = getCurrentSession().createQuery(query);
-    return result.getResultList();
+    List<RetentionJobValidation> results = getCurrentSession().createQuery(query).getResultList();
+    closeCurrentSession();
+    return results;
   }
 }
