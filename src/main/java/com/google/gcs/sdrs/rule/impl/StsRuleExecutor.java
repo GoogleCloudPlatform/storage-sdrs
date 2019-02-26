@@ -24,6 +24,7 @@ import com.google.api.services.storagetransfer.v1.model.Schedule;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.gcs.sdrs.SdrsApplication;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
@@ -180,6 +181,7 @@ public class StsRuleExecutor implements RuleExecutor {
       String[] combinedString = mapKey.split(";");
       String projectId = combinedString[0];
       String sourceBucket = combinedString[1];
+      String fullSourceBucket = ValidationConstants.STORAGE_PREFIX + sourceBucket;
       String destinationBucket = sourceBucket + suffix;
       String description = buildDescription(defaultRule, scheduledTime);
       List<String> prefixesToExclude = new ArrayList<>(prefixesToExcludeMap.get(mapKey));
@@ -217,8 +219,9 @@ public class StsRuleExecutor implements RuleExecutor {
 
       RetentionJob retentionJob = buildRetentionJobEntity(job.getName(), defaultRule);
       // Save the job with the actual projectId it is being created for, not the fake global
-      // projectId that is set on the retentionRule
+      // projectId that is set on the retentionRule. Same for data storage.
       retentionJob.setRetentionRuleProjectId(projectId);
+      retentionJob.setRetentionRuleDataStorageName(fullSourceBucket);
       defaultRuleJobs.add(retentionJob);
     }
 
@@ -298,6 +301,7 @@ public class StsRuleExecutor implements RuleExecutor {
         // Set the returned job ID to the same as the existing job for updating
         job.setId(defaultJob.getId());
         job.setRetentionRuleProjectId(defaultJob.getRetentionRuleProjectId());
+        job.setRetentionRuleDataStorageName(defaultJob.getRetentionRuleDataStorageName());
         updatedJobs.add(job);
       }
     }
@@ -325,6 +329,7 @@ public class StsRuleExecutor implements RuleExecutor {
       RetentionJob updatedJob = buildRetentionJobEntity(updatedTransferJob.getName(), defaultRule);
       updatedJob.setId(jobToCancel.getId());
       updatedJob.setRetentionRuleProjectId(jobToCancel.getRetentionRuleProjectId());
+      updatedJob.setRetentionRuleDataStorageName(jobToCancel.getRetentionRuleDataStorageName());
       cancelledJobs.add(updatedJob);
     }
 
