@@ -42,7 +42,7 @@ public class UserInfoRequestFilterTest {
   }
 
   @Test
-  public void filterAddsEmptyUserInfoWhenNoHeaderPresent() {
+  public void filterAddsUserInfoWithUnknownEmailWhenNoHeaderPresent() {
     MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
     ContainerRequestContext mockRequestContext = spy(ContainerRequestContext.class);
     when(mockRequestContext.getHeaders()).thenReturn(requestHeaders);

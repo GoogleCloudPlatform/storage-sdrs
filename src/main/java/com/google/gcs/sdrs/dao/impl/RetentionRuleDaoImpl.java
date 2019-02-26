@@ -20,9 +20,11 @@ package com.google.gcs.sdrs.dao.impl;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
+import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
@@ -40,9 +42,9 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
 
   /**
    * Get the dataset {@link RetentionRule} with the provided dataStorageName and projectId
+   *
    * @param projectId a {@link String} with the GCP project ID
    * @param dataStorage a {@link String} of the form 'gs://bucketName'
-   *
    * @return a {@link RetentionRule} record
    */
   @Override
@@ -54,6 +56,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     query
         .select(root)
         .where(
+            builder.equal(root.get("isActive"), true),
             builder.equal(root.get("type"), RetentionRuleType.DATASET),
             builder.equal(root.get("projectId"), projectId),
             builder.equal(root.get("dataStorageName"), dataStorage));
@@ -68,16 +71,34 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    */
   @Override
   public RetentionRule findByBusinessKey(String projectId, String dataStorageName) {
+    return findByBusinessKey(projectId, dataStorageName, false);
+  }
+
+  /**
+   * Finds the RetentionRule uniquely identified by the provided values
+   *
+   * @param projectId associated with the rule
+   * @param dataStorageName associated with the rule
+   * @param includeDeactivated flag to prevent including inactive records in the response
+   * @return a {@link RetentionRule}
+   */
+  @Override
+  public RetentionRule findByBusinessKey(
+      String projectId, String dataStorageName, Boolean includeDeactivated) {
     CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
     CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
     Root<RetentionRule> root = query.from(RetentionRule.class);
 
-    query
-        .select(root)
-        .where(
-            builder.equal(root.get("projectId"), projectId),
-            builder.equal(root.get("dataStorageName"), dataStorageName));
+    List<Predicate> predicates = new LinkedList<>();
+    predicates.add(builder.equal(root.get("projectId"), projectId));
+    predicates.add(builder.equal(root.get("dataStorageName"), dataStorageName));
+    if (!includeDeactivated) {
+      predicates.add(builder.equal(root.get("isActive"), true));
+    }
+    Predicate[] predicateArray = new Predicate[predicates.size()];
+    predicateArray = predicates.toArray(predicateArray);
 
+    query.select(root).where(predicateArray);
     return getSingleRecordWithCriteriaQuery(query);
   }
 
@@ -95,6 +116,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
 
   /**
    * Gets the global rule based on its project id
+   *
    * @param projectId the {@link String} project id to search by. Should be "global-default"
    * @return the global {@link RetentionRule}
    */
@@ -106,7 +128,9 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
 
     query
         .select(root)
-        .where(builder.equal(root.get("type"), RetentionRuleType.GLOBAL),
+        .where(
+            builder.equal(root.get("isActive"), true),
+            builder.equal(root.get("type"), RetentionRuleType.GLOBAL),
             builder.equal(root.get("projectId"), projectId));
 
     return getSingleRecordWithCriteriaQuery(query);
@@ -126,7 +150,9 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     criteria
         .select(root.get("projectId"))
         .distinct(true)
-        .where(builder.equal(root.get("type"), RetentionRuleType.DATASET));
+        .where(
+            builder.equal(root.get("isActive"), true),
+            builder.equal(root.get("type"), RetentionRuleType.DATASET));
 
     Query<String> query = getCurrentSession().createQuery(criteria);
     List<String> result = query.getResultList();
@@ -149,6 +175,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     criteria
         .select(root)
         .where(
+            builder.equal(root.get("isActive"), true),
             builder.equal(root.get("type"), RetentionRuleType.DATASET),
             builder.equal(root.get("projectId"), projectId));
 
@@ -156,5 +183,18 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     List<RetentionRule> result = query.getResultList();
     closeCurrentSession();
     return result;
+  }
+
+  RetentionRule getSingleRecordWithCriteriaQuery(CriteriaQuery<RetentionRule> query) {
+    Query<RetentionRule> queryResults = getCurrentSession().createQuery(query);
+    List<RetentionRule> list = queryResults.getResultList();
+
+    RetentionRule foundEntity = null;
+    if (!list.isEmpty()) {
+      foundEntity = list.get(0);
+    }
+
+    closeCurrentSession();
+    return foundEntity;
   }
 }

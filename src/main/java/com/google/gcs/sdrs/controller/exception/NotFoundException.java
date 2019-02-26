@@ -14,28 +14,32 @@
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
-package com.google.gcs.sdrs.controller;
+
+package com.google.gcs.sdrs.controller.exception;
 
 import javax.ws.rs.core.Response;
 
-/**
- * Exception thrown in case of resource not found errors. Supports messages including multiple
- * identified errors.
- */
-public class ResourceNotFoundException extends HttpException {
+/** Exception thrown when the request object isn't found */
+public class NotFoundException extends HttpException {
 
   private String message;
 
-  public ResourceNotFoundException(String message) {
+  /**
+   * Creates a NotFoundException with a user friendly error message
+   *
+   * @param message indicating the source of the error
+   */
+  public NotFoundException(String message) {
     this.message = message;
   }
 
+  /** Gets an error message */
   @Override
   public String getMessage() {
     return message;
   }
 
-  /** Gets the validation error HTTP status code */
+  /** Gets the error HTTP status code */
   @Override
   public int getStatusCode() {
     return Response.Status.NOT_FOUND.getStatusCode();

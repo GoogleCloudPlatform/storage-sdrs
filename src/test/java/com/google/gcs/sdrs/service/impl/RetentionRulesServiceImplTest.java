@@ -28,17 +28,18 @@ import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
 import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.EntityNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -160,6 +161,60 @@ public class RetentionRulesServiceImplTest {
     assertEquals(1, (int) input.getVersion());
     assertEquals("global", input.getDataStorageName());
     assertNull(input.getDatasetName());
+  }
+
+  @Test
+  public void createRuleOverwritesDeletedEntity() throws SQLException {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDatasetName("dataset");
+    createRule.setDataStorageName("gs://b/d");
+    createRule.setProjectId("projectId");
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setDataStorageName("dataStorageName");
+    existingRule.setProjectId("projectId");
+    existingRule.setRetentionPeriodInDays(1);
+    existingRule.setIsActive(false);
+    existingRule.setVersion(2);
+    when(service.ruleDao.findByBusinessKey("projectId", "gs://b/d", true)).thenReturn(existingRule);
+
+    service.createRetentionRule(createRule, new UserInfo());
+
+    ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
+
+    verify(service.ruleDao).update(captor.capture());
+    RetentionRule input = captor.getValue();
+    assertNull(input.getId());
+    assertEquals(RetentionRuleType.DATASET, input.getType());
+    assertEquals(123, (int) input.getRetentionPeriodInDays());
+    assertEquals(true, input.getIsActive());
+    assertEquals(input.getProjectId(), "projectId");
+    assertEquals(input.getDataStorageName(), "gs://b/d");
+    assertEquals(input.getDatasetName(), "dataset");
+    assertEquals(3, (int) input.getVersion());
+  }
+
+  @Test
+  public void getRuleByBusinessKeyReturnsMappedValues() {
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setId(2);
+    existingRule.setRetentionPeriodInDays(12);
+    existingRule.setProjectId("projectId");
+    existingRule.setDataStorageName("gs://bucket");
+    when(service.ruleDao.findByBusinessKey(anyString(), anyString())).thenReturn(existingRule);
+
+    RetentionRuleResponse result = service.getRetentionRuleByBusinessKey("any", "any");
+    assertEquals(12, (int) result.getRetentionPeriod());
+    assertEquals("projectId", result.getProjectId());
+    assertEquals("gs://bucket", result.getDataStorageName());
+  }
+
+  @Test(expected = EntityNotFoundException.class)
+  public void getRuleByBusinessKeyThrowsErrorWhenNull() {
+    when(service.ruleDao.findByBusinessKey(anyString(), anyString())).thenReturn(null);
+
+    service.getRetentionRuleByBusinessKey("any", "any");
   }
 
   @Test

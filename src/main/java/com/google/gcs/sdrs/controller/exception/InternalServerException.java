@@ -15,26 +15,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.dao;
+package com.google.gcs.sdrs.controller.exception;
 
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import java.util.List;
+import javax.ws.rs.core.Response;
 
-/** Defines available persistence operations for RetentionRule entities */
-public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
+/** Exception thrown when internal errors occur. Hides internal details. */
+public class InternalServerException extends HttpException {
 
-  RetentionRule findByBusinessKey(String projectId, String dataStorageName);
+  public InternalServerException(Exception exception) {
+    this.initCause(exception);
+  }
 
-  RetentionRule findDatasetRuleByBusinessKey(String projectId, String dataStorage);
+  /** Gets an error message hiding internal details */
+  @Override
+  public String getMessage() {
+    return "Internal server error";
+  }
 
-  List<RetentionRule> findDatasetRulesByProjectId(String projectId);
-
-  List<String> getAllDatasetRuleProjectIds();
-
-  RetentionRule findByBusinessKey(
-      String projectId, String dataStorageName, Boolean includeDeactivated);
-
-  Integer softDelete(RetentionRule rule);
-
-  RetentionRule findGlobalRuleByProjectId(String projectId);
+  /** Gets the error HTTP status code */
+  @Override
+  public int getStatusCode() {
+    return Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
+  }
 }

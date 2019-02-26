@@ -18,11 +18,16 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.controller.exception.HttpException;
+import com.google.gcs.sdrs.controller.exception.InternalServerException;
+import com.google.gcs.sdrs.controller.exception.NotFoundException;
+import com.google.gcs.sdrs.controller.exception.PersistenceException;
 import com.google.gcs.sdrs.controller.filter.ContainerContextProperties;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.BaseHttpResponse;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import java.sql.SQLException;
+import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -52,16 +57,27 @@ public abstract class BaseController {
     return Response.status(HttpStatus.OK_200).entity(responseBody).build();
   }
 
+  /**
+   * This converts application exceptions into a properly formatted response with an appropriate
+   * message and status code to show to an end user.
+   *
+   * @param exception the underlying application exception
+   * @return {@link Response} with status code and response body
+   */
   protected Response errorResponse(Exception exception) {
+    HttpException outgoingException;
     if (exception instanceof SQLException) {
       logger.error(exception.getMessage());
-      return generateExceptionResponse(new PersistenceException(exception));
+      outgoingException = new PersistenceException(exception);
+    } else if (exception instanceof EntityNotFoundException) {
+      outgoingException = new NotFoundException(exception.getMessage());
     } else if (exception instanceof HttpException) {
-      return generateExceptionResponse((HttpException) exception);
+      outgoingException = (HttpException) exception;
     } else {
       this.logger.error(String.format("Unhandled internal error: %s", exception.getMessage()));
       logger.error(String.format("Caused by: %s", exception.getCause().getMessage()));
-      return generateExceptionResponse(new InternalServerException(exception));
+      outgoingException = new InternalServerException(exception);
     }
+    return generateExceptionResponse(outgoingException);
   }
 }
