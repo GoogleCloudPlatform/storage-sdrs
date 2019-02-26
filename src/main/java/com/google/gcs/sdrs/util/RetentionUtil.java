@@ -81,12 +81,19 @@ public class RetentionUtil {
     return datasetPath;
   }
 
+  /**
+   * Builds a map of buckets based on a list of Dataset rules
+   *
+   * @param datasetRules the list of dataset rules to use as a source
+   * @return a {@link Map} containing a key of format "projectId;bucketName" and a set of the
+   * derived path prefixes
+   */
   public static Map<String, Set<String>> getPrefixMap(Collection<RetentionRule> datasetRules) {
     Map<String, Set<String>> prefixMap = new HashMap<>();
     for (RetentionRule datasetRule : datasetRules) {
       String bucketName = RetentionUtil.getBucketName(datasetRule.getDataStorageName());
       String projectId = datasetRule.getProjectId();
-      String mapKey = projectId + ";" + bucketName;
+      String mapKey = generatePrefixMapKey(projectId, bucketName);
 
       String datasetPath = getDatasetPath(datasetRule.getDataStorageName());
       if (prefixMap.containsKey(mapKey)) {
@@ -102,6 +109,10 @@ public class RetentionUtil {
       }
     }
     return prefixMap;
+  }
+
+  public static String generatePrefixMapKey(String projectId, String bucketName) {
+    return projectId + ";" + bucketName;
   }
 
 }

@@ -19,28 +19,30 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
   @Override
   public List<RetentionJob> findJobsByRuleId(int ruleId) {
     CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
-    CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
-    Root<RetentionJob> root = query.from(RetentionJob.class);
+    CriteriaQuery<RetentionJob> criteria = builder.createQuery(RetentionJob.class);
+    Root<RetentionJob> root = criteria.from(RetentionJob.class);
 
-    query
+    criteria
         .select(root)
         .where(builder.equal(root.get("retentionRuleId"), ruleId));
 
-    Query<RetentionJob> result = getCurrentSession().createQuery(query);
-    return result.getResultList();
+    Query<RetentionJob> query = getCurrentSession().createQuery(criteria);
+    List<RetentionJob> result = query.getResultList();
+    return result;
   }
 
-  public RetentionJob findJobByRuleIdAndProjectId(int ruleId, String projectId) {
+  public List<RetentionJob> findJobsByRuleIdAndProjectId(int ruleId, String projectId) {
     CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
-    CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
-    Root<RetentionJob> root = query.from(RetentionJob.class);
+    CriteriaQuery<RetentionJob> criteria = builder.createQuery(RetentionJob.class);
+    Root<RetentionJob> root = criteria.from(RetentionJob.class);
 
-    query
+    criteria
         .select(root)
         .where(builder.equal(root.get("retentionRuleId"), ruleId),
             builder.equal(root.get("retentionRuleProjectId"), projectId));
 
-
-    return getSingleRecordWithCriteriaQuery(query);
+    Query<RetentionJob> query = getCurrentSession().createQuery(criteria);
+    List<RetentionJob> result = query.getResultList();
+    return result;
   }
 }

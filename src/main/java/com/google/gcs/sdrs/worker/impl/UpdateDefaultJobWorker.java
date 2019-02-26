@@ -60,12 +60,16 @@ public class UpdateDefaultJobWorker extends BaseWorker {
   /** The function that will be executed when the worker is submitted */
   @Override
   public void doWork(){
-    RetentionJob job = jobDao
-        .findJobByRuleIdAndProjectId(globalRuleToUpdate.getId(), projectToUpdate);
-    if (job != null) {
+    List<RetentionJob> defaultJobs = jobDao
+        .findJobsByRuleIdAndProjectId(globalRuleToUpdate.getId(), projectToUpdate);
+    if (defaultJobs.size() > 0) {
       List<RetentionRule> childRules = ruleDao.findDatasetRulesByProjectId(projectToUpdate);
       try{
-        executor.updateDefaultRule(job, globalRuleToUpdate, childRules);
+        List<RetentionJob> executedJobs = executor.updateDefaultRule(
+            defaultJobs, globalRuleToUpdate, childRules);
+        for (RetentionJob retentionJob : executedJobs) {
+          jobDao.update(retentionJob);
+        }
         workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
       } catch (IOException ex) {
         logger.error(String.format("Error executing rule: %s", ex.getMessage()));

@@ -120,6 +120,7 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
   T getSingleRecordWithCriteriaQuery(CriteriaQuery<T> query) {
     Query<T> queryResults = getCurrentSession().createQuery(query);
     List<T> list = queryResults.getResultList();
+    closeCurrentSession();
 
     T foundEntity = null;
     if(!list.isEmpty()){

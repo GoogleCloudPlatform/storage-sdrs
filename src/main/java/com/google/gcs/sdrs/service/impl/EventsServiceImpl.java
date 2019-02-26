@@ -94,10 +94,10 @@ public class EventsServiceImpl implements EventsService {
 
       // check if a global default job exists within each project
       for (String projectId : projectIds) {
-        RetentionJob globalJob = jobDao.findJobByRuleIdAndProjectId(globalRule.getId(), projectId);
+        List<RetentionJob> globalJobs = jobDao.findJobsByRuleIdAndProjectId(globalRule.getId(), projectId);
 
-        // if the job doesn't exist, create it
-        if (globalJob == null) {
+        // if the jobs don't exist, create them
+        if (globalJobs == null || globalJobs.size() == 0) {
           logger.info(String.format(
               "Job doesn't exist for global rule id: %s, projectId: %s. Creating now...",
               globalRule.getId(),

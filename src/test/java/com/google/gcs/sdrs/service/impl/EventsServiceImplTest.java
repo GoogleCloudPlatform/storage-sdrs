@@ -68,11 +68,12 @@ public class EventsServiceImplTest {
   @Test
   public void GlobalJobExistsForProject() {
 
-    RetentionJob existingJob = new RetentionJob();
+    List<RetentionJob> existingJobs = new ArrayList<>();
+    existingJobs.add(new RetentionJob());
 
     when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(globalRule);
     when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
-    when(service.jobDao.findJobByRuleIdAndProjectId(anyInt(), any())).thenReturn(existingJob);
+    when(service.jobDao.findJobsByRuleIdAndProjectId(anyInt(), any())).thenReturn(existingJobs);
 
     service.createDefaultJobIfNonExistent();
 
@@ -83,7 +84,7 @@ public class EventsServiceImplTest {
   public void GlobalJobDoesNotExistForProject() {
     when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(globalRule);
     when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
-    when(service.jobDao.findJobByRuleIdAndProjectId(anyInt(), any())).thenReturn(null);
+    when(service.jobDao.findJobsByRuleIdAndProjectId(anyInt(), any())).thenReturn(null);
 
     service.createDefaultJobIfNonExistent();
 

@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 public class CancelDefaultJobWorker extends BaseWorker {
 
@@ -51,11 +52,15 @@ public class CancelDefaultJobWorker extends BaseWorker {
   /** The function that will be executed when the worker is submitted */
   @Override
   public void doWork(){
-    RetentionJob job = jobDao
-        .findJobByRuleIdAndProjectId(globalRuleToCancel.getId(), projectToUpdate);
-    if (job != null) {
+    List<RetentionJob> jobs = jobDao
+        .findJobsByRuleIdAndProjectId(globalRuleToCancel.getId(), projectToUpdate);
+    if (jobs.size() > 0) {
       try{
-        executor.cancelDefaultJob(job, globalRuleToCancel);
+        List<RetentionJob> cancelledJobs = executor.cancelDefaultJobs(jobs, globalRuleToCancel);
+        for (RetentionJob job : cancelledJobs) {
+          //TODO reassess if this is an update or a delete
+          jobDao.update(job);
+        }
         workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
       } catch (IOException ex) {
         logger.error(String.format("Error executing rule: %s", ex.getMessage()));
