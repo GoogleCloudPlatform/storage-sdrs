@@ -17,9 +17,9 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
-import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
@@ -35,12 +35,7 @@ import com.google.gcs.sdrs.worker.impl.CreateDefaultJobWorker;
 import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
 import java.sql.SQLException;
 import java.util.List;
-import org.hibernate.exception.ConstraintViolationException;
-import java.sql.SQLException;
 import javax.persistence.EntityNotFoundException;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,33 +74,22 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     String userName = user.getEmail() == null ? DEFAULT_UNKNOWN_USER : user.getEmail();
 
     RetentionRule existing =
-        dao.findByBusinessKey(rule.getProjectId(), rule.getDataStorageName(), true);
+        ruleDao.findByBusinessKey(rule.getProjectId(), rule.getDataStorageName(), true);
 
+    RetentionRule newRule;
     if (existing == null) {
       // This is a truly new rule
-      RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
-      int ruleId = ruleDao.save(entity);
-
-      if (entity.getType().equals(RetentionRuleType.DATASET)) {
-        updateParentGlobalRule(entity);
-      }
-
-      if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
-        List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
-        for (String projectId : projectIds) {
-          Worker createDefaultWorker = new CreateDefaultJobWorker(entity, projectId);
-          jobManager.submitJob(createDefaultWorker);
-        }
-      }
-
-      return ruleId;
+      RetentionRule entity = mapPojoToPersistenceEntity(rule, userName);
+      newRule = entity;
+      newRule.setId(ruleDao.save(entity));
     } else if (!existing.getIsActive()) {
       // The rule is not new; re-use the previously deactivated rule with updated values
-      updateUserInputValues(rule, user, existing);
+      updateUserInputValues(rule, userName, existing);
       existing.setIsActive(true);
       existing.setVersion(existing.getVersion() + 1);
-      ruleDao.update(existing);
-      return existing.getId();
+
+      newRule = existing;
+      ruleDao.update(newRule);
     } else {
       // This rule is still active; surface an exception
       String message =
@@ -115,6 +99,20 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
               rule.getProjectId(), rule.getDataStorageName());
       throw new SQLException(message);
     }
+
+    if (newRule.getType().equals(RetentionRuleType.DATASET)) {
+      updateParentGlobalRule(newRule);
+    }
+
+    if (newRule.getType().equals(RetentionRuleType.GLOBAL)) {
+      List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
+      for (String projectId : projectIds) {
+        Worker createDefaultWorker = new CreateDefaultJobWorker(newRule, projectId);
+        jobManager.submitJob(createDefaultWorker);
+      }
+    }
+
+    return newRule.getId();
   }
 
   /**

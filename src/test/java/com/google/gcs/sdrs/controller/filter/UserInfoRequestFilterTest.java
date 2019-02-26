@@ -53,7 +53,7 @@ public class UserInfoRequestFilterTest {
     verify(mockRequestContext)
         .setProperty(eq(ContainerContextProperties.USER_INFO.toString()), captor.capture());
     UserInfo userInfo = captor.getValue();
-    assertEquals("unknown", userInfo.getEmail());
+    assertNull(userInfo.getEmail());
   }
 
   @Test

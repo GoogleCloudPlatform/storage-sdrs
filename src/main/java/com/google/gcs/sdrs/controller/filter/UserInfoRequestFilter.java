@@ -37,7 +37,6 @@ public class UserInfoRequestFilter implements ContainerRequestFilter {
   @Override
   public void filter(ContainerRequestContext context) {
     UserInfo userInfo = new UserInfo();
-    userInfo.setEmail("unknown");
 
     String authorizationHeader = context.getHeaders().getFirst("Authorization");
 

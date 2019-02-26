@@ -25,23 +25,21 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
-import java.sql.SQLException;
-import javax.persistence.EntityNotFoundException;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
 import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.EntityNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -179,13 +177,13 @@ public class RetentionRulesServiceImplTest {
     existingRule.setRetentionPeriodInDays(1);
     existingRule.setIsActive(false);
     existingRule.setVersion(2);
-    when(service.dao.findByBusinessKey("projectId", "gs://b/d", true)).thenReturn(existingRule);
+    when(service.ruleDao.findByBusinessKey("projectId", "gs://b/d", true)).thenReturn(existingRule);
 
     service.createRetentionRule(createRule, new UserInfo());
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
-    verify(service.dao).update(captor.capture());
+    verify(service.ruleDao).update(captor.capture());
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
     assertEquals(RetentionRuleType.DATASET, input.getType());
@@ -204,7 +202,7 @@ public class RetentionRulesServiceImplTest {
     existingRule.setRetentionPeriodInDays(12);
     existingRule.setProjectId("projectId");
     existingRule.setDataStorageName("gs://bucket");
-    when(service.dao.findByBusinessKey(anyString(), anyString())).thenReturn(existingRule);
+    when(service.ruleDao.findByBusinessKey(anyString(), anyString())).thenReturn(existingRule);
 
     RetentionRuleResponse result = service.getRetentionRuleByBusinessKey("any", "any");
     assertEquals(12, (int) result.getRetentionPeriod());
@@ -214,7 +212,7 @@ public class RetentionRulesServiceImplTest {
 
   @Test(expected = EntityNotFoundException.class)
   public void getRuleByBusinessKeyThrowsErrorWhenNull() {
-    when(service.dao.findByBusinessKey(anyString(), anyString())).thenReturn(null);
+    when(service.ruleDao.findByBusinessKey(anyString(), anyString())).thenReturn(null);
 
     service.getRetentionRuleByBusinessKey("any", "any");
   }
