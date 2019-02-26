@@ -316,6 +316,7 @@ definitions:
         type: string
       deletedAt:
         type: string
+        format: date-time
   RetentionRuleType:
     enum:
       - GLOBAL
