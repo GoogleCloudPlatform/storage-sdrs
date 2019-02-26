@@ -27,14 +27,13 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
+import java.sql.SQLException;
+import javax.persistence.EntityNotFoundException;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
 
 /** Service implementation for managing retention rules including mapping. */
 public class RetentionRulesServiceImpl implements RetentionRulesService {
@@ -68,22 +67,48 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   @Override()
   public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user)
       throws SQLException {
-    RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
-    try {
+    RetentionRule existing =
+        dao.findByBusinessKey(rule.getProjectId(), rule.getDataStorageName(), true);
+
+    if (existing == null) {
+      // This is a truly new rule
+      RetentionRule entity = mapPojoToPersistenceEntity(rule, user);
       return dao.save(entity);
-    } catch (ConstraintViolationException ex) {
+    } else if (!existing.getIsActive()) {
+      // The rule is not new; re-use the previously deactivated rule with updated values
+      updateUserInputValues(rule, user, existing);
+      existing.setIsActive(true);
+      existing.setVersion(existing.getVersion() + 1);
+      dao.update(existing);
+      return existing.getId();
+    } else {
+      // This rule is still active; surface an exception
       String message =
           String.format(
               "Unique constraint violation. "
                   + "A rule already exists with project id: %s, data storage name: %s",
-              entity.getProjectId(), entity.getDataStorageName());
+              rule.getProjectId(), rule.getDataStorageName());
       throw new SQLException(message);
     }
   }
 
+  /**
+   * Gets the {@link RetentionRule} with matching fields
+   *
+   * @param projectId the project associated with the rule
+   * @param dataStorageName the dataStorageName associated with the rule
+   * @return the {@link RetentionRule}
+   */
   @Override
-  public RetentionRuleResponse getRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
+  public RetentionRuleResponse getRetentionRuleByBusinessKey(
+      String projectId, String dataStorageName) {
     RetentionRule rule = dao.findByBusinessKey(projectId, dataStorageName);
+    if (rule == null) {
+      throw new EntityNotFoundException(
+          String.format(
+              "No rule found matching projectId: '%s' and dataStorageName: '%s'",
+              projectId, dataStorageName));
+    }
     return mapRuleToResponse(rule);
   }
 
@@ -121,10 +146,19 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     return null;
   }
 
-  private RetentionRule mapPojoToPersistenceEntity(
-      RetentionRuleCreateRequest pojo, UserInfo user) {
+  private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo, UserInfo user) {
     RetentionRule entity = new RetentionRule();
+    updateUserInputValues(pojo, user, entity);
 
+    // Generate metadata
+    entity.setIsActive(true);
+    entity.setVersion(1);
+
+    return entity;
+  }
+
+  private void updateUserInputValues(
+      RetentionRuleCreateRequest pojo, UserInfo user, RetentionRule entity) {
     // Map over input values
     entity.setDataStorageName(pojo.getDataStorageName());
     entity.setProjectId(pojo.getProjectId());
@@ -143,12 +177,6 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     }
 
     entity.setUser(user.getEmail());
-
-    // Generate metadata
-    entity.setIsActive(true);
-    entity.setVersion(1);
-
-    return entity;
   }
 
   private RetentionRuleResponse mapRuleToResponse(RetentionRule rule) {

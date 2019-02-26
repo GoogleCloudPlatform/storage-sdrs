@@ -15,35 +15,33 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.controller;
+package com.google.gcs.sdrs.controller.exception;
 
-import com.google.gcs.sdrs.controller.validation.ValidationResult;
-import java.util.Collection;
 import javax.ws.rs.core.Response;
 
-/**
- * Exception thrown in case of validation errors. Supports messages including multiple identified
- * errors.
- */
-public class ValidationException extends HttpException {
+/** Exception thrown when the request object isn't found */
+public class NotFoundException extends HttpException {
 
-  private Collection<String> validationMessages;
+  private String message;
 
-  /** Constructs a ValidationException based off of values within a ValidationResult object */
-  public ValidationException(ValidationResult validationResult) {
-    validationMessages = validationResult.validationMessages;
+  /**
+   * Creates a NotFoundException with a user friendly error message
+   *
+   * @param message indicating the source of the error
+   */
+  public NotFoundException(String message) {
+    this.message = message;
   }
 
-  /** Gets the error message including all tracked errors */
+  /** Gets an error message */
   @Override
   public String getMessage() {
-    String messages = String.join(", ", validationMessages);
-    return String.format("Invalid input: %s", messages);
+    return message;
   }
 
-  /** Gets the validation error HTTP status code */
+  /** Gets the error HTTP status code */
   @Override
   public int getStatusCode() {
-    return Response.Status.BAD_REQUEST.getStatusCode();
+    return Response.Status.NOT_FOUND.getStatusCode();
   }
 }

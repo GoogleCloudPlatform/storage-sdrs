@@ -15,26 +15,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.controller;
+package com.google.gcs.sdrs.controller.exception;
 
 import javax.ws.rs.core.Response;
 
-/** Exception thrown when internal errors occur. Hides internal details. */
-public class InternalServerException extends HttpException {
+public class PersistenceException extends HttpException {
 
-  public InternalServerException(Exception exception) {
-    this.initCause(exception);
+  private String message;
+
+  /**
+   * An exception type for any persistence layer errors
+   * @param ex The root exception to surface
+   */
+  public PersistenceException(Exception ex){
+    message = String.format("A persistence error occurred: %s", ex.getMessage());
   }
 
-  /** Gets an error message hiding internal details */
+  /**
+   * Gets the message to return
+   * @return the exception message
+   */
   @Override
   public String getMessage() {
-    return "Internal server error";
+    return message;
   }
 
-  /** Gets the error HTTP status code */
+  /** Gets the validation error HTTP status code */
   @Override
   public int getStatusCode() {
-    return Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
+    return Response.Status.BAD_REQUEST.getStatusCode();
   }
 }
