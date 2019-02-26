@@ -25,6 +25,7 @@ x-google-endpoints:
     target: 'your_target_ip'
 security:
   - server_service_account: []
+  - api_key: []
 paths:
   /retentionrules:
     post:
@@ -336,3 +337,7 @@ securityDefinitions:
     # The service account associated with this application should be used here
     x-google-issuer: your-service-account-email-address
     x-google-jwks_uri: https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email-address
+  api_key:
+    type: "apiKey"
+    name: "key"
+    in: "query"
