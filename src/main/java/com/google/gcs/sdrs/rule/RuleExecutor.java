@@ -36,11 +36,11 @@ public interface RuleExecutor {
       ZonedDateTime scheduledTime)
       throws IOException, IllegalArgumentException;
 
-  RetentionJob updateDefaultRule(RetentionJob defaultJob,
+  List<RetentionJob> updateDefaultRule(List<RetentionJob> defaultJobs,
                                  RetentionRule defaultRule,
                                  Collection<RetentionRule> bucketDatasetRules)
       throws IOException, IllegalArgumentException;
 
-  RetentionJob cancelDefaultJob(RetentionJob job, RetentionRule defaultRule)
+  List<RetentionJob> cancelDefaultJobs(List<RetentionJob> jobs, RetentionRule defaultRule)
       throws IOException, IllegalArgumentException;
 }
