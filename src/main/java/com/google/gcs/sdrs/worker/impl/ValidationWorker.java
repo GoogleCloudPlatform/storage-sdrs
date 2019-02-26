@@ -52,37 +52,40 @@ public class ValidationWorker extends BaseWorker {
   public void doWork() {
     List<RetentionJob> retentionJobs = dao.findAllPendingRetentionJobs();
 
-    // An STS job status query can only be done on one project id at a time, so split the list into
-    // lists of projects grouped by project id
-    Map<String, List<RetentionJob>> jobsByProject =
-        retentionJobs.stream()
-            .collect(Collectors.groupingBy(RetentionJob::getRetentionRuleProjectId));
+    if (retentionJobs.size() > 0) {
+      // An STS job status query can only be done on one project id at a time, so split the list
+      // into lists of projects grouped by project id
+      Map<String, List<RetentionJob>> jobsByProject =
+          retentionJobs.stream()
+              .collect(Collectors.groupingBy(RetentionJob::getRetentionRuleProjectId));
 
-    Map<String, RetentionJobValidation> stsValidations = new HashMap<>();
-    for (List<RetentionJob> jobs : jobsByProject.values()) {
-      // Get validation results from STS for each group of jobs
-      List<RetentionJobValidation> retentionJobValidations =
-          stsRuleValidator.validateRetentionJobs(jobs);
-      // Combine all retentionJobValidation results from STS into one map by JobName so we can
-      // quickly search it later on
-      stsValidations.putAll(
-          retentionJobValidations.stream()
-              .collect(Collectors.toMap(RetentionJobValidation::getJobOperationName, x -> x)));
+      Map<String, RetentionJobValidation> stsValidations = new HashMap<>();
+      for (List<RetentionJob> jobs : jobsByProject.values()) {
+        // Get validation results from STS for each group of jobs
+        List<RetentionJobValidation> retentionJobValidations =
+            stsRuleValidator.validateRetentionJobs(jobs);
+        // Combine all retentionJobValidation results from STS into one map by JobName so we can
+        // quickly search it later on
+        stsValidations.putAll(
+            retentionJobValidations.stream()
+                .collect(Collectors.toMap(RetentionJobValidation::getJobOperationName, x -> x)));
+      }
+
+      // Our map of STS validations may or may not already exist in the DB. We need to query the DB
+      // for each one to see if it exists.
+      List<RetentionJobValidation> existingValidations =
+          dao.findAllByRetentionJobNames(new ArrayList<>(stsValidations.keySet()));
+
+      // For each validation that exists in the DB, update the matching STS validation with the Id
+      // so it can be properly updated
+      for (RetentionJobValidation existingValidation : existingValidations) {
+        RetentionJobValidation stsValidation =
+            stsValidations.get(existingValidation.getJobOperationName());
+
+        stsValidation.setId(existingValidation.getId());
+      }
+
+      dao.saveOrUpdateBatch(new ArrayList<>(stsValidations.values()));
     }
-
-    // Our map of STS validations may or may not already exist in the DB. We need to query the DB
-    // for each one to see if it exists.
-    List<RetentionJobValidation> existingValidations =
-        dao.findAllByRetentionJobNames(new ArrayList<>(stsValidations.keySet()));
-
-    // For each validation that exists in the DB, update the matching STS validation with the Id so
-    // it can be properly updated
-    for (RetentionJobValidation existingValidation : existingValidations) {
-      RetentionJobValidation stsValidation =
-          stsValidations.get(existingValidation.getJobOperationName());
-      stsValidation.setId(existingValidation.getId());
-    }
-
-    dao.saveOrUpdateBatch(new ArrayList<>(stsValidations.values()));
   }
 }

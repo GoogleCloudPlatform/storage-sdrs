@@ -82,7 +82,6 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     Root<RetentionJob> job = query.from(RetentionJob.class);
     Join<RetentionJob, RetentionJobValidation> jobValidation =
         job.join("jobValidations", JoinType.LEFT);
-    jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     query.where(
         builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));
@@ -124,7 +123,6 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     query.where(
         builder.equal(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));
-    jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     return getCurrentSession().createQuery(query).getResultList();
   }
 
