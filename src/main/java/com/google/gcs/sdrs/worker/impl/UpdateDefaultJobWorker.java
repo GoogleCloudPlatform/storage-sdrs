@@ -62,7 +62,7 @@ public class UpdateDefaultJobWorker extends BaseWorker {
   public void doWork(){
     List<RetentionJob> defaultJobs = jobDao
         .findJobsByRuleIdAndProjectId(globalRuleToUpdate.getId(), projectToUpdate);
-    if (defaultJobs.size() > 0) {
+    if (defaultJobs != null && defaultJobs.size() > 0) {
       List<RetentionRule> childRules = ruleDao.findDatasetRulesByProjectId(projectToUpdate);
       try{
         List<RetentionJob> executedJobs = executor.updateDefaultRule(

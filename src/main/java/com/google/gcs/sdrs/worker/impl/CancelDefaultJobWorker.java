@@ -54,7 +54,7 @@ public class CancelDefaultJobWorker extends BaseWorker {
   public void doWork(){
     List<RetentionJob> jobs = jobDao
         .findJobsByRuleIdAndProjectId(globalRuleToCancel.getId(), projectToUpdate);
-    if (jobs.size() > 0) {
+    if (jobs != null && jobs.size() > 0) {
       try{
         List<RetentionJob> cancelledJobs = executor.cancelDefaultJobs(jobs, globalRuleToCancel);
         for (RetentionJob job : cancelledJobs) {
