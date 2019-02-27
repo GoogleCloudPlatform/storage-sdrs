@@ -19,8 +19,6 @@ package com.google.gcs.sdrs.util;
 
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gson.Gson;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
