@@ -20,6 +20,7 @@ package com.google.gcs.sdrs;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gcs.sdrs.controller.logging.TokenFilter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.ApplicationPath;
@@ -33,11 +34,13 @@ public class AppResourceConfig extends ResourceConfig {
   public AppResourceConfig() {
     packages("com.google.gcs.sdrs");
 
+    Logger logger = Logger.getLogger(LoggingFeature.DEFAULT_LOGGER_NAME);
+    logger.setFilter(new TokenFilter());
     register(
         new LoggingFeature(
-            Logger.getLogger(LoggingFeature.DEFAULT_LOGGER_NAME),
+            logger,
             Level.INFO,
-            LoggingFeature.Verbosity.PAYLOAD_TEXT,
+            LoggingFeature.Verbosity.PAYLOAD_ANY,
             100000));
 
     // create custom ObjectMapper
