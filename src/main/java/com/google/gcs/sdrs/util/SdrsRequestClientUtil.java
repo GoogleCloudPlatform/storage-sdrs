@@ -43,6 +43,8 @@ public class SdrsRequestClientUtil {
   private static final Logger logger = LoggerFactory.getLogger(SdrsRequestClientUtil.class);
   private static String serviceUrl;
   private static String protocol;
+  private static String apiKey;
+  private static String port;
 
   private SdrsRequestClientUtil() {}
 
@@ -58,7 +60,7 @@ public class SdrsRequestClientUtil {
 
     Invocation.Builder result =
         client
-            .target(String.format("%s://%s", getProtocol(), getServiceUrl()))
+            .target(String.format("%s://%s:%s", getProtocol(), getServiceUrl(), getPort())).queryParam("key", getApiKey())
             .path(path)
             .request()
             .header("Authorization", String.format("Bearer %s", jwt));
@@ -97,15 +99,29 @@ public class SdrsRequestClientUtil {
 
   private static String getServiceUrl() {
     if (serviceUrl == null) {
-      serviceUrl = SdrsApplication.getAppConfigProperty("serverConfig.serviceUrl", "localhost");
+      serviceUrl = SdrsApplication.getAppConfigProperty("scheduler.task.endpointHost.", "localhost");
     }
     return serviceUrl;
   }
 
   private static String getProtocol() {
     if (protocol == null) {
-      protocol = SdrsApplication.getAppConfigProperty("serverConfig.protocol");
+      protocol = Boolean.valueOf(SdrsApplication.getAppConfigProperty("scheduler.task.endpointHttpsEnabled", "false")) ? "https" : "http";
     }
     return protocol;
+  }
+
+  private static String getApiKey() {
+    if (apiKey == null) {
+      apiKey = SdrsApplication.getAppConfigProperty("scheduler.task.endpointApiKey", "");
+    }
+    return apiKey;
+  }
+
+  private static String getPort() {
+    if (port == null) {
+      port = SdrsApplication.getAppConfigProperty("scheduler.task.endpointPort", "80");
+    }
+    return port;
   }
 }

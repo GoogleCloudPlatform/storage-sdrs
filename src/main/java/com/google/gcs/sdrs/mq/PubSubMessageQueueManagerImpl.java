@@ -202,35 +202,4 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
       }
     }
   }
-
-  public static void main(String[] args) {
-    // TODO eshen remove the main before release
-
-    Publisher publisher = null;
-    try {
-      DeleteNotificationMessage message = new DeleteNotificationMessage();
-      message.setProjectId("sdrs-server");
-      message.setTrigger(".delete_this_folder");
-      message.setDeletedDirectoryUri("gs://my-bucket/my-dataset/my-dir/");
-      message.setDeletedAt(Instant.now());
-      message.setCorrelationId(UUID.randomUUID().toString());
-
-      PubSubMessageQueueManagerImpl pubSubMessageQueueManager =
-          PubSubMessageQueueManagerImpl.getInstance();
-      pubSubMessageQueueManager.sendSuccessDeleteMessage(message);
-      Thread.sleep(3000);
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      if (publisher != null) {
-        // When finished with the publisher, shutdown to free up resources.
-        try {
-          publisher.shutdown();
-          publisher.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-  }
 }
