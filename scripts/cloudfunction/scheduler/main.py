@@ -6,10 +6,9 @@ def scheduler_pubsub(pub_sub_event, context):
     pub_sub_message = base64.b64decode(pub_sub_event['data']).decode('utf-8')
     print(f"Pubsub message : {pub_sub_message}")
     type='POLICY'
-    print ('data:','invoking REST call')
     dict_to_send = {'type':type}
   
-    print(" test 1099 ")
+    print("Invoking REST call via cloud function")
     
     if pub_sub_message == 'executor':
         print ('Invoking the executor')
@@ -19,3 +18,5 @@ def scheduler_pubsub(pub_sub_event, context):
         print('Invoking the validator')
         response = requests.post('http://sdrs-api.endpoints.sdrs-server.cloud.goog:80/events/validation/')
         print ('Response from server: {}'.format(response.text))
+    else:
+        print('Nothing to schedule')
