@@ -134,7 +134,7 @@ message: |-
    Resource: sdrs Resource: config
 
 
-   To fix these error provide the property password in mysql.yam file and re-run thee deployment.
+   To fix these error provide the property password in mysql.yam file and re-run the deployment.
 
 IMPORTANT: After the successful launch of deployment **remove the password from the my_cloudsql.yaml file**
 
