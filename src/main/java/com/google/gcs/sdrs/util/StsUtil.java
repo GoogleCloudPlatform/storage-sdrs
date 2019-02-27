@@ -151,7 +151,7 @@ public class StsUtil {
     Storagetransfer.TransferJobs.Patch request =
         client.transferJobs().patch(jobToUpdate.getName(), requestBody);
 
-    logger.info(String.format("Updating transfer job in STS: ", jobToUpdate.toPrettyString()));
+    logger.info(String.format("Updating transfer job in STS: %s", jobToUpdate.toPrettyString()));
 
     return request.execute();
   }
