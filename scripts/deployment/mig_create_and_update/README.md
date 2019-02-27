@@ -8,8 +8,7 @@ IGM - Instance Group Manager
 - [Managed Instance Group](https://cloud.google.com/compute/docs/instance-groups/)
 - [Autoscaling](https://cloud.google.com/compute/docs/autoscaler/)
 - [Internal Load Balancing](https://cloud.google.com/sql/docs/mysql/high-availability)
-- [Managed Instance Group Updater]()
-https://cloud.google.com/compute/docs/instance-groups/updating-managed-instance-groups
+- [Managed Instance Group Updater](https://cloud.google.com/compute/docs/instance-groups/updating-managed-instance-groups)
 
 ## Prerequisites
 - Install [Google Cloud SDK](https://cloud.google.com/sdk)
@@ -175,4 +174,3 @@ resources:
   ```shell
   gcloud beta compute instance-groups managed rolling-action start-update <YOUR_DEPLOYMENT_NAME>-igm –version template=<YOUR_NEW_DEPLOYMENT_NAME>-it –region=us-central1
   ```
-  
