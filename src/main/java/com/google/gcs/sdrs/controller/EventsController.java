@@ -83,7 +83,7 @@ public class EventsController extends BaseController {
       validateNotificationEvent(request);
       EventResponse eventResponse =
           generateResponse("Delete notification event received and being processed");
-      service.processDeleteNotificaitonEvent(request, eventResponse.getUuid());
+      service.processDeleteNotificationEvent(request, eventResponse.getUuid());
       return successResponse(eventResponse);
     } catch (Exception exception) {
       return errorResponse(exception);

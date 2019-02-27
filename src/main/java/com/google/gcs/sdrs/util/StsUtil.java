@@ -41,8 +41,6 @@ import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -59,8 +57,6 @@ public class StsUtil {
   private static final String STS_ENABLED_STRING = "ENABLED";
   private static final String TRANSFER_OPERATION_STRING = "transferOperations";
   private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
-
-
 
   /**
    * Creates an instance of the STS Client
@@ -98,7 +94,8 @@ public class StsUtil {
     TransferJob transferJob = buildTransferJob(projectId, sourceBucket, destinationBucket,
         prefixes, description, startDateTime, true, false, null);
 
-    logger.info("Creating one time transfer job in STS: ", transferJob.toPrettyString());
+    logger.info(String.format("Creating one time transfer job in STS: %s",
+        transferJob.toPrettyString()));
 
     return client.transferJobs().create(transferJob).execute();
   }
@@ -130,7 +127,8 @@ public class StsUtil {
         sourceBucket, destinationBucket, prefixesToExclude,
         description, startDateTime, false, true, retentionInDays);
 
-    logger.info("Creating recurring transfer job in STS: ", transferJob.toPrettyString());
+    logger.info(String.format("Creating recurring transfer job in STS: %s",
+        transferJob.toPrettyString()));
 
     return client.transferJobs().create(transferJob).execute();
   }
@@ -153,7 +151,7 @@ public class StsUtil {
     Storagetransfer.TransferJobs.Patch request =
         client.transferJobs().patch(jobToUpdate.getName(), requestBody);
 
-    logger.info("Updating transfer job in STS: ", jobToUpdate.toPrettyString());
+    logger.info(String.format("Updating transfer job in STS: %s", jobToUpdate.toPrettyString()));
 
     return request.execute();
   }

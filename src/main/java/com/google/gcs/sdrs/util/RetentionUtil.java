@@ -111,8 +111,14 @@ public class RetentionUtil {
     return prefixMap;
   }
 
+  /**
+   * Generates the key used in the retention rule map object
+   *
+   * @param projectId the project id of the rule
+   * @param bucketName the bucket name affected by the rule
+   * @return a single string of format "projectId;bucketName"
+   */
   public static String generatePrefixMapKey(String projectId, String bucketName) {
     return projectId + ";" + bucketName;
   }
-
 }

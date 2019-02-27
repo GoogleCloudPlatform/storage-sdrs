@@ -30,5 +30,5 @@ public interface EventsService {
   void processValidationEvent();
 
   /** Process the notification service event asynchronously */
-  void processDeleteNotificaitonEvent(NotificationEventRequest request, String correlationId);
+  void processDeleteNotificationEvent(NotificationEventRequest request, String correlationId);
 }

@@ -79,8 +79,8 @@ public class EventsServiceImpl implements EventsService {
    * @param correlationId
    */
   @Override
-  public void processDeleteNotificaitonEvent(NotificationEventRequest request,
-      String correlationId) {
+  public void processDeleteNotificationEvent(NotificationEventRequest request,
+                                             String correlationId) {
     Worker worker = new DeleteNotificationWorker(request, correlationId);
     JobManager.getInstance().submitJob(worker);
   }
