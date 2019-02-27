@@ -22,7 +22,6 @@ import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import java.io.Serializable;
-import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -51,8 +50,6 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
 
   private static StandardServiceRegistry registry;
   private static SessionFactory sessionFactory;
-  private Session currentSession;
-  private Transaction currentTransaction;
 
   /** A class reference for the entity type */
   protected final Class<T> type;
@@ -62,48 +59,17 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
     this.type = type;
   }
 
-  /** Opens and returns a session */
-  protected Session openCurrentSession() {
-    currentSession = getSessionFactory().openSession();
-    return currentSession;
+  protected Session openSession() {
+    return getSessionFactory().openSession();
   }
 
-  /** Opens and returns a session with a transaction */
-  protected Session openCurrentSessionWithTransaction() {
-    currentSession = getSessionFactory().openSession();
-    currentTransaction = currentSession.beginTransaction();
-    return currentSession;
+  protected void closeSession(Session session) {
+    session.close();
   }
 
-  /** Closes the currently open session */
-  protected void closeCurrentSession() {
-    currentSession.close();
-  }
-
-  /** Commits the current transaction and closes the currently open session */
-  protected void closeCurrentSessionWithTransaction() {
-    currentTransaction.commit();
-    currentSession.close();
-  }
-
-  /** Gets the current session */
-  protected Session getCurrentSession() {
-    return currentSession;
-  }
-
-  /** Sets the current session */
-  protected void setCurrentSession(Session currentSession) {
-    this.currentSession = currentSession;
-  }
-
-  /** Gets the current transaction */
-  protected Transaction getCurrentTransaction() {
-    return currentTransaction;
-  }
-
-  /** Sets the current session */
-  protected void setCurrentTransaction(Transaction currentTransaction) {
-    this.currentTransaction = currentTransaction;
+  protected void closeSessionWithTransaction(Session session, Transaction transaction) {
+    transaction.commit();
+    closeSession(session);
   }
 
   /** Gets the session factory */

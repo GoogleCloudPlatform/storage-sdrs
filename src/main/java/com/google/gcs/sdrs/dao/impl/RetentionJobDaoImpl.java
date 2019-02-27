@@ -1,9 +1,27 @@
+/*
+ * Copyright 2019 Google LLC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the “License”);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
+ *
+ * Any software provided by Google hereunder is distributed “AS IS”,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ *
+ */
+
 package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
+import org.hibernate.Session;
 import org.hibernate.query.Query;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -18,7 +36,8 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
 
   @Override
   public List<RetentionJob> findJobsByRuleId(int ruleId) {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJob> criteria = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> root = criteria.from(RetentionJob.class);
 
@@ -26,14 +45,15 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
         .select(root)
         .where(builder.equal(root.get("retentionRuleId"), ruleId));
 
-    Query<RetentionJob> query = getCurrentSession().createQuery(criteria);
+    Query<RetentionJob> query = session.createQuery(criteria);
     List<RetentionJob> result = query.getResultList();
-    closeCurrentSession();
+    closeSession(session);
     return result;
   }
 
   public List<RetentionJob> findJobsByRuleIdAndProjectId(int ruleId, String projectId) {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJob> criteria = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> root = criteria.from(RetentionJob.class);
 
@@ -42,9 +62,9 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
         .where(builder.equal(root.get("retentionRuleId"), ruleId),
             builder.equal(root.get("retentionRuleProjectId"), projectId));
 
-    Query<RetentionJob> query = getCurrentSession().createQuery(criteria);
+    Query<RetentionJob> query = session.createQuery(criteria);
     List<RetentionJob> result = query.getResultList();
-    closeCurrentSession();
+    closeSession(session);
     return result;
   }
 }

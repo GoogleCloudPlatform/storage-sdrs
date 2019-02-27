@@ -22,12 +22,12 @@ import com.google.gcs.sdrs.dao.BaseDao;
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.criteria.CriteriaQuery;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.hibernate.MultiIdentifierLoadAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
 
 /**
  * Hibernate based Generic Dao implementation
@@ -48,18 +48,19 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public void saveOrUpdateBatch(final List<T> entities) {
-    openCurrentSessionWithTransaction();
+    Session session = openSession();
+
     int i = 0;
     for (T entity : entities) {
-      getCurrentSession().saveOrUpdate(entity);
+      session.saveOrUpdate(entity);
 
       if (++i % 20 == 0) { // 20, same as the JDBC batch size
         // flush a batch of inserts and release memory:
-        getCurrentSession().flush();
-        getCurrentSession().clear();
+        session.flush();
+        session.clear();
       }
     }
-    closeCurrentSessionWithTransaction();
+    closeSession(session);
   }
 
   /* (non-Javadoc)
@@ -68,9 +69,10 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
   @Override
   @SuppressWarnings("unchecked")
   public Id save(final T entity) {
-    openCurrentSessionWithTransaction();
-    Id result = (Id) getCurrentSession().save(entity);
-    closeCurrentSessionWithTransaction();
+    Session session = openSession();
+    Transaction transaction = session.beginTransaction();
+    Id result = (Id) session.save(entity);
+    closeSessionWithTransaction(session, transaction);
     return result;
   }
 
@@ -79,9 +81,10 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public void update(final T entity) {
-    openCurrentSessionWithTransaction();
-    getCurrentSession().update(entity);
-    closeCurrentSessionWithTransaction();
+    Session session = openSession();
+    Transaction transaction = session.beginTransaction();
+    session.update(entity);
+    closeSessionWithTransaction(session, transaction);
   }
 
   /* (non-Javadoc)
@@ -89,9 +92,9 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public T findById(Id id) {
-    openCurrentSession(); // no transaction per se for a find
-    T entity = getCurrentSession().get(type, id);
-    closeCurrentSession();
+    Session session = openSession();
+    T entity = session.get(type, id);
+    closeSession(session);
     return entity;
   }
 
@@ -100,10 +103,10 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public List<T> findAllByMultipleIds(Class<T> cls, List<Id> ids) {
-    openCurrentSession();
-    MultiIdentifierLoadAccess<T> multiLoadAccess = getCurrentSession().byMultipleIds(cls);
+    Session session = openSession();
+    MultiIdentifierLoadAccess<T> multiLoadAccess = session.byMultipleIds(cls);
     List<T> entities = multiLoadAccess.multiLoad(ids);
-    closeCurrentSession();
+    closeSession(session);
     return entities;
   }
 
@@ -112,15 +115,16 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public void delete(final T entity) {
-    openCurrentSessionWithTransaction();
-    getCurrentSession().delete(entity);
-    closeCurrentSessionWithTransaction();
+    Session session = openSession();
+    Transaction transaction = session.beginTransaction();
+    session.delete(entity);
+    closeSessionWithTransaction(session, transaction);
   }
 
-  T getSingleRecordWithCriteriaQuery(CriteriaQuery<T> query) {
-    Query<T> queryResults = getCurrentSession().createQuery(query);
+  T getSingleRecordWithCriteriaQuery(CriteriaQuery<T> query, Session session) {
+    Query<T> queryResults = session.createQuery(query);
     List<T> list = queryResults.getResultList();
-    closeCurrentSession();
+    closeSession(session);
 
     T foundEntity = null;
     if(!list.isEmpty()){
