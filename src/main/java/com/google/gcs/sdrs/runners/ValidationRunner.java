@@ -17,12 +17,12 @@
 
 package com.google.gcs.sdrs.runners;
 
+import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.util.SdrsRequestClientUtil;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +34,16 @@ public class ValidationRunner implements Runnable {
   /** Calls the validate job execution status endpoint */
   public void run() {
     try {
-      Configuration config = new Configurations().xml("applicationConfig.xml");
-      String endpoint = config.getString("scheduler.validationService.endpoint");
+      String endpoint =
+          SdrsApplication.getAppConfigProperty("scheduler.task.validationService.endpoint");
 
-      logger.info("Making request to validation service endpoint.");
+      logger.info("Making request to validation service endpoint. " + endpoint);
       Client client = ClientBuilder.newClient();
-      SdrsRequestClientUtil.request(client, endpoint).post(null);
-
-    } catch (ConfigurationException ex) {
-      logger.error(String.format("Configuration file could not be read: %s", ex.getMessage()));
+      Invocation.Builder builder = SdrsRequestClientUtil.request(client, endpoint);
+      Response response = builder.post(null);
+      logger.info(response.toString());
+    } catch (Exception e) {
+      logger.error("Failed to request Validation endpoint. " + e.getMessage());
     }
   }
 }
