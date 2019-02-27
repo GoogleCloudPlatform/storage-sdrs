@@ -40,7 +40,7 @@ public class AppResourceConfig extends ResourceConfig {
         new LoggingFeature(
             logger,
             Level.INFO,
-            LoggingFeature.Verbosity.PAYLOAD_ANY,
+            LoggingFeature.Verbosity.PAYLOAD_TEXT,
             100000));
 
     // create custom ObjectMapper
