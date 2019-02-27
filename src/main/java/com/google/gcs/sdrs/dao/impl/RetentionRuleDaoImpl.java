@@ -26,6 +26,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,8 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    */
   @Override
   public RetentionRule findDatasetRuleByBusinessKey(String projectId, String dataStorage) {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
     Root<RetentionRule> root = query.from(RetentionRule.class);
 
@@ -61,7 +64,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
             builder.equal(root.get("projectId"), projectId),
             builder.equal(root.get("dataStorageName"), dataStorage));
 
-    return getSingleRecordWithCriteriaQuery(query);
+    return getSingleRecordWithCriteriaQuery(query, session);
   }
 
   /**
@@ -85,7 +88,8 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
   @Override
   public RetentionRule findByBusinessKey(
       String projectId, String dataStorageName, Boolean includeDeactivated) {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
     Root<RetentionRule> root = query.from(RetentionRule.class);
 
@@ -99,7 +103,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     predicateArray = predicates.toArray(predicateArray);
 
     query.select(root).where(predicateArray);
-    return getSingleRecordWithCriteriaQuery(query);
+    return getSingleRecordWithCriteriaQuery(query, session);
   }
 
   /**
@@ -109,8 +113,11 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    */
   @Override
   public Integer softDelete(RetentionRule entity) {
+    Session session = openSession();
+    Transaction transaction = session.beginTransaction();
     entity.setIsActive(false);
     update(entity);
+    closeSessionWithTransaction(session, transaction);
     return entity.getId();
   }
 
@@ -122,7 +129,8 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    */
   @Override
   public RetentionRule findGlobalRuleByProjectId(String projectId) {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
     Root<RetentionRule> root = query.from(RetentionRule.class);
 
@@ -133,7 +141,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
             builder.equal(root.get("type"), RetentionRuleType.GLOBAL),
             builder.equal(root.get("projectId"), projectId));
 
-    return getSingleRecordWithCriteriaQuery(query);
+    return getSingleRecordWithCriteriaQuery(query, session);
   }
 
   /**
@@ -143,7 +151,8 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    */
   @Override
   public List<String> getAllDatasetRuleProjectIds() {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<String> criteria = builder.createQuery(String.class);
     Root<RetentionRule> root = criteria.from(RetentionRule.class);
 
@@ -154,9 +163,9 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
             builder.equal(root.get("isActive"), true),
             builder.equal(root.get("type"), RetentionRuleType.DATASET));
 
-    Query<String> query = getCurrentSession().createQuery(criteria);
+    Query<String> query = session.createQuery(criteria);
     List<String> result = query.getResultList();
-    closeCurrentSession();
+    closeSession(session);
     return result;
   }
 
@@ -168,7 +177,8 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    */
   @Override
   public List<RetentionRule> findDatasetRulesByProjectId(String projectId) {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionRule> criteria = builder.createQuery(RetentionRule.class);
     Root<RetentionRule> root = criteria.from(RetentionRule.class);
 
@@ -179,22 +189,9 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
             builder.equal(root.get("type"), RetentionRuleType.DATASET),
             builder.equal(root.get("projectId"), projectId));
 
-    Query<RetentionRule> query = getCurrentSession().createQuery(criteria);
+    Query<RetentionRule> query = session.createQuery(criteria);
     List<RetentionRule> result = query.getResultList();
-    closeCurrentSession();
+    closeSession(session);
     return result;
-  }
-
-  RetentionRule getSingleRecordWithCriteriaQuery(CriteriaQuery<RetentionRule> query) {
-    Query<RetentionRule> queryResults = getCurrentSession().createQuery(query);
-    List<RetentionRule> list = queryResults.getResultList();
-
-    RetentionRule foundEntity = null;
-    if (!list.isEmpty()) {
-      foundEntity = list.get(0);
-    }
-
-    closeCurrentSession();
-    return foundEntity;
   }
 }

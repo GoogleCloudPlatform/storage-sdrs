@@ -1,3 +1,21 @@
+/*
+ * Copyright 2019 Google LLC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the “License”);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
+ *
+ * Any software provided by Google hereunder is distributed “AS IS”,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ *
+ */
+
 package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
@@ -16,7 +34,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
-import org.hibernate.query.Query;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,15 +79,16 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
    * @return a list of RententionJob
    */
   private List<RetentionJob> findAllSingleRunPendingJobs() {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> job = query.from(RetentionJob.class);
     Join<RetentionJob, RetentionJobValidation> jobValidation =
         job.join("jobValidations", JoinType.INNER);
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
     query.where(builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL));
-    List<RetentionJob> results = getCurrentSession().createQuery(query).getResultList();
-    closeCurrentSession();
+    List<RetentionJob> results = session.createQuery(query).getResultList();
+    closeSession(session);
     return results;
   }
 
@@ -79,7 +98,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
    * @return a list of RententionJob
    */
   private List<RetentionJob> findAllSingleRunJobsWithNoStatus() {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> job = query.from(RetentionJob.class);
     Join<RetentionJob, RetentionJobValidation> jobValidation =
@@ -87,8 +107,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     query.where(
         builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));
-    List<RetentionJob> results = getCurrentSession().createQuery(query).getResultList();
-    closeCurrentSession();
+    List<RetentionJob> results = session.createQuery(query).getResultList();
+    closeSession(session);
     return results;
   }
 
@@ -98,7 +118,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
    * @return a list of RententionJob
    */
   private List<RetentionJob> findAllDailyPendingJobs() {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> job = query.from(RetentionJob.class);
     Join<RetentionJob, RetentionJobValidation> jobValidation =
@@ -108,8 +129,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     query.where(
         builder.equal(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.greaterThanOrEqualTo(jobValidation.get("updatedAt"), oneDayAgo));
-    List<RetentionJob> results = getCurrentSession().createQuery(query).getResultList();
-    closeCurrentSession();
+    List<RetentionJob> results = session.createQuery(query).getResultList();
+    closeSession(session);
     return results;
   }
 
@@ -119,7 +140,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
    * @return a list of RententionJob
    */
   private List<RetentionJob> findAllDailyJobsWithNoStatus() {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> job = query.from(RetentionJob.class);
     Join<RetentionJob, RetentionJobValidation> jobValidation =
@@ -129,8 +151,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     query.where(
         builder.equal(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));
-    List<RetentionJob> results = getCurrentSession().createQuery(query).getResultList();
-    closeCurrentSession();
+    List<RetentionJob> results = session.createQuery(query).getResultList();
+    closeSession(session);
     return results;
   }
 
@@ -143,14 +165,15 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
    */
   @Override
   public List<RetentionJobValidation> findAllByRetentionJobNames(List<String> retentionJobNames) {
-    CriteriaBuilder builder = openCurrentSession().getCriteriaBuilder();
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJobValidation> query = builder.createQuery(RetentionJobValidation.class);
     Root<RetentionJobValidation> root = query.from(RetentionJobValidation.class);
 
     query.where(root.get("jobOperationName").in(retentionJobNames));
 
-    List<RetentionJobValidation> results = getCurrentSession().createQuery(query).getResultList();
-    closeCurrentSession();
+    List<RetentionJobValidation> results = session.createQuery(query).getResultList();
+    closeSession(session);
     return results;
   }
 }
