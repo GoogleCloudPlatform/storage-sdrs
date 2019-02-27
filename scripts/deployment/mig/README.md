@@ -90,7 +90,7 @@ For example in configuration file (igm.yaml), the following properties could be 
         machineType: n1-standard-1 # <== change values to match your desired Instance tier
         externalIp: False
         region: us-west1
-        email: default
+        email: default  # <== Service Account email address
         network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
         subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-west1/subnetworks/subnet-a
 ```
@@ -120,7 +120,7 @@ For example in configuration file (igm.yaml), the following properties could be 
 
 ```shell
     gcloud deployment-manager deployments update <YOUR_DEPLOYMENT_NAME> \
-      --config my_igm.yaml   # <== Examples would be update my_cloudsql.yaml database property "failover: true" to "failover: false"
+      --config my_igm.yaml   # <== Examples would be update targetSize, machineType or service account email.
 
 ```
 
