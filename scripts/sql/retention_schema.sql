@@ -53,6 +53,7 @@ CREATE TABLE retention_job (
   `retention_rule_data_storage_name` varchar(256) NOT NULL,
   `retention_rule_project_id` varchar(256) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (retention_rule_id) REFERENCES retention_rule(id),
   INDEX `retention_job_name` (`name`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;

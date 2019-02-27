@@ -47,7 +47,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Manages the concrete integration with STS
@@ -140,16 +142,16 @@ public class StsUtil {
    * @return the updated {@link TransferJob} object
    * @throws IOException when the client connection can't be established or the request fails
    */
-  public static TransferJob updateExistingJob(Storagetransfer client, TransferJob jobToUpdate)
+  public static TransferJob updateExistingJob(Storagetransfer client, TransferJob jobToUpdate, String jobName, String projectId)
       throws IOException{
 
     UpdateTransferJobRequest requestBody = new UpdateTransferJobRequest();
 
-    requestBody.setProjectId(jobToUpdate.getProjectId());
+    requestBody.setProjectId(projectId);
     requestBody.setTransferJob(jobToUpdate);
 
     Storagetransfer.TransferJobs.Patch request =
-        client.transferJobs().patch(jobToUpdate.getName(), requestBody);
+        client.transferJobs().patch(jobName, requestBody);
 
     logger.info(String.format("Updating transfer job in STS: %s", jobToUpdate.toPrettyString()));
 
@@ -300,8 +302,10 @@ public class StsUtil {
 
     // In some cases, you need to add the scope explicitly.
     if (credential.createScopedRequired()) {
-      credential = credential.createScoped(StorageScopes.all());
-      credential = credential.createScoped(StoragetransferScopes.all());
+      Set<String> scopes = new HashSet<>();
+      scopes.addAll(StorageScopes.all());
+      scopes.addAll(StoragetransferScopes.all());
+      credential = credential.createScoped(scopes);
     }
 
     HttpRequestInitializer initializer = new RetryHttpInitializerWrapper(credential);
