@@ -49,6 +49,7 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
   @Override
   public void saveOrUpdateBatch(final List<T> entities) {
     Session session = openSession();
+    Transaction transaction = session.beginTransaction();
 
     int i = 0;
     for (T entity : entities) {
@@ -60,7 +61,7 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
         session.clear();
       }
     }
-    closeSession(session);
+    closeSessionWithTransaction(session, transaction);
   }
 
   /* (non-Javadoc)
