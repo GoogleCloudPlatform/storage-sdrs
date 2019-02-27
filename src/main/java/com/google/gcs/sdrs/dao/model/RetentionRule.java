@@ -60,10 +60,10 @@ public class RetentionRule {
   @Column(name = "is_active")
   private Boolean isActive;
 
-  @Column(name = "created_at")
+  @Column(name = "created_at", updatable = false)
   private Timestamp createdAt;
 
-  @Column(name = "updated_at")
+  @Column(name = "updated_at", updatable = false)
   private Timestamp updatedAt;
 
   @Column(name = "user")
@@ -139,16 +139,8 @@ public class RetentionRule {
     return createdAt;
   }
 
-  public void setCreatedAt(Timestamp createdAt) {
-    this.createdAt = createdAt;
-  }
-
   public Timestamp getUpdatedAt() {
     return updatedAt;
-  }
-
-  public void setUpdatedAt(Timestamp updatedAt) {
-    this.updatedAt = updatedAt;
   }
 
   public String getUser() {
