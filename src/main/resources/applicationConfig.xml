@@ -47,6 +47,8 @@
     <defaultProjectId>global-default</defaultProjectId>
     <defaultStorageName>global</defaultStorageName>
     <maxLookBackInDays>365</maxLookBackInDays>
+    <throttleLimit>30</throttleLimit>
+    <throttleInterval>120000</throttleInterval>
   </sts>
   <pubsub>
     <topic>${SDRS_PUBSUB_TOPIC_NAME}</topic>
