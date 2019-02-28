@@ -1,6 +1,6 @@
 # Introduction
 
-The deployment creates and updates an Auto-Scaled, Regional Managed Instance Group with an Internal Load Balancer.
+The deployment Creates and Updates an Auto-Scaled, Regional Managed Instance Group with an Internal Load Balancer.
 
 IGM - Instance Group Manager
 
@@ -72,7 +72,7 @@ For example in configuration file (igm.yaml), the following properties could be 
 3. Copy the example DM config to be used as a model for the deployment as follows
 
 ```shell
-    cp igm.yaml my_igm.yaml
+    cp igm.yaml <YOUR_FILE_NAME>.yaml
 ```
 
 4. Change the values in the config file to match your specific GCP setup.
@@ -80,7 +80,7 @@ For example in configuration file (igm.yaml), the following properties could be 
    editor vim or nano to edit the file.
 
 ```shell
-vim my_igm.yaml   # <== change values to match your GCP setup
+vim <YOUR_FILE_NAME>.yaml   # <== change values to match your GCP setup
 imports:
 - path: igm.jinja
 
@@ -99,28 +99,55 @@ resources:
     subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
 ```
 
+5. Modify env.txt accordingly.
+
+```shell
+vim ../scripts/env.txt   # <== change values to match your environment
+
+HIBERNATE_CONNECTION_URL=jdbc:mysql://<your_host>:3306/<your_schema>
+HIBERNATE_CONNECTION_USER=<your_db_user>
+HIBERNATE_CONNECTION_PASSWORD=<your_db_password>
+SDRS_PUBSUB_TOPIC_NAME=projects/<your_project_id>/topics/<your_topic>
+GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
+```
+
+6. Upload the modified env.txt file to a pre-created GCS bucket.
+
+```shell
+    gsutil cp ../scripts/env.txt gs://YOUR_ENV_VAR_BUCKET/YOUR_ENV_VAR_FOLDER
+```
 
 
-5. Create your deployment as described below, replacing <YOUR_DEPLOYMENT_NAME>
+7. Create your deployment as described below, replacing <YOUR_DEPLOYMENT_NAME>
    with your with your own deployment name
 
 ```shell
     gcloud deployment-manager deployments create <YOUR_DEPLOYMENT_NAME> \
-        --config my_igm.yaml
+        --config=<YOUR_FILE_NAME>.yaml
 ```
-6. To list your deployment:
+8. To list your deployment:
 
 ```shell
     gcloud deployment-manager deployments list
 ```
+# At this point you have a MIG running in AutoScaling mode having an Internal Load Balancer (ILB) named <YOUR_DEPLOYMENT_NAME>-fr
+#   From the GCP console note the IP assigned to the ILB. This would be passed in openapi.yaml configuration to deploy [Endpoints](https://cloud.google.com/endpoints/docs/openapi/)
 
-7. To see the details of your deployment:
+
+9. To see the details of your deployment:
 
 ```shell
     gcloud deployment-manager deployments describe <YOUR_DEPLOYMENT_NAME>
 ```
 
-8. In case you need to delete your deployment:
+10. In case you need to update your deployment:
+
+```shell
+    gcloud deployment-manager deployments update <YOUR_DEPLOYMENT_NAME> \
+      --config <YOUR_FILE_NAME>.yaml   # <== Examples would be update targetSize, machineType or service account email.
+```
+
+11. In case you need to delete your deployment:
 
 ```shell
     gcloud deployment-manager deployments delete <YOUR_DEPLOYMENT_NAME>
@@ -129,18 +156,18 @@ resources:
 
 ### Updating the Managed Instance Group with new Software version (container image)
 
-9. Copy the example DM config to be used as a model for the deployment as follows
+12. Copy the example DM config to be used as a model for the deployment as follows
 
 ```shell
-    cp version.yaml current_version.yaml
+    cp version.yaml <YOUR_CURR_VER_FILE_NAME>.yaml
 ```
 
-10. Change the values in the config file to match your specific GCP setup.
+13. Change the values in the config file to match your specific GCP setup.
    Refer to the properties in the schema files described above. Use your favorite
    editor vim or nano to edit the file.
 
    ```shell
-   vim current_version.yaml
+   vim <YOUR_CURR_VER_FILE_NAME>.yaml
    imports:
    - path: instance-template.jinja
 
@@ -159,18 +186,20 @@ resources:
        subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
     ```
 
-  11. Create a new Instance Template as deployment as described below, replacing <YOUR_NEW_DEPLOYMENT_NAME>
+  14. Create a new Instance Template as deployment as described below, replacing <YOUR_NEW_DEPLOYMENT_NAME>
        with your with your own deployment name
 
     ```shell
         gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> \
-            --config current_version.yaml
+            --config=<YOUR_CURR_VER_FILE_NAME>.yaml
     ```
      This creates an Instance Template with updated version of container image as specified in "startup_new.sh"
 
 
-  12. Update the Managed Instance Group Deployment (created in step 5) using the new Instance Template (created in step 11) as follows
+  15. Update the Managed Instance Group Deployment (created in step 5) using the new Instance Template (created in step 11) as follows
 
   ```shell
   gcloud beta compute instance-groups managed rolling-action start-update <YOUR_DEPLOYMENT_NAME>-igm –version template=<YOUR_NEW_DEPLOYMENT_NAME>-it –region=us-central1
   ```
+
+  This updates your MIG with new version of your Application container image.
