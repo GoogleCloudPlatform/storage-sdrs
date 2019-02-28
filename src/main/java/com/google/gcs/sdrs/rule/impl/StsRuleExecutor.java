@@ -19,8 +19,6 @@
 package com.google.gcs.sdrs.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
-import com.google.api.services.storagetransfer.v1.model.Date;
-import com.google.api.services.storagetransfer.v1.model.Schedule;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.gcs.sdrs.SdrsApplication;
@@ -283,7 +281,7 @@ public class StsRuleExecutor implements RuleExecutor {
         updatedPrefixesToExclude.addAll(Arrays.asList(DEFAULT_LOG_CAT_BUCKET_PREFIX));
       }
 
-      if (isSamePrefixList(existingExcludePrefixList, updatedPrefixesToExclude)) {
+      if (!isSamePrefixList(existingExcludePrefixList, updatedPrefixesToExclude)) {
         transferSpec.getObjectConditions().setExcludePrefixes(updatedPrefixesToExclude);
         prefixesToExcludeChanged = true;
       }
@@ -292,11 +290,13 @@ public class StsRuleExecutor implements RuleExecutor {
       if (retentionPeriodChanged || prefixesToExcludeChanged) {
         // Build transfer job object
         TransferJob updatedJob = new TransferJob();
-        updatedJob.setDescription(
-            buildDescription(defaultRule, ZonedDateTime.now(Clock.systemUTC())));
-        updatedJob.setTransferSpec(transferSpec);
 
-        TransferJob returnedTransferJob = StsUtil.updateExistingJob(client, updatedJob);
+        String description = buildDescription(defaultRule, ZonedDateTime.now(Clock.systemUTC()));
+        updatedJob.setDescription(description);
+        updatedJob.setTransferSpec(transferSpec);
+        updatedJob.setStatus("ENABLED");
+
+        TransferJob returnedTransferJob = StsUtil.updateExistingJob(client, updatedJob, existingTransferJob.getName(), existingTransferJob.getProjectId());
         RetentionJob job = buildRetentionJobEntity(returnedTransferJob.getName(), defaultRule);
         // Set the returned job ID to the same as the existing job for updating
         job.setId(defaultJob.getId());
@@ -317,15 +317,12 @@ public class StsRuleExecutor implements RuleExecutor {
       // get the existing transfer job from STS
       TransferJob existingTransferJob = getGlobalTransferJob(jobToCancel, defaultRule);
 
-      // Get existing schedule from STS
-      Schedule schedule = existingTransferJob.getSchedule();
+      TransferJob jobToUpdate = new TransferJob();
+      jobToUpdate.setStatus("DISABLED");
+      jobToUpdate.setDescription(existingTransferJob.getDescription());
+      jobToUpdate.setTransferSpec(existingTransferJob.getTransferSpec());
 
-      // Set end date to cancel job
-      Date startDate = schedule.getScheduleStartDate();
-      schedule.setScheduleEndDate(startDate);
-      existingTransferJob.setSchedule(schedule);
-
-      TransferJob updatedTransferJob = StsUtil.updateExistingJob(client, existingTransferJob);
+      TransferJob updatedTransferJob = StsUtil.updateExistingJob(client, jobToUpdate, existingTransferJob.getName(), existingTransferJob.getProjectId());
       RetentionJob updatedJob = buildRetentionJobEntity(updatedTransferJob.getName(), defaultRule);
       updatedJob.setId(jobToCancel.getId());
       updatedJob.setRetentionRuleProjectId(jobToCancel.getRetentionRuleProjectId());

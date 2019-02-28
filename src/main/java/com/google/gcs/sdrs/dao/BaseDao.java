@@ -17,7 +17,6 @@
 
 package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.dao.model.RetentionExecution;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -88,7 +87,6 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
         Metadata metadata =
             new MetadataSources(registry)
                 .addAnnotatedClass(RetentionRule.class)
-                .addAnnotatedClass(RetentionExecution.class)
                 .addAnnotatedClass(RetentionJob.class)
                 .addAnnotatedClass(RetentionJobValidation.class)
                 .getMetadataBuilder()
