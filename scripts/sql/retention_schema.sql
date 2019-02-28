@@ -49,7 +49,7 @@ CREATE TABLE retention_job (
   `name` varchar(256) NOT NULL,
   `retention_rule_id` int UNSIGNED NULL,
   `retention_rule_version` int UNSIGNED NULL,
-  `retention_rule_type` enum('global', 'dataset', 'marker') NULL,
+  `retention_rule_type` enum('global', 'dataset', 'user') NULL,
   `retention_rule_data_storage_name` varchar(256) NOT NULL,
   `retention_rule_project_id` varchar(256) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -66,17 +66,8 @@ CREATE TABLE retention_job_validation (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (retention_job_id) REFERENCES retention_job(id),
-  INDEX `retention_job_validation_status` (`status`)
+  INDEX `retention_job_validation_job_operation_name` (`job_operation_name`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE retention_execution (
-  `id` int UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `executor_id` varchar(256) NOT NULL,
-  `data_storage_type` enum('GCS','BQ') NOT NULL,
-  `retention_job_id` int UNSIGNED NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (retention_job_id) REFERENCES retention_job(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- TRIGGER SCRIPTS
 -- ------------------------------------------------------
