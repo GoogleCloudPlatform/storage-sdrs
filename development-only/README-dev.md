@@ -53,5 +53,5 @@ docker push gcr.io/sdrs-server/sdrs:tag
 
 (to run the docker container locally)
 ```
- docker run -p 8080:8080 <IMAGE ID>
+docker run -p 8080:8080 --env-file=./scripts/deployment/mig/startup/env.txt -v <ABS PATH to directory with credentials>:/var/sdrs <IMAGE>
 ```
