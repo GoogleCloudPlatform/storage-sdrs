@@ -18,7 +18,9 @@
 
 package com.google.gcs.sdrs.server;
 
+import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
+import com.google.gcs.sdrs.util.StsQuotaManager;
 import java.util.concurrent.TimeUnit;
 
 import com.google.gcs.sdrs.JobScheduler.JobScheduler;
@@ -65,17 +67,19 @@ public class ServerShutdownHook implements Runnable {
       jobManager.shutDownJobManager();
     }
     logger.info("Job Manager shutdown complete.");
-
-    logger.info("Shutting down Job Scheduler...");
-    jobScheduler = JobScheduler.getInstance();
-    if (isImmediateShutdown) {
-      jobScheduler.shutdownSchedulerNow();
-    } else {
-      jobScheduler.shutdownScheduler();
+    if (Boolean.valueOf(SdrsApplication.getAppConfigProperty("scheduler.enabled", "false"))) {
+      logger.info("Shutting down Job Scheduler...");
+      jobScheduler = JobScheduler.getInstance();
+      if (isImmediateShutdown) {
+        jobScheduler.shutdownSchedulerNow();
+      } else {
+        jobScheduler.shutdownScheduler();
+      }
+      logger.info("Job Scheduler shutdown complete.");
     }
-    logger.info("Job Scheduler shutdown complete.");
 
     PubSubMessageQueueManagerImpl.getInstance().shutdown();
+    StsQuotaManager.getInstance().shutdown();
 
     logger.info("Shutting down web server...");
     server.shutdown(GRACE_PERIOD_IN_SECONDS, TimeUnit.SECONDS);

@@ -39,6 +39,10 @@ import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
 import com.google.gson.Gson;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.validation.constraints.NotNull;
@@ -99,7 +103,26 @@ public class StsUtil {
     logger.info(String.format("Creating one time transfer job in STS: %s",
         transferJob.toPrettyString()));
 
-    return client.transferJobs().create(transferJob).execute();
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+    Callable<TransferJob> transferJobCallable = () -> client.transferJobs().create(transferJob).execute();
+
+    String uuid = StsQuotaManager.getInstance().submitStsJob(transferJobCallable, countDownLatch);
+
+    TransferJob scheduledStsJob = null;
+    try {
+      countDownLatch.await(60, TimeUnit.MINUTES);
+      if (countDownLatch.getCount() > 0) {
+        logger.error("Failed to schedule one time STS job. " + countDownLatch.toString());
+      } else {
+        logger.debug(String.format("uuid=%s; latch=%s", uuid, countDownLatch.toString()));
+        scheduledStsJob = StsQuotaManager.getInstance().getStsJobFuture(uuid).get();
+        StsQuotaManager.getInstance().removeStsJobFuture(uuid);
+      }
+    } catch (InterruptedException | ExecutionException e) {
+      logger.error("Failed to schedule one time STS job. " + e.getMessage());
+    }
+
+    return scheduledStsJob;
   }
 
   /**
@@ -132,7 +155,26 @@ public class StsUtil {
     logger.info(String.format("Creating recurring transfer job in STS: %s",
         transferJob.toPrettyString()));
 
-    return client.transferJobs().create(transferJob).execute();
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+    Callable<TransferJob> transferJobCallable = () -> client.transferJobs().create(transferJob).execute();
+
+    String uuid = StsQuotaManager.getInstance().submitStsJob(transferJobCallable, countDownLatch);
+
+    TransferJob scheduledDefaultStsJob = null;
+    try {
+      countDownLatch.await(60, TimeUnit.MINUTES);
+      if (countDownLatch.getCount() > 0) {
+        logger.error("Failed to schedule recurring STS job. " + countDownLatch.toString());
+      } else {
+        logger.debug(String.format("uuid=%s; latch=%s", uuid, countDownLatch.toString()));
+        scheduledDefaultStsJob = StsQuotaManager.getInstance().getStsJobFuture(uuid).get();
+        StsQuotaManager.getInstance().removeStsJobFuture(uuid);
+      }
+    } catch (InterruptedException | ExecutionException e) {
+      logger.error("Failed to schedule recurring STS job. " + e.getMessage());
+    }
+
+    return scheduledDefaultStsJob;
   }
 
   /**

@@ -23,6 +23,7 @@ import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
 import com.google.gcs.sdrs.runners.RuleExecutionRunner;
 import com.google.gcs.sdrs.runners.ValidationRunner;
 import com.google.gcs.sdrs.server.ServerShutdownHook;
+import com.google.gcs.sdrs.util.StsQuotaManager;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +61,7 @@ public class SdrsApplication {
       scheduleExecutionServiceJob();
       scheduleValidationServiceJob();
     }
+    startStsQuotaManager();
   }
 
   /** Triggers the shutdown hook and gracefully shuts down the SDRS service */
@@ -169,6 +171,12 @@ public class SdrsApplication {
   private static void registerPubSub() {
     if (PubSubMessageQueueManagerImpl.getInstance().getPublisher() == null) {
       logger.error("Failed to register pubsub publisher");
+    }
+  }
+
+  private static void startStsQuotaManager() {
+    if (StsQuotaManager.getInstance() == null) {
+      logger.error("Failed to start STS quota manager");
     }
   }
 }
