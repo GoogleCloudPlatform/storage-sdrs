@@ -55,7 +55,7 @@ Cloud Function Private VPC connectivity: In alpha release.
 
 #### High-level Deployment Architecture
 
-![SDRS Deployment Architecture](./images/SDRSDeployment ArchMIG.png)
+![SDRS Deployment Architecture](/images/SDRSDeployment ArchMIG.png)
 
 
 
