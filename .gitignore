@@ -5,3 +5,7 @@ credentials.json
 /bin/
 /.idea/
 *.iml
+
+/venv/
+/scripts/cloudfunction/gcs_create/common_lib/
+/scripts/cloudfunction/gcs_delete/common_lib/
