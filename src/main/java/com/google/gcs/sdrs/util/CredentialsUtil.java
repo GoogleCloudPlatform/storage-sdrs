@@ -23,12 +23,14 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import java.io.IOException;
 
+/** Utility to provide GoogleCredentials. */
 public class CredentialsUtil {
 
   private static CredentialsUtil instance;
 
   private CredentialsUtil() {}
 
+  /** Gets an instance */
   public static CredentialsUtil getInstance() {
     if (instance == null) {
       instance = new CredentialsUtil();
@@ -36,6 +38,11 @@ public class CredentialsUtil {
     return instance;
   }
 
+  /**
+   * Gets currently available GoogleCredentials
+   * @return {@link GoogleCredential}
+   * @throws IOException
+   */
   public GoogleCredential getCredentials() throws IOException {
     HttpTransport httpTransport = Utils.getDefaultTransport();
     JsonFactory jsonFactory = Utils.getDefaultJsonFactory();
