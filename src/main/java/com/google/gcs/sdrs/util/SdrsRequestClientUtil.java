@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory;
 public class SdrsRequestClientUtil {
 
   private static final Logger logger = LoggerFactory.getLogger(SdrsRequestClientUtil.class);
-  private static String serviceUrl;
-  private static String protocol;
+  static String serviceUrl;
+  static String protocol;
   private static String apiKey;
-  private static String port;
+  static String port;
 
   static CredentialsUtil credentialsUtil = CredentialsUtil.getInstance();
 
