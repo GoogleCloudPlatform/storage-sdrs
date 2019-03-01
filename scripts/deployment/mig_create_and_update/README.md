@@ -93,7 +93,7 @@ resources:
     region: us-central1
     maxNumReplicas: 5
     machineType: n1-standard-1  # <== change values to match your desired Instance tier
-    value: gs://YOUR_BUCKET/YOUR_FOLDER/startup.sh
+    value: gs://<YOUR_BUCKET>/<YOUR_FOLDER>/startup.sh
     targetSize: 2
     externalIp: False
     email: default # <== Service Account email address
@@ -116,18 +116,30 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 6. Upload the modified env.txt file to a pre-created GCS bucket.
 
 ```shell
-    gsutil cp ../scripts/env.txt gs://YOUR_ENV_VAR_BUCKET/YOUR_ENV_VAR_FOLDER
+    gsutil cp ../scripts/env.txt gs://<YOUR_ENV_VAR_BUCKET>/<YOUR_ENV_VAR_FOLDER>
 ```
 
+7. Modify startup.sh accordingly.
 
-7. Create your deployment as described below, replacing <YOUR_DEPLOYMENT_NAME>
+   For specific instructions refer to inline comments in
+
+   ~/storage-sdrs/scripts/deployment/mig_create_and_update/scripts/startup.sh   
+
+
+8. Upload the modified env.txt file to a pre-created GCS bucket.
+
+```shell
+    gsutil cp ../scripts/startup.sh gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>
+```
+
+9. Create your deployment as described below, replacing <YOUR_DEPLOYMENT_NAME>
    with your with your own deployment name
 
 ```shell
     gcloud deployment-manager deployments create <YOUR_DEPLOYMENT_NAME> \
         --config=<YOUR_FILE_NAME>.yaml
 ```
-8. To list your deployment:
+10. To list your deployment:
 
 ```shell
     gcloud deployment-manager deployments list
@@ -135,20 +147,20 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 ##### At this point you have a MIG running in AutoScaling mode having an Internal Load Balancer (ILB) named <YOUR_DEPLOYMENT_NAME>-fr. From the GCP console note the IP assigned to the ILB. This would be passed in openapi.yaml configuration to deploy [Endpoints](https://cloud.google.com/endpoints/docs/openapi/)
 
 
-9. To see the details of your deployment:
+11. To see the details of your deployment:
 
 ```shell
     gcloud deployment-manager deployments describe <YOUR_DEPLOYMENT_NAME>
 ```
 
-10. In case you need to update your deployment:
+12. In case you need to update your deployment:
 
 ```shell
     gcloud deployment-manager deployments update <YOUR_DEPLOYMENT_NAME> \
       --config <YOUR_FILE_NAME>.yaml   # <== Examples would be update targetSize, machineType or service account email.
 ```
 
-11. In case you need to delete your deployment:
+13. In case you need to delete your deployment:
 
 ```shell
     gcloud deployment-manager deployments delete <YOUR_DEPLOYMENT_NAME>
@@ -181,7 +193,7 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
        targetSize: 2
        maxNumReplicas: 5
        machineType: n1-standard-1
-       value: gs://YOUR_BUCKET/YOUR_FOLDER/startup_new.sh # <== change values to match your startup script and it's location.
+       value: gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>/startup_new.sh # <== change values to match your startup script and it's location.
        externalIp: False
        region: us-central1
        email: default
