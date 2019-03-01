@@ -1,15 +1,18 @@
 # Introduction
 
-The deployment creates and updates an Auto-Scaled, Regional Managed Instance Group with an Internal Load Balancer.
+The deployment Creates and Updates an Auto-Scaled, Regional Managed Instance Group with an Internal Load Balancer.
 
 IGM - Instance Group Manager
+
+Usage instructions section I (subsection 1 through 11) is for Managed Instance Group creation
+
+Usage instructions section II (subsection 1 through 4) is for updating new version of the Application (Software Release) on existing MIG. For any given environment that has an existing MIG, you could directly execute steps section II (1 through 4) for subsequent software releases.
 
 - [Instance Templates](https://cloud.google.com/compute/docs/instance-templates/)
 - [Managed Instance Group](https://cloud.google.com/compute/docs/instance-groups/)
 - [Autoscaling](https://cloud.google.com/compute/docs/autoscaler/)
 - [Internal Load Balancing](https://cloud.google.com/sql/docs/mysql/high-availability)
-- [Managed Instance Group Updater]()
-https://cloud.google.com/compute/docs/instance-groups/updating-managed-instance-groups
+- [Managed Instance Group Updater](https://cloud.google.com/compute/docs/instance-groups/updating-managed-instance-groups)
 
 ## Prerequisites
 - Install [Google Cloud SDK](https://cloud.google.com/sdk)
@@ -49,31 +52,29 @@ For example in configuration file (igm.yaml), the following properties could be 
 9. value - Google Cloud Storage bucket path to startup Scripts
 
 
-- [Instance Group Manager](gs://sdrs/deployment-manager/MIG_Create_Update/igm.jinja.schema)
-
 
 
 ### Usage Instructions
 
-### Creating a Managed Instance Group
+### I. Creating a Managed Instance Group
 
 
-1. Download the [Deployment Manager Scripts](gs://sdrs/deployment-manager/MIG_Create_Update)
+1. Clone the [Deployment Manager Scripts](https://github.com/GoogleCloudPlatform/storage-sdrs.git)
 
 ```shell
-    gsutil cp -r gs://sdrs/deployment-manager/MIG_Create_Update .
+    git clone https://github.com/GoogleCloudPlatform/storage-sdrs.git
 ```
 
 2. Change directory to MIG_Create_Update
 
 ```shell
-    cd ./MIG_Create_Update
+    cd ~/storage-sdrs/scripts/deployment/mig_create_and_update
 ```
 
 3. Copy the example DM config to be used as a model for the deployment as follows
 
 ```shell
-    cp igm.yaml my_igm.yaml
+    cp igm.yaml <YOUR_FILE_NAME>.yaml
 ```
 
 4. Change the values in the config file to match your specific GCP setup.
@@ -81,7 +82,7 @@ For example in configuration file (igm.yaml), the following properties could be 
    editor vim or nano to edit the file.
 
 ```shell
-vim my_igm.yaml   # <== change values to match your GCP setup
+vim <YOUR_FILE_NAME>.yaml   # <== change values to match your GCP setup
 imports:
 - path: igm.jinja
 
@@ -92,56 +93,96 @@ resources:
     region: us-central1
     maxNumReplicas: 5
     machineType: n1-standard-1  # <== change values to match your desired Instance tier
-    value: gs://YOUR_BUCKET/YOUR_FOLDER/startup.sh
+    value: gs://<YOUR_BUCKET>/<YOUR_FOLDER>/startup.sh
     targetSize: 2
     externalIp: False
     email: default # <== Service Account email address
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
+    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
+    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
 ```
 
+5. Modify env.txt accordingly.
+
+```shell
+vim ../scripts/env.txt   # <== change values to match your environment
+
+HIBERNATE_CONNECTION_URL=jdbc:mysql://<your_host>:3306/<your_schema>
+HIBERNATE_CONNECTION_USER=<your_db_user>
+HIBERNATE_CONNECTION_PASSWORD=<your_db_password>
+SDRS_PUBSUB_TOPIC_NAME=projects/<your_project_id>/topics/<your_topic>
+GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
+```
+
+6. Upload the modified env.txt file to a pre-created GCS bucket.
+
+```shell
+    gsutil cp ../scripts/env.txt gs://<YOUR_ENV_VAR_BUCKET>/<YOUR_ENV_VAR_FOLDER>
+```
+
+7. Modify startup.sh accordingly.
+
+   For specific instructions refer to inline comments in
+
+   ~/storage-sdrs/scripts/deployment/mig_create_and_update/scripts/startup.sh   
 
 
-5. Create your deployment as described below, replacing <YOUR_DEPLOYMENT_NAME>
+8. Upload the modified env.txt file to a pre-created GCS bucket.
+
+```shell
+    gsutil cp ../scripts/startup.sh gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>
+```
+
+9. Create your deployment as described below, replacing <YOUR_DEPLOYMENT_NAME>
    with your with your own deployment name
 
 ```shell
     gcloud deployment-manager deployments create <YOUR_DEPLOYMENT_NAME> \
-        --config my_igm.yaml
+        --config=<YOUR_FILE_NAME>.yaml
 ```
-6. To list your deployment:
+10. To list your deployment:
 
 ```shell
     gcloud deployment-manager deployments list
 ```
+##### At this point you have a MIG running in AutoScaling mode having an Internal Load Balancer (ILB) named <YOUR_DEPLOYMENT_NAME>-fr. From the GCP console note the IP assigned to the ILB. This would be passed in openapi.yaml configuration to deploy [Endpoints](https://cloud.google.com/endpoints/docs/openapi/)
 
-7. To see the details of your deployment:
+
+11. To see the details of your deployment:
 
 ```shell
     gcloud deployment-manager deployments describe <YOUR_DEPLOYMENT_NAME>
 ```
 
-8. In case you need to delete your deployment:
+12. In case you need to update your deployment:
+
+```shell
+    gcloud deployment-manager deployments update <YOUR_DEPLOYMENT_NAME> \
+      --config <YOUR_FILE_NAME>.yaml   # <== Examples would be update targetSize, machineType or service account email.
+```
+
+13. In case you need to delete your deployment:
 
 ```shell
     gcloud deployment-manager deployments delete <YOUR_DEPLOYMENT_NAME>
 ```
 
 
-### Updating the Managed Instance Group with new Software version (container image)
+##### II. Updating the Managed Instance Group with new Software version.
 
-9. Copy the example DM config to be used as a model for the deployment as follows
+##### The steps listed below creates a new Instance Template with an updated version of software. This new instance template <YOUR_NEW_DEPLOYMENT_NAME>-it is then used to update the existing MIG <YOUR_DEPLOYMENT_NAME>-igm (created in step I.7 above) with the newer version of software release. You pass the startup_new.sh in property "value" (step II.2). The startup_new.sh is a copy of modified ../scripts/script.sh updated with a newer version of container image gcr.io/<YOUR_GOOGLE_PROJECT_ID>/YOUR_CONTAINER_IMAGE:TAG.
+
+1. Copy the example DM config to be used as a model for the deployment as follows
 
 ```shell
-    cp version.yaml current_version.yaml
+    cp version.yaml <YOUR_CURR_VER_FILE_NAME>.yaml
 ```
 
-10. Change the values in the config file to match your specific GCP setup.
+2. Change the values in the config file to match your specific GCP setup.
    Refer to the properties in the schema files described above. Use your favorite
    editor vim or nano to edit the file.
 
    ```shell
-   vim current_version.yaml
+   vim <YOUR_CURR_VER_FILE_NAME>.yaml
    imports:
    - path: instance-template.jinja
 
@@ -152,27 +193,29 @@ resources:
        targetSize: 2
        maxNumReplicas: 5
        machineType: n1-standard-1
-       value: gs://YOUR_BUCKET/YOUR_FOLDER/startup_new.sh # <== change values to match your startup script and it's location.
+       value: gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>/startup_new.sh # <== change values to match your startup script and it's location.
        externalIp: False
        region: us-central1
        email: default
-       network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-       subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
+       network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
+       subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
     ```
 
-  11. Create a new Instance Template as deployment as described below, replacing <YOUR_NEW_DEPLOYMENT_NAME>
-       with your with your own deployment name
+  3. Create a new Instance Template as deployment as described below, replacing <YOUR_NEW_DEPLOYMENT_NAME>
+         with your with your own deployment name.
 
-    ```shell
-        gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> \
-            --config current_version.yaml
-    ```
-     This creates an Instance Template with updated version of container image as specified in "startup_new.sh"
+  ```shell
+  gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> --config=<YOUR_CURR_VER_FILE_NAME>.yaml
+  ```
+
+  This creates an Instance Template with updated version of container image as specified in 'startup_new.sh'.
 
 
-  12. Update the Managed Instance Group Deployment (created in step 5) using the new Instance Template (created in step 11) as follows
+
+  4. Update the Managed Instance Group Deployment (created in step 5) using the new Instance Template (created in step 11) as follows
 
   ```shell
   gcloud beta compute instance-groups managed rolling-action start-update <YOUR_DEPLOYMENT_NAME>-igm –version template=<YOUR_NEW_DEPLOYMENT_NAME>-it –region=us-central1
   ```
-  
+
+  This updates your MIG with new version of your Application container image.
