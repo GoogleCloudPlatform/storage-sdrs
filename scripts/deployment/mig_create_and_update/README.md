@@ -196,7 +196,7 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
     gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> --config=<YOUR_CURR_VER_FILE_NAME>.yaml
     ```
 
-    This creates an Instance Template with updated version of container image as specified in "startup_new.sh"
+    This creates an Instance Template with updated version of container image as specified in 'startup_new.sh'.
 
 
   4. Update the Managed Instance Group Deployment (created in step 5) using the new Instance Template (created in step 11) as follows
