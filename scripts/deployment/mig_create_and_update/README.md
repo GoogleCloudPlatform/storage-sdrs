@@ -59,7 +59,7 @@ For example in configuration file (igm.yaml), the following properties could be 
 ### I. Creating a Managed Instance Group
 
 
-1. Download the [Deployment Manager Scripts](https://github.com/GoogleCloudPlatform/storage-sdrs.git)
+1. Clone the [Deployment Manager Scripts](https://github.com/GoogleCloudPlatform/storage-sdrs.git)
 
 ```shell
     git clone https://github.com/GoogleCloudPlatform/storage-sdrs.git
