@@ -25,7 +25,6 @@ x-google-endpoints:
     target: 'your_target_ip'
 security:
   - server_service_account: []
-  - api_key: []
 paths:
   /retentionrules:
     post:
@@ -60,17 +59,17 @@ paths:
       parameters:
         - description: The rule's projectId
           in: query
-          name: projectId
+          name: project
           required: true
           type: string
         - description: The rule's dataStorageName
           in: query
-          name: dataStorageName
+          name: bucket
           required: true
           type: string
-        - description: The rule's type
+        - description: The rule's datasetName
           in: query
-          name: type
+          name: dataset
           required: true
           type: string
       responses:
@@ -100,11 +99,6 @@ paths:
         - description: The rule's dataStorageName
           in: query
           name: dataStorageName
-          required: true
-          type: string
-        - description: The rule's type
-          in: query
-          name: type
           required: true
           type: string
       responses:
@@ -155,81 +149,6 @@ paths:
             $ref: '#/definitions/ErrorResponse'
       description: Update retention rule by id
       operationId: putRetentionRulesById
-  '/events/execution':
-    post:
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: body
-          description: Execution event definition
-          schema:
-            $ref: '#/definitions/ExecutionEventRequest'
-      responses:
-        '200':
-          description: Event execution response
-          schema:
-            $ref: '#/definitions/EventResponse'
-        '400':
-          description: Validation error response
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-      description: Execute a policy or user rule
-      operationId: postExecutionEvent
-  '/events/notification':
-    post:
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: body
-          description: Notification event definition
-          schema:
-            $ref: '#/definitions/NotificationEventRequest'
-      responses:
-        '200':
-          description: Notification event response
-          schema:
-            $ref: '#/definitions/EventResponse'
-        '400':
-          description: Validation error response
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-      description: Accepts a request to invoke a delete notification service
-      operationId: postNotificationEvent
-  '/events/validation':
-    post:
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      responses:
-        '200':
-          description: Validation event response
-          schema:
-            $ref: '#/definitions/EventResponse'
-        '400':
-          description: Validation error response
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        '500':
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-      description: Triggers a job to validate execution run status
-      operationId: postValidationEvent
 definitions:
   BaseResponse:
     properties:
@@ -237,13 +156,6 @@ definitions:
         type: string
     type: object
   ErrorResponse:
-    allOf:
-      - $ref: '#/definitions/BaseResponse'
-      - properties:
-          message:
-            type: string
-        type: object
-  EventResponse:
     allOf:
       - $ref: '#/definitions/BaseResponse'
       - properties:
@@ -294,6 +206,11 @@ definitions:
           type:
             $ref: '#/definitions/RetentionRuleType'
         type: object
+  RetentionRuleType:
+    enum:
+      - GLOBAL
+      - DATASET
+    type: string
   UpdateRetentionRuleRequest:
     properties:
       retentionPeriod:
@@ -301,33 +218,6 @@ definitions:
     required:
       - retentionPeriod
     type: object
-  ExecutionEventRequest:
-    properties:
-      type:
-        $ref: '#/definitions/ExecutionType'
-      projectId:
-        type: string
-      target:
-        type: string
-  NotificationEventRequest:
-    properties:
-      projectId:
-        type: string
-      deletedObject:
-        type: string
-      deletedAt:
-        type: string
-        format: date-time
-  RetentionRuleType:
-    enum:
-      - GLOBAL
-      - DATASET
-    type: string
-  ExecutionType:
-    enum:
-      - USER
-      - POLICY
-    type: string
 securityDefinitions:
   # This security definition will allow the app to call itself over HTTP/S
   server_service_account:
@@ -337,7 +227,3 @@ securityDefinitions:
     # The service account associated with this application should be used here
     x-google-issuer: your-service-account-email-address
     x-google-jwks_uri: https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email-address
-  api_key:
-    type: "apiKey"
-    name: "key"
-    in: "query"
