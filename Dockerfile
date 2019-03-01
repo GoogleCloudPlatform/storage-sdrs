@@ -20,9 +20,7 @@ RUN mvn clean install
 
 # Copy source code and package the project
 COPY ./src ./src
-# TODO: Tests currently rely on integration with gcp
-#       Until the tests properly mock GCP interaction, tests will fail during docker build
-RUN mvn package -Dmaven.test.skip=true
+RUN mvn package
 
 FROM centos:7
 

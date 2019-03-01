@@ -24,29 +24,28 @@ import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.enums.RetentionJobStatusType;
 import com.google.gcs.sdrs.rule.RuleValidator;
+import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.StsUtil;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * An implementation of the RuleValidtor interface that uses STS
- */
+/** An implementation of the RuleValidtor interface that uses STS */
 public class StsRuleValidator implements RuleValidator {
 
   public static StsRuleValidator instance;
+  static CredentialsUtil credentialsUtil = CredentialsUtil.getInstance();
 
   Storagetransfer client;
   private static final Logger logger = LoggerFactory.getLogger(StsRuleValidator.class);
 
   /**
    * Gets the singleton instance of the StsRuleValidator
+   *
    * @return the singleton instance of the StsRuleValidator
    */
   public static StsRuleValidator getInstance() {
@@ -63,6 +62,7 @@ public class StsRuleValidator implements RuleValidator {
 
   /**
    * Validates the status of a given {@link RetentionJob} against STS
+   *
    * @param job the {@link RetentionJob} to validate
    * @return a {@link RetentionJobValidation} record
    */
@@ -78,6 +78,7 @@ public class StsRuleValidator implements RuleValidator {
 
   /**
    * Validates a {@link List} of {@link RetentionJob} objects against STS
+   *
    * @param jobs the {@link List} of {@link RetentionJob} objects to validate
    * @return a {@link List} of {@link RetentionJobValidation} records
    */
@@ -95,9 +96,10 @@ public class StsRuleValidator implements RuleValidator {
     for (RetentionJob job : jobs) {
       if (!job.getRetentionRuleProjectId().equalsIgnoreCase(projectId)) {
         String message =
-            String.format("The list of jobs to validate contains multiple Project IDs:" +
-            "%s, %s. All retention jobs to validate must have the same project ID",
-            projectId, job.getRetentionRuleProjectId());
+            String.format(
+                "The list of jobs to validate contains multiple Project IDs:"
+                    + "%s, %s. All retention jobs to validate must have the same project ID",
+                projectId, job.getRetentionRuleProjectId());
         logger.error(message);
         throw new IllegalArgumentException(message);
       }
@@ -128,20 +130,22 @@ public class StsRuleValidator implements RuleValidator {
       validation.setStatus(RetentionJobStatusType.PENDING);
     } else if (operation.getResponse() != null) {
       validation.setStatus(RetentionJobStatusType.SUCCESS);
-      logger.info(String.format("STS Operation %s Successful: %s",
-          operation.getName(),
-          operation.getResponse().toString()));
+      logger.info(
+          String.format(
+              "STS Operation %s Successful: %s",
+              operation.getName(), operation.getResponse().toString()));
     } else {
       validation.setStatus(RetentionJobStatusType.ERROR);
-      logger.info(String.format("STS Operation %s failed: %s",
-          operation.getName(),
-          operation.getError().getMessage()));
+      logger.info(
+          String.format(
+              "STS Operation %s failed: %s",
+              operation.getName(), operation.getError().getMessage()));
     }
 
     return validation;
   }
 
-  String extractStsJobId(String operationName) throws StringIndexOutOfBoundsException{
+  String extractStsJobId(String operationName) throws StringIndexOutOfBoundsException {
     /* The response operation name is in the format
      * "transferOperation/transferJob-<GCP_Job_id>-<GCP_Operation_id>"
      * We need to get the GCP_Job_Id only
@@ -157,6 +161,6 @@ public class StsRuleValidator implements RuleValidator {
   }
 
   private StsRuleValidator() throws IOException {
-    client = StsUtil.createStsClient();
+    client = StsUtil.createStsClient(credentialsUtil.getCredentials());
   }
 }

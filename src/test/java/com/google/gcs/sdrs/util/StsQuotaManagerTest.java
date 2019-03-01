@@ -27,9 +27,9 @@ import org.junit.Test;
 
 public class StsQuotaManagerTest {
 
-  //@Ignore
+  @Ignore
   @Test
-  public void testQutaManager() throws InterruptedException {
+  public void testQuotaManager() throws InterruptedException {
     for (int i = 0; i < 70; i++) {
       Runnable runnable = new MockRunnable("transferJob-" + i);
       Thread thread = new Thread(runnable);

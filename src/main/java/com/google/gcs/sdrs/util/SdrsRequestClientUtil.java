@@ -46,6 +46,8 @@ public class SdrsRequestClientUtil {
   private static String apiKey;
   private static String port;
 
+  static CredentialsUtil credentialsUtil = CredentialsUtil.getInstance();
+
   private SdrsRequestClientUtil() {}
 
   /**
@@ -60,7 +62,8 @@ public class SdrsRequestClientUtil {
 
     Invocation.Builder result =
         client
-            .target(String.format("%s://%s:%s", getProtocol(), getServiceUrl(), getPort())).queryParam("key", getApiKey())
+            .target(String.format("%s://%s:%s", getProtocol(), getServiceUrl(), getPort()))
+            .queryParam("key", getApiKey())
             .path(path)
             .request()
             .header("Authorization", String.format("Bearer %s", jwt));
@@ -69,11 +72,8 @@ public class SdrsRequestClientUtil {
   }
 
   private static String generateJwt(String audience) {
-    HttpTransport httpTransport = Utils.getDefaultTransport();
-    JsonFactory jsonFactory = Utils.getDefaultJsonFactory();
-
     try {
-      GoogleCredential cred = GoogleCredential.getApplicationDefault(httpTransport, jsonFactory);
+      GoogleCredential cred = credentialsUtil.getCredentials();
 
       Date now = new Date();
       Date expTime = new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(3600));
@@ -99,14 +99,20 @@ public class SdrsRequestClientUtil {
 
   private static String getServiceUrl() {
     if (serviceUrl == null) {
-      serviceUrl = SdrsApplication.getAppConfigProperty("scheduler.task.endpointHost.", "localhost");
+      serviceUrl =
+          SdrsApplication.getAppConfigProperty("scheduler.task.endpointHost.", "localhost");
     }
     return serviceUrl;
   }
 
   private static String getProtocol() {
     if (protocol == null) {
-      protocol = Boolean.valueOf(SdrsApplication.getAppConfigProperty("scheduler.task.endpointHttpsEnabled", "false")) ? "https" : "http";
+      protocol =
+          Boolean.valueOf(
+                  SdrsApplication.getAppConfigProperty(
+                      "scheduler.task.endpointHttpsEnabled", "false"))
+              ? "https"
+              : "http";
     }
     return protocol;
   }

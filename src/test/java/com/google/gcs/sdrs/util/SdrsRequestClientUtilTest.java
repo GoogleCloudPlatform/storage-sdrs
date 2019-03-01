@@ -17,12 +17,23 @@
 
 package com.google.gcs.sdrs.util;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
+import java.security.interfaces.RSAPrivateKey;
+import java.util.Arrays;
+import java.util.Random;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -32,17 +43,32 @@ import static org.mockito.Mockito.when;
 
 public class SdrsRequestClientUtilTest {
 
-  //TODO the unit tests not working. fix later
-/*  private Client client;
+  private Client client;
   private Invocation.Builder builder;
   private WebTarget webTarget;
 
   @Before
-  public void setup() {
-    client = mock(Client.class);
+  public void setup() throws IOException, InvalidKeyException {
+    client = mock(Client.class, Mockito.RETURNS_DEEP_STUBS);
     builder = mock(Invocation.Builder.class);
     webTarget = mock(WebTarget.class);
+
+    RSAPrivateKey privateKey = mock(RSAPrivateKey.class);
+    when(privateKey.getAlgorithm()).thenReturn("RSA");
+
+    Random random = new Random();
+    when(privateKey.getModulus()).thenReturn(new BigInteger(512, random));
+    when(privateKey.getPrivateExponent()).thenReturn(new BigInteger(512, random));
+
+    MockGoogleCredential.Builder credentialBuilder = new MockGoogleCredential.Builder();
+    credentialBuilder.setServiceAccountPrivateKey(privateKey);
+    credentialBuilder.setServiceAccountId("test_service_account_id@google.com");
+    GoogleCredential testCredential = new MockGoogleCredential(credentialBuilder);
+    SdrsRequestClientUtil.credentialsUtil = mock(CredentialsUtil.class);
+    when(SdrsRequestClientUtil.credentialsUtil.getCredentials()).thenReturn(testCredential);
+
     when(client.target(anyString())).thenReturn(webTarget);
+    when(webTarget.queryParam(anyString(), any())).thenReturn(webTarget);
     when(webTarget.path(anyString())).thenReturn(webTarget);
     when(webTarget.request()).thenReturn(builder);
     when(builder.header(anyString(), anyString())).thenReturn(builder);
@@ -59,7 +85,7 @@ public class SdrsRequestClientUtilTest {
   public void usesConfiguredProtocolAndServiceUrl() {
     SdrsRequestClientUtil.request(client, "something").post(null);
 
-    verify(client).target(eq("http://localhost"));
+    verify(client).target(eq("http://localhost:80"));
   }
 
   @Test
@@ -67,5 +93,5 @@ public class SdrsRequestClientUtilTest {
     SdrsRequestClientUtil.request(client, "something").post(null);
 
     verify(webTarget).path(eq("something"));
-  }*/
+  }
 }
