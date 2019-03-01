@@ -157,7 +157,7 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 
 ##### II. Updating the Managed Instance Group with new Software version.
 
-##### The steps listed below creates a new Instance Template with an updated version of software. This new instance template <YOUR_NEW_DEPLOYMENT_NAME>-it is then used to update the existing MIG <YOUR_DEPLOYMENT_NAME>-igm (created in step I.7 above) with the newer version of software release. You pass the startup_new.sh in property "value" (step II.2). The startup_new.sh is a copy of modified ../scripts/script.sh updated with a newer version of container image. gcr.io/YOUR_GOOGLE_PROJECT_ID/YOUR_CONTAINER_IMAGE:TAG.
+##### The steps listed below creates a new Instance Template with an updated version of software. This new instance template <YOUR_NEW_DEPLOYMENT_NAME>-it is then used to update the existing MIG <YOUR_DEPLOYMENT_NAME>-igm (created in step I.7 above) with the newer version of software release. You pass the startup_new.sh in property "value" (step II.2). The startup_new.sh is a copy of modified ../scripts/script.sh updated with a newer version of container image gcr.io/<YOUR_GOOGLE_PROJECT_ID>/YOUR_CONTAINER_IMAGE:TAG.
 
 1. Copy the example DM config to be used as a model for the deployment as follows
 
@@ -193,7 +193,7 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
        with your with your own deployment name.
 
     ```shell
-    gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> --config=<YOUR_CURR_VER_FILE_NAME>.yaml
+    gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> --config=<YOUR_CURR_VER_FILE_NAME>.yaml \
     ```
 
     This creates an Instance Template with updated version of container image as specified in "startup_new.sh"
