@@ -189,14 +189,15 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
        subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
     ```
 
-  3. Create a new Instance Template as deployment as described below, replacing <YOUR_NEW_DEPLOYMENT_NAME>
-       with your with your own deployment name.
+    3. Create a new Instance Template as deployment as described below, replacing <YOUR_NEW_DEPLOYMENT_NAME>
+         with your with your own deployment name.
 
-    ```shell
-    gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> --config=<YOUR_CURR_VER_FILE_NAME>.yaml
-    ```
+      ```shell
+          gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> --config=<YOUR_CURR_VER_FILE_NAME>.yaml
+      ```
 
-    This creates an Instance Template with updated version of container image as specified in 'startup_new.sh'.
+      This creates an Instance Template with updated version of container image as specified in 'startup_new.sh'.
+
 
 
   4. Update the Managed Instance Group Deployment (created in step 5) using the new Instance Template (created in step 11) as follows
