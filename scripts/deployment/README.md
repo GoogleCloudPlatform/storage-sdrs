@@ -13,7 +13,7 @@
 
 #### Overview
 
-This document provides design, architecture and implementation details of SDRS application on Google Cloud Platform. The focus of this document is on deployment. Also aimed at deployment in an enterprise environment
+This document provides design, architecture and implementation details of SDRS application on Google Cloud Platform. The focus of this document is on deployment. It is also aimed at deploying the application in an enterprise environment.
 
 SDRS is a containerized Java server application deployed in GCP running on Autoscaled Managed Instance Groups behind an Internal Load Balancer. The application exposes services through REST API that is managed by Google Endpoints.
 
@@ -55,7 +55,7 @@ Cloud Function Private VPC connectivity: In alpha release.
 
 #### High-level Deployment Architecture
 
-![sdrs!](./images/SDRSDeployment ArchMIG.png)
+![SDRS Deployment Architecture](./images/SDRSDeployment ArchMIG.png)
 
 
 
