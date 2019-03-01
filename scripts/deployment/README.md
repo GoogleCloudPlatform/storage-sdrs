@@ -11,7 +11,7 @@
 
 
 
-Overview
+#### Overview
 
 This document provides design, architecture and implementation details of SDRS application on Google Cloud Platform. The focus of this document is on deployment. Also aimed at deployment in an enterprise environment
 
@@ -20,7 +20,7 @@ SDRS is a containerized Java server application deployed in GCP running on Autos
 
 
 
-Glossary
+#### Glossary
 
 [SDRS](): Supplementary Data Retention Service
 
@@ -56,13 +56,13 @@ Cloud Function Private VPC connectivity: In alpha release.
 High-level Deployment Architecture
 << MIG Architecture Diagram - OLD picture, to be updated. >>
 
-Prerequisites
+#### Prerequisites
 
 1. [Google Cloud SDK](https://cloud.google.com/sdk) installed.
 
 
 
-Deployment
+#### Deployment
 
 The following sections provide a walkthrough on how to deploy Cloud Endpoints starting from GCP project creation up to deploying the Endpoints and making updates to the backend software.  
 
@@ -149,15 +149,16 @@ You may need to enable an SSL port for your deployed Endpoints service so that i
 
 
 
-Application Update
+#### Application Update
 
-6. Update the SDRS application using MIG Updater.
+1. Update the SDRS application using [MIG Updater](./mig_create_and_update/README.md).
+
 Follow the steps section II (subsection 1 through 4) to update the version of new software on the existing Managed Instance Group.
 
 
 
 ##### Notes:
 
-1. The Managed Instance Group updater does NOT cause a change of Internal Load Balancer Private IP or Endpoints configuration change.
+1. The Managed Instance Group updater does NOT cause a change of Internal Load Balancer Private IP Address or Endpoints configuration change.
 2.  The Managed Instance Group Infrastructure is immutable i.e. when you update the MIG with a newer software version the VM instances are replaced by the new VM instances running newer software version.
 3. You can not stop or restart VM instances in a MIG.
