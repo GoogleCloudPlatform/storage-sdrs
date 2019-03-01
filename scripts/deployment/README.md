@@ -53,8 +53,11 @@ Cloud Function Private VPC connectivity: In alpha release.
 [Cloud SQL Private IP Connectivity](https://cloud.google.com/vpc/docs/private-access-options#service-networking): Google CloudSQL support private service access. A private connection is implemented as a VPC Network Peering connection between your VPC network and the service producer's VPC network. The service producer's network is created exclusively for you, and it is not shared with other customers.
 
 
-High-level Deployment Architecture
-<< MIG Architecture Diagram - OLD picture, to be updated. >>
+#### High-level Deployment Architecture
+
+![sdrs!](./images/SDRSDeployment ArchMIG.png)
+
+
 
 #### Prerequisites
 
@@ -66,7 +69,7 @@ High-level Deployment Architecture
 
 The following sections provide a walkthrough on how to deploy Cloud Endpoints starting from GCP project creation up to deploying the Endpoints and making updates to the backend software.  
 
-1. Create a GCP Project.
+##### 1. Create a GCP Project.
 
         gcloud projects create PROJECT_ID
 
@@ -78,10 +81,8 @@ Each GCP project has:
 * A project ID, which you can provide or GCP can provide for you.
 * A project number, which GCP provides.
 
-[Security Considerations](https://cloud.google.com/iam/docs/using-iam-securely)
 
-
-Follow the recommended security best practices when using Cloud IAM and Google Cloud in general.
+Follow the recommended [security best practices](https://cloud.google.com/iam/docs/using-iam-securely) when using Cloud IAM and Google Cloud in general.
 
 * Principle of least privilege
 * Rotate your service account keys using the [Cloud IAM service account API](https://cloud.google.com/iam/reference/rest/v1/). You can rotate a key by creating a new key, switching applications to use the new key and then deleting old key.
@@ -90,19 +91,19 @@ Follow the recommended security best practices when using Cloud IAM and Google C
 * Audit who has the ability to change your Cloud IAM policies on your projects.
 
 
-2. Create Network.
+##### 2. Create Network.
 
   Create a custom mode VPC via GCP Console or gcloud command.
 
     gcloud compute networks create <YOUR_VPC_NAME> --subnet-mode=custom
 
 
-3. Create a subnet.
+##### 3. Create a subnet.
 
       gcloud compute networks subnet create <YOUR_SUBNET_NAME> --network=<YOUR_VPC_NAME> --region=<YOUR_REGION> --range=<YOUR_IP_CIDR_RANGE> --enable-private-ip-google-access
 
 
-4. Configure [Private Google Access](https://cloud.google.com/vpc/docs/configure-private-services-access) for CloudSQL
+##### 4. Configure [Private Google Access](https://cloud.google.com/vpc/docs/configure-private-services-access) for CloudSQL
 
    Considerations:
 
@@ -119,10 +120,10 @@ More information on [GCP Regions](https://cloud.google.com/compute/docs/regions-
 
 
 
-5. Create SDRS Infrastructure
+##### 5. Create SDRS Infrastructure
 
 
-    1. Create a [cloudSQL](./cloudSQL/README.md) instance. (Takes about 10-15 minutes)
+   1. Create a [cloudSQL](./cloudSQL/README.md) instance. (Takes about 10-15 minutes)
 
    2. Launch a [Managed Instance Group cluster](./mig_create_and_update/README.md) (Takes about 5 minutes )
 
