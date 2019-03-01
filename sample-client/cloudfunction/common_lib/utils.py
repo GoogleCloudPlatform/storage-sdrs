@@ -11,6 +11,8 @@ _SERVICE_ACCOUNT_EMAIL = os.getenv('FUNCTION_IDENTITY')
 PROJECT_ID = os.getenv('projectId')
 RETENTION_RULES_ENDPOINT = '{}:80/retentionrules'.format(_ENDPOINT)
 EVENTS_ENDPOINT = '{}:80/events'.format(_ENDPOINT)
+EXECUTION_ENDPOINT = '{}:80/events/execution'.format(_ENDPOINT)
+VALIDATION_ENDPOINT = '{}:80/events/validation'.format(_ENDPOINT)
 JWT = None
 
 
