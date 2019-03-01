@@ -68,7 +68,7 @@ For example in configuration file (igm.yaml), the following properties could be 
 2. Change directory to MIG_Create_Update
 
 ```shell
-    cd ./MIG_Create_Update
+    cd ~/storage-sdrs/scripts/deployment/mig_create_and_update
 ```
 
 3. Copy the example DM config to be used as a model for the deployment as follows
@@ -97,8 +97,8 @@ resources:
     targetSize: 2
     externalIp: False
     email: default # <== Service Account email address
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
+    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
+    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
 ```
 
 5. Modify env.txt accordingly.
@@ -132,8 +132,7 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 ```shell
     gcloud deployment-manager deployments list
 ```
-### At this point you have a MIG running in AutoScaling mode having an Internal Load Balancer (ILB) named <YOUR_DEPLOYMENT_NAME>-fr
-###   From the GCP console note the IP assigned to the ILB. This would be passed in openapi.yaml configuration to deploy [Endpoints](https://cloud.google.com/endpoints/docs/openapi/)
+### At this point you have a MIG running in AutoScaling mode having an Internal Load Balancer (ILB) named <YOUR_DEPLOYMENT_NAME>-fr. From the GCP console note the IP assigned to the ILB. This would be passed in openapi.yaml configuration to deploy [Endpoints](https://cloud.google.com/endpoints/docs/openapi/)
 
 
 9. To see the details of your deployment:
@@ -157,6 +156,8 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 
 
 ### II. Updating the Managed Instance Group with new Software version.
+
+### The steps listed below creates a new Instance Template with an updated version of software. This new instance template <YOUR_NEW_DEPLOYMENT_NAME>-it is then used to update the existing MIG <YOUR_DEPLOYMENT_NAME>-igm (created in step I.7 above) with the newer version of software release. You pass the startup_new.sh in property "value" (step II.2). The startup_new.sh is a copy of modified ../scripts/script.sh updated with a newer version of container image. gcr.io/YOUR_GOOGLE_PROJECT_ID/YOUR_CONTAINER_IMAGE:TAG.
 
 1. Copy the example DM config to be used as a model for the deployment as follows
 
@@ -184,17 +185,18 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
        externalIp: False
        region: us-central1
        email: default
-       network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-       subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
+       network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
+       subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
     ```
 
   3. Create a new Instance Template as deployment as described below, replacing <YOUR_NEW_DEPLOYMENT_NAME>
        with your with your own deployment name
 
     ```shell
-        gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> \
+        gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME>
             --config=<YOUR_CURR_VER_FILE_NAME>.yaml
     ```
+
      This creates an Instance Template with updated version of container image as specified in "startup_new.sh"
 
 

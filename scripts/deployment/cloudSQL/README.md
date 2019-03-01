@@ -36,13 +36,13 @@ See the `properties` section in the schema file(s)
 1. Download the [Deployment Manager Scripts](gs://sdrs/deployment-manager/CloudSQL)
 
 ```shell
-    gsutil cp -r gs://sdrs/deployment-manager/CloudSQL .
+    git clone https://github.com/GoogleCloudPlatform/storage-sdrs.git
 ```
 
 2. Change directory to CloudSQL
 
 ```shell
-    cd ./CloudSQL
+    cd ~/storage-sdrs/scripts/deployment/cloudSQL
 ```
 
 3. Copy the example DM config to be used as a model for the deployment as follows
