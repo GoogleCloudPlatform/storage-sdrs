@@ -21,10 +21,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.interfaces.RSAPrivateKey;
-import java.util.Arrays;
 import java.util.Random;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
@@ -48,7 +46,7 @@ public class SdrsRequestClientUtilTest {
   private WebTarget webTarget;
 
   @Before
-  public void setup() throws IOException, InvalidKeyException {
+  public void setup() throws IOException {
     client = mock(Client.class, Mockito.RETURNS_DEEP_STUBS);
     builder = mock(Invocation.Builder.class);
     webTarget = mock(WebTarget.class);
@@ -83,9 +81,13 @@ public class SdrsRequestClientUtilTest {
 
   @Test
   public void usesConfiguredProtocolAndServiceUrl() {
+    SdrsRequestClientUtil.serviceUrl = "url";
+    SdrsRequestClientUtil.protocol = "http";
+    SdrsRequestClientUtil.port = "80";
+
     SdrsRequestClientUtil.request(client, "something").post(null);
 
-    verify(client).target(eq("http://localhost:80"));
+    verify(client).target(eq("http://url:80"));
   }
 
   @Test
