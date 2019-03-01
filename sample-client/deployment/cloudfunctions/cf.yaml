@@ -25,5 +25,6 @@ resources:
     projectId: sdrs-server
     rpoPattern: \.rpo/\d+_\d+
     deleteMarkerPattern: \.delete_this_folder
+    successMarkerPattern: \.SUCCESS
     endpoint: http://tom-api.endpoints.sdrs-server.cloud.goog
     logLevel: DEBUG
