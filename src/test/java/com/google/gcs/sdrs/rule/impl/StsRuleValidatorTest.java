@@ -17,18 +17,22 @@
 
 package com.google.gcs.sdrs.rule.impl;
 
+import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.api.services.storagetransfer.v1.model.Status;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.enums.RetentionJobStatusType;
+import com.google.gcs.sdrs.util.CredentialsUtil;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class StsRuleValidatorTest {
 
@@ -38,12 +42,15 @@ public class StsRuleValidatorTest {
   private int jobId = 123;
 
   @Before
-  public void initialize(){
+  public void initialize() throws IOException {
+    StsRuleValidator.credentialsUtil = mock(CredentialsUtil.class);
+    when(StsRuleValidator.credentialsUtil.getCredentials())
+        .thenReturn(new MockGoogleCredential(new MockGoogleCredential.Builder()));
     objectUnderTest = StsRuleValidator.getInstance();
   }
 
   @Test
-  public void extractJobIdSuccess(){
+  public void extractJobIdSuccess() {
     String operationName = String.format("transferOperation/transferJob-%s-67890", stsJobId);
     String result = objectUnderTest.extractStsJobId(operationName);
 
@@ -51,14 +58,14 @@ public class StsRuleValidatorTest {
   }
 
   @Test(expected = StringIndexOutOfBoundsException.class)
-  public void extractJobIdFailure(){
+  public void extractJobIdFailure() {
     String operationName = String.format("transferOperation/transferJob-%s", stsJobId);
     objectUnderTest.extractStsJobId(operationName);
     Assert.fail();
   }
 
   @Test
-  public void convertOperationToJobValidationPending(){
+  public void convertOperationToJobValidationPending() {
     Operation operation = new Operation();
     operation.setName("testOperation");
     operation.setDone(false);
@@ -66,12 +73,12 @@ public class StsRuleValidatorTest {
         objectUnderTest.convertOperationToJobValidation(operation, jobId);
 
     assertEquals(validation.getJobOperationName(), operation.getName());
-    assertEquals((int)validation.getRetentionJobId(), jobId);
+    assertEquals((int) validation.getRetentionJobId(), jobId);
     assertEquals(validation.getStatus(), RetentionJobStatusType.PENDING);
   }
 
   @Test
-  public void convertOperationToJobValidationSuccess(){
+  public void convertOperationToJobValidationSuccess() {
     Operation operation = new Operation();
     operation.setName("testOperation");
     operation.setDone(true);
@@ -84,12 +91,12 @@ public class StsRuleValidatorTest {
         objectUnderTest.convertOperationToJobValidation(operation, jobId);
 
     assertEquals(validation.getJobOperationName(), operation.getName());
-    assertEquals((int)validation.getRetentionJobId(), jobId);
+    assertEquals((int) validation.getRetentionJobId(), jobId);
     assertEquals(validation.getStatus(), RetentionJobStatusType.SUCCESS);
   }
 
   @Test
-  public void convertOperationToJobValidationFailure(){
+  public void convertOperationToJobValidationFailure() {
     Operation operation = new Operation();
     operation.setName("testOperation");
     operation.setDone(true);
@@ -103,7 +110,7 @@ public class StsRuleValidatorTest {
         objectUnderTest.convertOperationToJobValidation(operation, jobId);
 
     assertEquals(validation.getJobOperationName(), operation.getName());
-    assertEquals((int)validation.getRetentionJobId(), jobId);
+    assertEquals((int) validation.getRetentionJobId(), jobId);
     assertEquals(validation.getStatus(), RetentionJobStatusType.ERROR);
   }
 }

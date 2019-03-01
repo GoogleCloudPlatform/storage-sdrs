@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.rule.impl;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
@@ -27,28 +28,30 @@ import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.rule.RuleExecutor;
+import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** An implementation of the Rule Executor interface that uses STS */
 public class StsRuleExecutor implements RuleExecutor {
 
   public static StsRuleExecutor instance;
+  static CredentialsUtil credentialsUtil = CredentialsUtil.getInstance();
+
   private final String DEFAULT_SUFFIX = "shadow";
   private final String DEFAULT_PROJECT_ID = "global-default";
   private final String DEFAULT_MAX_PREFIX_COUNT = "1000";
@@ -81,7 +84,6 @@ public class StsRuleExecutor implements RuleExecutor {
    * @throws IOException when the STS Client cannot be instantiated
    */
   private StsRuleExecutor() throws IOException {
-
     suffix = SdrsApplication.getAppConfigProperty("sts.suffix", DEFAULT_SUFFIX);
     maxPrefixCount =
         Integer.valueOf(
@@ -93,7 +95,8 @@ public class StsRuleExecutor implements RuleExecutor {
             SdrsApplication.getAppConfigProperty(
                 "sts.maxLookBackInDays", DEFAULT_LOOKBACK_IN_DAYS));
 
-    client = StsUtil.createStsClient();
+    GoogleCredential credentials = credentialsUtil.getCredentials();
+    client = StsUtil.createStsClient(credentials);
   }
 
   /**

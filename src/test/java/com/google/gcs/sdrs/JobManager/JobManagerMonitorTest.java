@@ -18,53 +18,50 @@
 
 package com.google.gcs.sdrs.JobManager;
 
-import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
+import com.google.gcs.sdrs.worker.BaseWorker;
+import com.google.gcs.sdrs.worker.WorkerResult;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
-/**
- * Test class for JobManagerMonitor
- */
+/** Test class for JobManagerMonitor */
 public class JobManagerMonitorTest {
 
   private JobManager instance;
   private JobManagerMonitor objectToTest;
 
-  /**
-   * Set up steps before each test
-   */
+  /** Set up steps before each test */
   @Before
   public void setUp() {
     instance = JobManager.getInstance();
     objectToTest = new JobManagerMonitor(instance);
   }
 
-  /**
-   * Tear down steps after each test
-   */
+  /** Tear down steps after each test */
   @After
-  public void tearDown(){
+  public void tearDown() {
     instance.shutDownJobManagerNow();
   }
 
   /**
-   * Tests the getWorkerResult method of the monitor thread.
-   * Should decrement the activeWorkerCount in the jobManager.
+   * Tests the getWorkerResult method of the monitor thread. Should decrement the activeWorkerCount
+   * in the jobManager.
    */
   @Test
-  public void getWorkerResultTest(){
+  public void getWorkerResultTest() throws InterruptedException {
     int activeWorkers = instance.activeWorkerCount.get();
-    instance.submitJob(new ExecuteRetentionWorker(null));
+    BaseWorker worker =
+        new BaseWorker() {
+          @Override
+          public void doWork() {
+            workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
+          }
+        };
+    instance.submitJob(worker);
     assertEquals(instance.activeWorkerCount.get(), activeWorkers + 1);
-    try{
-      objectToTest.getWorkerResults();
-      assertEquals(instance.activeWorkerCount.get(), activeWorkers);
-    } catch (InterruptedException ex){
-      fail();
-    }
+    objectToTest.getWorkerResults();
+    assertEquals(instance.activeWorkerCount.get(), activeWorkers);
   }
 }
