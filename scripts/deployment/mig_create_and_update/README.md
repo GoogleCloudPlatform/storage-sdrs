@@ -16,7 +16,7 @@ Usage instructions section II (subsection 1 through 4) is for updating new versi
 
 ## Prerequisites
 - Install [Google Cloud SDK](https://cloud.google.com/sdk)
-- Create a [GCP project, set up billing, enable requisite APIs](../project/README.md)
+- Create a [GCP project, set up billing, enable requisite APIs](../../README.md)
 
 
 ## Deployment
@@ -123,7 +123,7 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 
    For specific instructions refer to inline comments in
 
-   ~/storage-sdrs/scripts/deployment/mig_create_and_update/scripts/startup.sh   
+   [startup.sh](./scripts/startup.sh)   
 
 
 8. Upload the modified env.txt file to a pre-created GCS bucket.
