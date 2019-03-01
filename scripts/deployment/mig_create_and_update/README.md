@@ -193,7 +193,7 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
        with your with your own deployment name.
 
     ```shell
-    gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> --config=<YOUR_CURR_VER_FILE_NAME>.yaml \
+    gcloud deployment-manager deployments create <YOUR_NEW_DEPLOYMENT_NAME> --config=<YOUR_CURR_VER_FILE_NAME>.yaml
     ```
 
     This creates an Instance Template with updated version of container image as specified in "startup_new.sh"
