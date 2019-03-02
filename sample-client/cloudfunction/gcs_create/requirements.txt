@@ -1,4 +1,2 @@
 # Function dependencies, for example:
 # package>=version
-requests
-oauth2client

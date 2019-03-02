@@ -21,7 +21,11 @@ PARAMS=""
 while (( "$#" )); do
   case "$1" in
     -f|--function)
-      FARG=$2
+      FUNCTION=$2
+      shift 2
+      ;;
+    -d|--deployment-name)
+      DEPLOYMENT_NAME=$2
       shift 2
       ;;
     --) # end argument parsing
@@ -41,18 +45,21 @@ done
 # set positional arguments in their proper place
 eval set -- "$PARAMS"
 
-if [ $FARG == "create" ]
+if [ $FUNCTION == "create" ]
 then
   cp -R ./common_lib ./gcs_create/.
-  gcloud beta functions deploy mgeneau-cf-gcs-create --source=./gcs_create/
-elif [ $FARG == "delete" ]
+  echo "Deploying create code to" $DEPLOYMENT_NAME"-gcs-create"
+  gcloud beta functions deploy $DEPLOYMENT_NAME-gcs-create --source=./gcs_create/
+elif [ $FUNCTION == "delete" ]
 then
   cp -R ./common_lib ./gcs_delete/.
-  gcloud beta functions deploy mgeneau-cf-gcs-delete --source=./gcs_delete/
-elif [ $FARG == "scheduler" ]
+  echo "Deploying delete code to" $DEPLOYMENT_NAME"-gcs-delete"
+  gcloud beta functions deploy $DEPLOYMENT_NAME-gcs-delete --source=./gcs_delete/
+elif [ $FUNCTION == "scheduler" ]
 then
   cp -R ./common_lib ./scheduler/.
-  gcloud beta functions deploy mgeneau-cf-scheduler --source=./scheduler/
+  echo "Deploying scheduler code to" $DEPLOYMENT_NAME"-scheduler"
+  gcloud beta functions deploy $DEPLOYMENT_NAME-scheduler --source=./scheduler/
 else
   echo "-f param must be either create, delete or scheduler"
 fi
