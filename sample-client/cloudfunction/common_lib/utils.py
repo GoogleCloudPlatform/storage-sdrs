@@ -75,8 +75,12 @@ def _get_jwt():
     JWT = _generate_jwt()
   else:
     try:
-      # This will throw a ValueError if the JWT is expired
-      jwt.decode(JWT, verify=False)
+      # This will throw a ValueError if the JWT is expired by over 5 min
+      decoded = jwt.decode(JWT, verify=False)
+
+      # Err on the side of caution and just create a new JWT if we're at expiry
+      if time.time() >= decoded['exp']:
+        JWT = _generate_jwt()
     except ValueError:
       JWT = _generate_jwt()
   return JWT
