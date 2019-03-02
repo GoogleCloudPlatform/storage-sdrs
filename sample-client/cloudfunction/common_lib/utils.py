@@ -1,3 +1,20 @@
+# Copyright 2019 Google LLC. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+#
+# Any software provided by Google hereunder is distributed "AS IS", WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+
 import json
 import os
 import time
@@ -11,8 +28,10 @@ _SERVICE_ACCOUNT_EMAIL = os.getenv('FUNCTION_IDENTITY')
 PROJECT_ID = os.getenv('projectId')
 RETENTION_RULES_ENDPOINT = '{}:80/retentionrules'.format(_ENDPOINT)
 EVENTS_ENDPOINT = '{}:80/events'.format(_ENDPOINT)
-EXECUTION_ENDPOINT = '{}:80/events/execution'.format(_ENDPOINT)
-VALIDATION_ENDPOINT = '{}:80/events/validation'.format(_ENDPOINT)
+EVENTS_EXECUTION_ENDPOINT = '{}/execution'.format(EVENTS_ENDPOINT)
+EVENTS_VALIDATION_ENDPOINT = '{}/validation'.format(EVENTS_ENDPOINT)
+EVENTS_NOTIFICATION_ENDPOINT = '{}/notification'.format(EVENTS_ENDPOINT)
+
 JWT = None
 
 
@@ -56,8 +75,12 @@ def _get_jwt():
     JWT = _generate_jwt()
   else:
     try:
-      # This will throw a ValueError if the JWT is expired
-      jwt.decode(JWT, verify=False)
+      # This will throw a ValueError if the JWT is expired by over 5 min
+      decoded = jwt.decode(JWT, verify=False)
+
+      # Err on the side of caution and just create a new JWT if we're at expiry
+      if time.time() >= decoded['exp']:
+        JWT = _generate_jwt()
     except ValueError:
       JWT = _generate_jwt()
   return JWT

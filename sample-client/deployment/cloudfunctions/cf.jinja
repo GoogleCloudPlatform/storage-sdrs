@@ -23,6 +23,11 @@ resources:
   properties:
     topic: {{ env['deployment'] }}-gcs-delete-topic
 
+- name: scheduler-topic
+  type: gcp-types/pubsub-v1:projects.topics
+  properties:
+    topic: {{ env['deployment'] }}-scheduler-topic
+
 - name: gcs-create-function
   type: gcp-types/cloudfunctions-v1:projects.locations.functions
   properties:
@@ -37,6 +42,7 @@ resources:
       projectId: {{ properties['projectId'] }}
       rpoPattern: {{ properties['rpoPattern'] }}
       deleteMarkerPattern: {{ properties['deleteMarkerPattern'] }}
+      successMarkerPattern: {{ properties['successMarkerPattern'] }}
       endpoint: {{ properties['endpoint'] }}
       logLevel: {{ properties['logLevel'] }}
     eventTrigger:
@@ -57,8 +63,27 @@ resources:
       projectId: {{ properties['projectId'] }}
       rpoPattern: {{ properties['rpoPattern'] }}
       deleteMarkerPattern: {{ properties['deleteMarkerPattern'] }}
+      successMarkerPattern: {{ properties['successMarkerPattern'] }}
       endpoint: {{ properties['endpoint'] }}
       logLevel: {{ properties['logLevel'] }}
     eventTrigger:
       resource: $(ref.gcs-delete-topic.name)
+      eventType: providers/cloud.pubsub/eventTypes/topic.publish
+
+- name: scheduler-function
+  type: gcp-types/cloudfunctions-v1:projects.locations.functions
+  properties:
+    parent: projects/{{ env['project'] }}/locations/{{ properties['region'] }}
+    function: {{ env['deployment'] }}-scheduler
+    runtime: python37
+    availableMemoryMb: 128
+    sourceArchiveUrl: gs://mgeneau-source/cf.zip
+    entryPoint: {{ properties['entryPoint'] }}
+    #vpcConnector: {{ properties['vpcConnector'] }}
+    environmentVariables:
+      projectId: {{ properties['projectId'] }}
+      endpoint: {{ properties['endpoint'] }}
+      logLevel: {{ properties['logLevel'] }}
+    eventTrigger:
+      resource: $(ref.scheduler-topic.name)
       eventType: providers/cloud.pubsub/eventTypes/topic.publish
