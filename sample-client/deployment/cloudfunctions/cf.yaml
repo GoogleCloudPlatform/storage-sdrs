@@ -20,11 +20,14 @@ resources:
   type: cf.jinja
   properties:
     region: us-central1
-    vpcConnector: projects/sdrs-server/locations/us-central1/connectors/sdrs-connector
+    vpcConnector: projects/your-project/locations/us-central1/connectors/your-connector
     entryPoint: handler
-    projectId: sdrs-server
+    projectId: your-project
     rpoPattern: \.rpo/\d+_\d+
     deleteMarkerPattern: \.delete_this_folder
     successMarkerPattern: \.SUCCESS
-    endpoint: http://tom-api.endpoints.sdrs-server.cloud.goog
+    endpoint: http://your-api.endpoints.your-server.cloud.goog
     logLevel: DEBUG
+    createFunctionZipPath: gs://my-bucket/my-code-create.zip
+    deleteFunctionZipPath: gs://my-bucket/my-code-delete.zip
+    schedulerFunctionZipPath: gs://my-bucket/my-code-scheduler.zip

@@ -12,3 +12,70 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+info:
+  title: Cloud Functions
+  author: Google Inc.
+  description: Creates three cloud functions and associated Pub/Sub topics
+  version: 1.0
+
+imports:
+- path: cf.jinja
+
+required:
+- region
+- logLevel
+- projectId
+- endpoint
+- deleteMarkerPattern
+- rpoPattern
+- successMarkerPattern
+- createFunctionZipPath
+- deleteFunctionZipPath
+- schedulerFunctionZipPath
+
+properties:
+  region:
+    type: string
+    description: The GCP region to deploy to.
+
+  logLevel:
+    type: string
+    description: The Python logging level to set, one of [DEBUG, INFO, WARNING, ERROR, CRITICAL].
+
+  projectId:
+    type: string
+    description: The name of the project the functions are running in.
+
+  endpoint:
+    type: string
+    description: The endpoint of the SDRS service, ex: http://your-api.endpoints.your-server.cloud.goog
+
+  vpcConnector:
+    type: string
+    description: To connect the cloud functions to a VPC. ***This field is not yet supported by deployment manager***
+
+  deleteMarkerPattern:
+    type: string
+    description: The Python regex pattern to match a delete marker, ex: \.delete_this_folder
+
+  rpoPattern:
+    type: string
+    description: The Python regex pattern to match an RPO object, ex: \.rpo/\d+_\d+  There is an known limitation that the code is expecting a final _d+ in the RPO pattern that contains the retention period number.
+
+  successMarkerPattern:
+    type: string
+    description: The Python regex pattern to match a success marker, ex: \.SUCCESS
+
+  createFunctionZipPath:
+    type: string
+    description: The GCS path to the code for the create function.
+
+  deleteFunctionZipPath:
+    type: string
+    description: The GCS path to the code for the delete function.
+
+  schedulerFunctionZipPath:
+    type: string
+    description: The GCS path to the code for the scheduler function.
+
+

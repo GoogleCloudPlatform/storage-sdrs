@@ -35,7 +35,7 @@ resources:
     function: {{ env['deployment'] }}-gcs-create
     runtime: python37
     availableMemoryMb: 128
-    sourceArchiveUrl: gs://mgeneau-source/cf.zip
+    sourceArchiveUrl: {{ properties['createFunctionZipPath'] }}
     entryPoint: {{ properties['entryPoint'] }}
     #vpcConnector: {{ properties['vpcConnector'] }}
     environmentVariables:
@@ -56,7 +56,7 @@ resources:
     function: {{ env['deployment'] }}-gcs-delete
     runtime: python37
     availableMemoryMb: 128
-    sourceArchiveUrl: gs://mgeneau-source/cf.zip
+    sourceArchiveUrl: {{ properties['deleteFunctionZipPath'] }}
     entryPoint: {{ properties['entryPoint'] }}
     #vpcConnector: {{ properties['vpcConnector'] }}
     environmentVariables:
@@ -77,7 +77,7 @@ resources:
     function: {{ env['deployment'] }}-scheduler
     runtime: python37
     availableMemoryMb: 128
-    sourceArchiveUrl: gs://mgeneau-source/cf.zip
+    sourceArchiveUrl: {{ properties['schedulerFunctionZipPath'] }}
     entryPoint: {{ properties['entryPoint'] }}
     #vpcConnector: {{ properties['vpcConnector'] }}
     environmentVariables:

@@ -7,6 +7,6 @@ credentials.json
 *.iml
 
 /venv/
-/sample-client/cloudfunction/gcs_create/common_lib/
-/sample-client/cloudfunction/gcs_delete/common_lib/
-/sample-client/cloudfunction/scheduler/common_lib/
+/sample-client/cloudfunctions/gcs_create/common_lib/
+/sample-client/cloudfunctions/gcs_delete/common_lib/
+/sample-client/cloudfunctions/scheduler/common_lib/
