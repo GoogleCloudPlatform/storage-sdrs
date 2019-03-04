@@ -31,7 +31,7 @@ The GCS delete function listens for Pub/Sub messages coming from Cloud Storage O
 
 If the delete event matches the delete or success regex pattern, it will make a request to SDRS to send a notification that the directory or dataset deletion was completed successfully.
 
-Otherwise if it matches the RPO regex pattern, it will make a request to SDRS to delete the retention job.
+Otherwise if it matches the RPO regex pattern, it will make a request to SDRS to delete the retention rule.
 
 ## Scheduler
 The scheduler function is triggered by a Cloud Scheduler event to send a request to SDRS to run either the executor or validation service.
