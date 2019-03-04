@@ -50,7 +50,7 @@ def handler(event, context):
 def _process_delete(re_match, event_attributes, object_id):
   """Makes a request to create an immediate USER type retention job"""
   sdrs_request = utils.parse_delete_request(re_match, event_attributes,
-                                         object_id)
+                                            object_id)
   url = '{}/execution'.format(EVENTS_ENDPOINT)
   body = {'target': sdrs_request.data_storage_name,
           'projectId': sdrs_request.project_id,
