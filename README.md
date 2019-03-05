@@ -16,10 +16,11 @@ Object Lifecycle Management https://cloud.google.com/storage/docs/lifecycle
 ## High Level Architecture
 
 SDRS is an open-source GCP GitHub project https://github.com/GoogleCloudPlatform/storage-sdrs
+
 SDRS exists in two main parts:
 
 1) A server side service exposing functionality through a RESTful API 
-2) A sample client demonstrating interaction with the server side service
+2) A sample client demonstrating interaction with the server side services
 
 SDRS is primarily written in the Java 8 and Python 3 programming languages. 
 Maven is used as the Java build management tool. 
@@ -28,13 +29,21 @@ Deployment Manager is used as the DevOps Cloud Orchestration tool.
 ## Key GCP Technologies Utilized in SDRS
 
 Managed Instance Groups (MIGs) - https://cloud.google.com/compute/docs/instance-groups/
+
 Cloud Functions (FaaS) https://cloud.google.com/functions/
+
 Cloud Pub/Sub https://cloud.google.com/pubsub/
+
 Cloud Endpoints https://cloud.google.com/endpoints/
+
 Google Stackdriver https://cloud.google.com/stackdriver/
+
 Cloud SQL https://cloud.google.com/sql/
+
 Cloud Scheduler https://cloud.google.com/scheduler/
+
 Storage Transfer Service (STS) https://cloud.google.com/storage-transfer/docs/overview
+
 Cloud Deployment Manager https://cloud.google.com/deployment-manager/
 
 
@@ -47,6 +56,7 @@ Build and deployment instructions are included as well.
 ## Local Development/Build Steps
 
 The instructions in this section describe how to quickly get started and deploy SDRS to a DEV GCP environment. 
+
 TODO - need to fill in this section 
 
 ## Enterprise Deployment Steps to Google Cloud Platform (GCP)
@@ -58,7 +68,7 @@ Deploying SDRS to a production like environment should occur in the following or
 ### Deploying the Server Side Components 
 
 1) Cloud SQL Infrastructure Deployment see [the Cloud SQL Deployment README](./scripts/deployment/cloudSQL/README.md).
-2) MySQL DDL execution see [the MySQL Schema (./scripts/sql/retention_schema).
+2) MySQL DDL execution see [the MySQL Schema (./scripts/sql/retention_schema.sql).
 3) Pub/Sub Infrastructure Deployment [the Server Pub/Sub Deployment README](./scripts/deployment/pub-sub/README.md).
 4) MIG Deployment [the Server Pub/Sub Deployment README](./scripts/deployment/mig_create_and_update/README.md).
 
