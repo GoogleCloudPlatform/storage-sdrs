@@ -19,12 +19,16 @@ resources:
 - name: sdrs
   type: cf.jinja
   properties:
-    region: us-central1
-    vpcConnector: projects/sdrs-server/locations/us-central1/connectors/sdrs-connector
+    region: [YOUR-REGION]
+    ######  The vpcConnector field is not yet supported by deployment manager ######
+    vpcConnector: [PROJECTS/YOUR-PROJECT/LOCATIONS/YOUR-REGION/CONNECTORS/YOUR-CONNECTOR]
     entryPoint: handler
-    projectId: sdrs-server
+    projectId: [YOUR-PROJECT]
     rpoPattern: \.rpo/\d+_\d+
     deleteMarkerPattern: \.delete_this_folder
     successMarkerPattern: \.SUCCESS
-    endpoint: http://tom-api.endpoints.sdrs-server.cloud.goog
+    endpoint: [HTTP://YOUR-API.ENDPOINTS.YOUR-SERVER.CLOUD.GOOG]
     logLevel: DEBUG
+    createFunctionZipPath: [GS://MY-BUCKET/MY-CODE-CREATE.ZIP]
+    deleteFunctionZipPath: [GS://MY-BUCKET/MY-CODE-DELETE.ZIP]
+    schedulerFunctionZipPath: [GS://MY-BUCKET/MY-CODE-SCHEDULER.ZIP]
