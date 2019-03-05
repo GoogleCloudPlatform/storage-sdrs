@@ -12,6 +12,20 @@ Pub/Sub topics.
 deployment.
 * `cf.yaml` is where the various configuration values are actually set.
 
+After a deployment is complete, every GCS bucket that should be monitored will need to have two
+[Pub/Sub notifications](https://cloud.google.com/storage/docs/reporting-changes) set up.
+Notifications for the OBJECT_FINALIZE and OBJECT_DELETE events will need to be added to their
+respective topics:
+```
+gsutil notification create -t [DEPLOYMENT_NAME]-gcs-create-topic -e OBJECT_FINALIZE -f json gs://[BUCKET_NAME]
+gsutil notification create -t [DEPLOYMENT_NAME]-gcs-delete-topic -e OBJECT_DELETE -f json gs://[BUCKET_NAME]
+```
+
+Cloud Scheduler will also need to be configured to publish messages to the
+**[DEPLOYMENT_NAME]-scheduler-topic** on a regular basis to invoke the Executor and Validator
+methods of the **[DEPLOYMENT_NAME]-scheduler** cloud function. For more details, see the
+[Cloud Scheduler README](./README-cloudScheduler.md).
+
 ### VPC Connector
 The deployment manager templates include a vpcConnector property, but as of this moment the field
 will cause the deployment to fail, so it is commented out.
