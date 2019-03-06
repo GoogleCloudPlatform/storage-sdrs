@@ -4,9 +4,12 @@ The deployment Creates and Updates an Auto-Scaled, Regional Managed Instance Gro
 
 IGM - Instance Group Manager
 
-Usage instructions section I (subsection 1 through 11) is for Managed Instance Group creation
+Usage instructions section [I (subsection 1 through 11)](#i.-creating-a-managed-instance-group) is for Managed Instance 
+Group creation
 
-Usage instructions section II (subsection 1 through 4) is for updating new version of the Application (Software Release) on existing MIG. For any given environment that has an existing MIG, you could directly execute steps section II (1 through 4) for subsequent software releases.
+Usage instructions section [II (subsection 1 through 4)](#ii.-updating-mig-with-new-software-version) is for updating 
+new version of the Application (Software 
+Release) on existing MIG. For any given environment that has an existing MIG, you could directly execute steps section II (1 through 4) for subsequent software releases.
 
 - [Instance Templates](https://cloud.google.com/compute/docs/instance-templates/)
 - [Managed Instance Group](https://cloud.google.com/compute/docs/instance-groups/)
@@ -56,7 +59,7 @@ For example in configuration file (igm.yaml), the following properties could be 
 
 ### Usage Instructions
 
-### I. Creating a Managed Instance Group
+#### I. Creating a Managed Instance Group
 
 
 1. Clone the [Deployment Manager Scripts](https://github.com/GoogleCloudPlatform/storage-sdrs.git)
@@ -65,10 +68,10 @@ For example in configuration file (igm.yaml), the following properties could be 
     git clone https://github.com/GoogleCloudPlatform/storage-sdrs.git
 ```
 
-2. Change directory to MIG_Create_Update
+2. Change directory to mig
 
 ```shell
-    cd ~/storage-sdrs/scripts/deployment/mig_create_and_update
+    cd ~/storage-sdrs/scripts/deployment/mig
 ```
 
 3. Copy the example DM config to be used as a model for the deployment as follows
@@ -126,7 +129,7 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
    [startup.sh](./scripts/startup.sh)   
 
 
-8. Upload the modified env.txt file to a pre-created GCS bucket.
+8. Upload the modified startup.sh file to a pre-created GCS bucket.
 
 ```shell
     gsutil cp ../scripts/startup.sh gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>
@@ -144,8 +147,11 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 ```shell
     gcloud deployment-manager deployments list
 ```
-##### At this point you have a MIG running in AutoScaling mode having an Internal Load Balancer (ILB) named <YOUR_DEPLOYMENT_NAME>-fr. From the GCP console note the IP assigned to the ILB. This would be passed in openapi.yaml configuration to deploy [Endpoints](https://cloud.google.com/endpoints/docs/openapi/)
-
+> At this point you have a MIG running in AutoScaling mode having an
+> Internal Load Balancer (ILB) named <YOUR_DEPLOYMENT_NAME>-fr. From the
+> GCP console note the IP assigned to the ILB. This would be passed in
+> openapi.yaml configuration to deploy
+> [Endpoints](https://cloud.google.com/endpoints/docs/openapi/)
 
 11. To see the details of your deployment:
 
@@ -167,9 +173,9 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 ```
 
 
-##### II. Updating the Managed Instance Group with new Software version.
+#### II. Updating MIG with New Software Version
 
-##### The steps listed below creates a new Instance Template with an updated version of software. This new instance template <YOUR_NEW_DEPLOYMENT_NAME>-it is then used to update the existing MIG <YOUR_DEPLOYMENT_NAME>-igm (created in step I.7 above) with the newer version of software release. You pass the startup_new.sh in property "value" (step II.2). The startup_new.sh is a copy of modified ../scripts/script.sh updated with a newer version of container image gcr.io/<YOUR_GOOGLE_PROJECT_ID>/YOUR_CONTAINER_IMAGE:TAG.
+The steps listed below creates a new Instance Template with an updated version of software. This new instance template <YOUR_NEW_DEPLOYMENT_NAME>-it is then used to update the existing MIG <YOUR_DEPLOYMENT_NAME>-igm (created in step I.7 above) with the newer version of software release. You pass the startup_new.sh in property "value" (step II.2). The startup_new.sh is a copy of modified ../scripts/script.sh updated with a newer version of container image gcr.io/<YOUR_GOOGLE_PROJECT_ID>/YOUR_CONTAINER_IMAGE:TAG.
 
 1. Copy the example DM config to be used as a model for the deployment as follows
 

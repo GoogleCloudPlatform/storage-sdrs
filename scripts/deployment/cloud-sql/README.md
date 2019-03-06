@@ -39,10 +39,10 @@ See the `properties` section in the schema file(s)
     git clone https://github.com/GoogleCloudPlatform/storage-sdrs.git
 ```
 
-2. Change directory to cloudSQL
+2. Change directory to cloud-sql
 
 ```shell
-    cd ~/storage-sdrs/scripts/deployment/cloudSQL
+    cd ~/storage-sdrs/scripts/deployment/cloud-sql
 ```
 
 3. Copy the example DM config to be used as a model for the deployment as follows
