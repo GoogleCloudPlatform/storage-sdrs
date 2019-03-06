@@ -42,7 +42,7 @@ enterprise production requirements for high availability, reliability, and secur
     
     
 ## High-level Deployment Architecture   
- The separation of SDRS and Client projects are for clear illustration. The [client](https://github.com/GoogleCloudPlatform/storage-sdrs/sample-client) could be deployed in the same project as SDRS is.     
+ The separation of SDRS and Client projects are for simple illustration. The [client](https://github.com/GoogleCloudPlatform/storage-sdrs/sample-client/README-cloudfunctions.md) could be deployed in the same project as SDRS is.     
     
 ![SDRS Deployment Architecture](./images/SDRSDeploymentArchMIG.png)    
     
@@ -77,8 +77,8 @@ Create a project to deploy SDRS.
    
     
 #### 3. Create a subnet.    
-Create a subnet and enable [Private Google Access](https://cloud.google.com/vpc/docs/private-access-options#pga).MIG 
-uses the subnet and all VM instances in MIG run on private IP. 
+Create a subnet and enable [Private Google Access](https://cloud.google.com/vpc/docs/private-access-options#pga). MIG 
+uses the subnet and all VM instances in MIG run on private IP only. 
     
  
 
@@ -86,8 +86,8 @@ uses the subnet and all VM instances in MIG run on private IP.
 
  
     
-#### 4. Configure [Private Services Access](https://cloud.google.com/vpc/docs/configure-private-services-access) for 
-CloudSQL    
+#### 4. Configure [Private Services Access](https://cloud.google.com/vpc/docs/configure-private-services-access) for CloudSQL   
+ 
  You need to enable Private Services Access in order for CloudSQL to run on private IP.     
  
  Considerations:    
@@ -103,8 +103,8 @@ More information on [GCP Regions](https://cloud.google.com/compute/docs/regions-
 
 #### 5. Service Account
 Create a service account that will be used by SDRS. The service account should have proper permissions to publish to  
-[Pub/Sub topic](https://cloud.google.com/pubsub/docs/access-control) and create [Storage Transfer Service]
-(https://cloud.google.com/storage-transfer/docs/iam-transfer) jobs. 
+[Pub/Sub topic](https://cloud.google.com/pubsub/docs/access-control) and create [Storage Transfer Service](https://cloud.google.com/storage-transfer/docs/iam-transfer) jobs. The credential of the service account is put in a
+ GCS bucket that onlly the deployment script has access. The [startup script](./mig/scripts/startup.sh), as part of MIG instance creation, gets the credential from the GCS bucket and sets the [GOOGLE_APPLICATION_CREDENTIALS](https://cloud.google.com/docs/authentication/production) environment variable for SDRS docker container. 
     
     
     
@@ -112,12 +112,12 @@ Create a service account that will be used by SDRS. The service account should h
     
 ### SDRS Deployment    
 The following are instructions to deploy SDRS and click the links for details for each step:     
-1. Create a [CloudSQL](./cloudSQL/README.md) instance. (Takes about 10-15 minutes). Set [log_bin_trust_function_creators](https://stackoverflow.com/questions/47359508/cant-create-trigger-on-mysql-table-within-google-cloud) to true.
+1. Create a [CloudSQL](./cloud-sql/README.md) instance. (Takes about 10-15 minutes). Set [log_bin_trust_function_creators](https://stackoverflow.com/questions/47359508/cant-create-trigger-on-mysql-table-within-google-cloud) to true.
     
  2. Run [SQL DDL](../sql/retention_schema.sql) to create a database schema in Cloud SQL created above.  
  2. Create a [Pub/Sub topic](./pub-sub) for SDRS to publish messages. 
  3. Create a [custom image](#custom-image) to be used by MIG.  
- 4. Launch a [Managed Instance Group cluster](./mig_create_and_update/README.md) (Takes about 5 minutes ). This step 
+ 4. Launch a [Managed Instance Group cluster](./mig/README.md) (Takes about 5 minutes ). This step 
  creates the MIG and deploys SDRS into the MIG.   
     
          Follow the steps section I (subsection 1 through 11) to create a Managed Instance Group.    
@@ -127,7 +127,7 @@ The following are instructions to deploy SDRS and click the links for details fo
           gcloud endpoints services deploy openapi.yaml    
           
 ### SDRS Update    
- Update the SDRS application using [MIG Updater](./mig_create_and_update/README.md).    
+ Update the SDRS application using [MIG Updater](./mig/README.md).    
  
  Follow the steps section II (subsection 1 through 4) to update the version of new software on the existing Managed Instance Group.    
     

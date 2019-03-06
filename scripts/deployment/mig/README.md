@@ -4,9 +4,12 @@ The deployment Creates and Updates an Auto-Scaled, Regional Managed Instance Gro
 
 IGM - Instance Group Manager
 
-Usage instructions section I (subsection 1 through 11) is for Managed Instance Group creation
+Usage instructions section [I (subsection 1 through 11)](#i.-creating-a-managed-instance-group) is for Managed Instance 
+Group creation
 
-Usage instructions section II (subsection 1 through 4) is for updating new version of the Application (Software Release) on existing MIG. For any given environment that has an existing MIG, you could directly execute steps section II (1 through 4) for subsequent software releases.
+Usage instructions section [II (subsection 1 through 4)](#ii.-updating-mig-with-new-software-version) is for updating 
+new version of the Application (Software 
+Release) on existing MIG. For any given environment that has an existing MIG, you could directly execute steps section II (1 through 4) for subsequent software releases.
 
 - [Instance Templates](https://cloud.google.com/compute/docs/instance-templates/)
 - [Managed Instance Group](https://cloud.google.com/compute/docs/instance-groups/)
@@ -65,10 +68,10 @@ For example in configuration file (igm.yaml), the following properties could be 
     git clone https://github.com/GoogleCloudPlatform/storage-sdrs.git
 ```
 
-2. Change directory to MIG_Create_Update
+2. Change directory to mig
 
 ```shell
-    cd ~/storage-sdrs/scripts/deployment/mig_create_and_update
+    cd ~/storage-sdrs/scripts/deployment/mig
 ```
 
 3. Copy the example DM config to be used as a model for the deployment as follows
