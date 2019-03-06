@@ -7,12 +7,13 @@ For example, the official age of an object could exist as follows:
   
 bucketX/datasetY/{yyyy}/{mm}/{dd}/{hh}/log.txt  
   
-In this example, the information encoded in the object name rather than the GCS object metadata creation time serves to define its age.  
-An organization can define a TTL for datasets and thereby reliably enforce object retention based of the encoded creation time.  
+In this example, the information encoded in the object name rather than the GCS object metadata   
+creation time serves to define its age.  An organization can define a TTL for datasets and thereby  
+reliably enforce object retention based of the encoded creation time.  
    
 At the most fundamental level, SDRS enforces object retention by mapping policy rules defining the time-to-live (TTL) for datasets existing in GCS buckets. 
-Note, for scenarios where GCS object retention management can rely solely on object creation time rather than an encoded prefix, please see:
-Object Lifecycle Management https://cloud.google.com/storage/docs/lifecycle  
+Note, for scenarios where GCS object retention management can rely solely on object creation time rather than an encoded prefix,  
+please see: Object Lifecycle Management https://cloud.google.com/storage/docs/lifecycle  
   
 ## High Level Architecture  
   
@@ -76,8 +77,8 @@ In general, deploying SDRS to a production like environment should occur in the 
 
 ### Deploying the Sample Client Side Components 
 
-1) Cloud Function Deployment (Includes Client side Pub/Sub triggers)
-2) Cloud Scheduler Crontab creation by way of the GCP Console UI
+1) Cloud Function Deployment (Includes Client side Pub/Sub triggers) see [the Client Cloud Functions README](./sample-client/README-cloudfunctions.md).  
+2) Cloud Scheduler Crontab creation by way of the GCP Console UI see [the Cloud Scheduler README](./readme/README-cloudscheduler.md). 
 
 ## Server Components
 
@@ -110,8 +111,7 @@ For more details, see [the Validation Service README](./readme/README-validation
 ### Notification Service Details
 
 The Notification Service is a server side component that is responsible for broadcasting notifications of SDRS events to 
-interested parties by way of Pub/Sub
-For more details, see [the Notification Service README](./readme/README-notification.md).
+interested parties by way of Pub/Sub  
 
 ## Client Components  
 
