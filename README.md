@@ -73,7 +73,7 @@ In general, deploying SDRS to a production like environment should occur in the 
 1) Cloud SQL Infrastructure Deployment see [the Cloud SQL Deployment README](./scripts/deployment/cloud-sql/README.md).
 2) MySQL DDL execution see [the MySQL Schema](./scripts/sql/retention_schema.sql).
 3) Pub/Sub Infrastructure Deployment [the Server Pub/Sub Deployment README](./scripts/deployment/pub-sub/README.md).
-4) MIG Deployment [the Server Pub/Sub Deployment README](./scripts/deployment/mig_create_and_update/README.md).
+4) MIG Deployment [the MIG Deployment README](./scripts/deployment/mig/README.md).
 
 ### Deploying the Sample Client Side Components 
 
