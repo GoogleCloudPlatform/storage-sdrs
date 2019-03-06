@@ -60,7 +60,21 @@ Build and deployment instructions are included as well.
 
 The instructions in this section describe how to quickly get started and deploy SDRS to a DEV GCP environment. 
 
-TODO - need to fill in this section 
+Ensure your local environment compiles and builds using Maven:
+
+    mvn clean install package 
+
+The application is configured by two key files found in the src/main/resources directory:  
+
+1)  [the ApplicationConfiguration file](./src/main/resources/applicationConfig.xml).  
+2)  [the Hibernate Configuration file](./src/main/resources/hibernate.cfg.xml).  
+
+Take care to distinguish between settings found in the applicationConfig file that are well known at compile/build/package time versus settings that need to be  
+injected post build during deployment by token replacement environment variables.  
+
+Build and deploy a Docker image to your GCP project.  
+For details see [the Docker README](./readme/docker.md).
+
 
 ## Enterprise Deployment Steps to Google Cloud Platform (GCP)  
 
