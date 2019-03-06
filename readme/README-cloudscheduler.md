@@ -14,7 +14,7 @@ Please see the GCP documentation for more information https://cloud.google.com/s
 
 ## Deployment & Configuration
 
-1) Run the client deployment to deploy the sample client Cloud Functions (including the sample pub/sub topic).  
+1) Ensure that you are configuring the scheduler after the client deployment steps have already been executed.  The Cloud Scheduler depends on the pub/sub and cloud function components already existing in your GCP project. 
 See [the Client Cloud Functions README](../sample-client/README-cloudfunctions.md).  
 
 2) Create two respective Cloud Scheduler jobs in the GCP console to trigger the provided sample pub/sub topic and cloud function at the desired frequency.
