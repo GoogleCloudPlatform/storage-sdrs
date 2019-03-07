@@ -13,11 +13,11 @@ reliably enforce object retention based on the encoded creation time.
    
 At the most fundamental level, SDRS enforces object retention by mapping policy rules defining the time-to-live (TTL) for datasets existing in GCS buckets. 
 Note, for scenarios where GCS object retention management can rely solely on object creation time rather than an encoded prefix,  
-please see: Object Lifecycle Management https://cloud.google.com/storage/docs/lifecycle  
+please see: [Object Lifecycle Management](https://cloud.google.com/storage/docs/lifecycle)   
   
 ## High Level Architecture  
   
-SDRS is an open-source GCP GitHub project https://github.com/GoogleCloudPlatform/storage-sdrs  
+SDRS is an open-source [GCP GitHub project](https://github.com/GoogleCloudPlatform/storage-sdrs)  
   
 SDRS exists in two main parts:  
 
@@ -31,30 +31,29 @@ Deployment Manager is used as the DevOps Cloud Orchestration tool.
   
 ## Key GCP Technologies Utilized in SDRS
 
-Managed Instance Groups (MIGs) - https://cloud.google.com/compute/docs/instance-groups/  
+[Managed Instance Groups MIGs](https://cloud.google.com/compute/docs/instance-groups/) 
   
-Cloud Functions (FaaS) https://cloud.google.com/functions/  
+[Cloud Functions](https://cloud.google.com/functions/)  
   
-Cloud Pub/Sub https://cloud.google.com/pubsub/  
+[Cloud Pub/Sub](https://cloud.google.com/pubsub/)  
   
-Cloud Endpoints https://cloud.google.com/endpoints/  
+[Cloud Endpoints](https://cloud.google.com/endpoints/)  
    
-Google Stackdriver https://cloud.google.com/stackdriver/  
+[Google Stackdriver](https://cloud.google.com/stackdriver/)  
   
-Cloud SQL https://cloud.google.com/sql/  
+[Cloud SQL](https://cloud.google.com/sql/)  
   
-Cloud Scheduler https://cloud.google.com/scheduler/  
+[Cloud Scheduler](https://cloud.google.com/scheduler/)  
   
-Storage Transfer Service (STS) https://cloud.google.com/storage-transfer/docs/overview  
+[Storage Transfer Service STS](https://cloud.google.com/storage-transfer/docs/overview)  
   
-Cloud Deployment Manager https://cloud.google.com/deployment-manager/  
+[Cloud Deployment Manager](https://cloud.google.com/deployment-manager/) 
   
 
 ## Getting Started with SDRS
 
-To get started, clone the project from Google Cloud Platform's Github site here - https://github.com/GoogleCloudPlatform/storage-sdrs  
-The full source code for both the server along with a sample client are included in the project.   
-Build and deployment instructions are included as well.  
+To get started, clone the project from Google Cloud Platform's Github site [here](https://github.com/GoogleCloudPlatform/storage-sdrs)    
+The full source code for both the server along with a sample client are included in the project.  Build and deployment instructions are included as well.   
   
 ## Local Development/Build Steps
 
