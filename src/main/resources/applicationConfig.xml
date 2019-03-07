@@ -29,14 +29,14 @@
       <ruleExecution>
         <endpoint>events/execution</endpoint>
         <initialDelay>0</initialDelay>
-        <frequency>30</frequency>
+        <frequency>60</frequency>
         <timeUnit>MINUTES</timeUnit>
         <timezone>America/Los_Angeles</timezone>
       </ruleExecution>
       <validationService>
         <endpoint>events/validation</endpoint>
         <initialDelay>0</initialDelay>
-        <frequency>30</frequency>
+        <frequency>60</frequency>
         <timeUnit>MINUTES</timeUnit>
       </validationService>
     </task>
@@ -48,7 +48,7 @@
     <defaultStorageName>global</defaultStorageName>
     <maxLookBackInDays>365</maxLookBackInDays>
     <throttleLimit>30</throttleLimit>
-    <throttleInterval>120000</throttleInterval>
+    <throttleInterval>100000</throttleInterval>
   </sts>
   <pubsub>
     <topic>${SDRS_PUBSUB_TOPIC_NAME}</topic>

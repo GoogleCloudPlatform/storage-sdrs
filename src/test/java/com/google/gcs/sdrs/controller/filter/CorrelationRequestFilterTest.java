@@ -27,7 +27,7 @@ import org.mockito.ArgumentCaptor;
 
 import static com.google.gcs.sdrs.controller.filter.ContainerContextProperties.CORRELATION_UUID;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
