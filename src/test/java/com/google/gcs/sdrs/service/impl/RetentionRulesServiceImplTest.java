@@ -25,6 +25,7 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.RetentionRuleType;
+import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
 import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
@@ -34,16 +35,22 @@ import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(StsRuleExecutor.class)
 public class RetentionRulesServiceImplTest {
 
   private RetentionRulesServiceImpl service = new RetentionRulesServiceImpl();
@@ -62,6 +69,9 @@ public class RetentionRulesServiceImplTest {
     globalRule.setRetentionPeriodInDays(365);
     String projectId = "test";
     projectIds.add(projectId);
+
+    PowerMockito.mockStatic(StsRuleExecutor.class);
+    when(StsRuleExecutor.getInstance()).thenReturn(null);
   }
 
   @Test
@@ -286,7 +296,7 @@ public class RetentionRulesServiceImplTest {
     service.deleteRetentionRuleByBusinessKey("project", "storage");
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(UpdateDefaultJobWorker.class);
+    ArgumentCaptor<UpdateDefaultJobWorker> workerCaptor = ArgumentCaptor.forClass(UpdateDefaultJobWorker.class);
 
     verify(service.ruleDao).softDelete(captor.capture());
     verify(service.jobManager).submitJob(workerCaptor.capture());
@@ -313,7 +323,7 @@ public class RetentionRulesServiceImplTest {
     service.deleteRetentionRuleByBusinessKey("project", "storage");
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-    ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(CancelDefaultJobWorker.class);
+    ArgumentCaptor<CancelDefaultJobWorker> workerCaptor = ArgumentCaptor.forClass(CancelDefaultJobWorker.class);
 
     verify(service.ruleDao).softDelete(captor.capture());
     verify(service.jobManager).submitJob(workerCaptor.capture());

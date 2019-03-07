@@ -2,7 +2,7 @@ package com.google.gcs.sdrs.worker.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,8 +16,14 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(StsRuleValidator.class)
 public class ValidationWorkerTest {
 
   private RetentionJobValidationDao retentionJobValidationDaoMock;
@@ -50,6 +56,9 @@ public class ValidationWorkerTest {
 
     ruleValidatorMock = mock(StsRuleValidator.class);
     when(ruleValidatorMock.validateRetentionJobs(any())).thenReturn(stsValidations);
+
+    PowerMockito.mockStatic(StsRuleValidator.class);
+    when(StsRuleValidator.getInstance()).thenReturn(null);
   }
 
   @Test
@@ -60,7 +69,7 @@ public class ValidationWorkerTest {
 
     worker.doWork();
 
-    ArgumentCaptor<List<RetentionJobValidation>> argument = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<List> argument = ArgumentCaptor.forClass(List.class);
     verify(retentionJobValidationDaoMock).saveOrUpdateBatch(argument.capture());
     List<RetentionJobValidation> arguments = argument.getValue();
     assertEquals(2, arguments.size());

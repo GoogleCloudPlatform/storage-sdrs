@@ -42,7 +42,7 @@ enterprise production requirements for high availability, reliability, and secur
     
     
 ## High-level Deployment Architecture   
- The separation of SDRS and Client projects are for simple illustration. The [client](https://github.com/GoogleCloudPlatform/storage-sdrs/sample-client/README-cloudfunctions.md) could be deployed in the same project as SDRS is.     
+ The separation of SDRS and Client projects are for simple illustration. The [client](../../sample-client/README-cloudfunctions.md) could be deployed in the same project as SDRS is.     
     
 ![SDRS Deployment Architecture](./images/SDRSDeploymentArchMIG.png)    
     
@@ -104,7 +104,7 @@ More information on [GCP Regions](https://cloud.google.com/compute/docs/regions-
 #### 5. Service Account
 Create a service account that will be used by SDRS. The service account should have proper permissions to publish to  
 [Pub/Sub topic](https://cloud.google.com/pubsub/docs/access-control) and create [Storage Transfer Service](https://cloud.google.com/storage-transfer/docs/iam-transfer) jobs. The credential of the service account is put in a
- GCS bucket that onlly the deployment script has access. The [startup script](./mig/scripts/startup.sh), as part of MIG instance creation, gets the credential from the GCS bucket and sets the [GOOGLE_APPLICATION_CREDENTIALS](https://cloud.google.com/docs/authentication/production) environment variable for SDRS docker container. 
+ GCS bucket that only the deployment script has access. The [startup script](./mig/scripts/startup.sh), as part of MIG instance creation, gets the credential from the GCS bucket and sets the [GOOGLE_APPLICATION_CREDENTIALS](https://cloud.google.com/docs/authentication/production) environment variable for SDRS docker container. 
     
     
     

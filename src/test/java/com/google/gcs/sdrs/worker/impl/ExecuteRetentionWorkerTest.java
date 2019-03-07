@@ -20,10 +20,8 @@ package com.google.gcs.sdrs.worker.impl;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
-import com.google.gcs.sdrs.dao.impl.GenericDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.enums.ExecutionEventType;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
@@ -32,14 +30,20 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(StsRuleExecutor.class)
 public class ExecuteRetentionWorkerTest {
 
   private StsRuleExecutor ruleExecutorMock;
@@ -52,6 +56,8 @@ public class ExecuteRetentionWorkerTest {
     retentionJobDaoMock = mock(RetentionJobDao.class);
     ruleExecutorMock = mock(StsRuleExecutor.class);
     when(ruleExecutorMock.executeDatasetRule(any())).thenReturn(null);
+    PowerMockito.mockStatic(StsRuleExecutor.class);
+    when(StsRuleExecutor.getInstance()).thenReturn(null);
   }
 
   @Test

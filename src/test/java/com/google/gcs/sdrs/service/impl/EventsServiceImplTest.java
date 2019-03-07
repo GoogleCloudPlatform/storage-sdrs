@@ -22,20 +22,28 @@ import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.Worker;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(StsRuleExecutor.class)
 public class EventsServiceImplTest {
 
   private EventsServiceImpl service = new EventsServiceImpl();
@@ -54,6 +62,8 @@ public class EventsServiceImplTest {
     service.ruleDao = mock(RetentionRuleDao.class);
     service.jobDao = mock(RetentionJobDao.class);
     projectIds.add("projectId");
+    PowerMockito.mockStatic(StsRuleExecutor.class);
+    when(StsRuleExecutor.getInstance()).thenReturn(null);
   }
 
   @Test
