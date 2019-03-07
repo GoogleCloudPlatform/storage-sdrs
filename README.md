@@ -60,13 +60,15 @@ The instructions in this section describe how to quickly get started and deploy 
 
 1) Ensure your local environment compiles and builds using Maven:
 
+```
     mvn clean install package 
+```
 
 2) Create a [CloudSQL](./scripts/deployment/cloud-sql/README.md) instance  
 3) Run [the MySQL DDL](./scripts/sql/retention_schema.sql) to create a database schema in the Cloud SQL instance created above  
 4) Create [the Server Pub/Sub infrastructure](./scripts/deployment/pub-sub/README.md) for SDRS to publish messages  
 5) Build the SDRS [Docker image](./readme/README-docker.md) suitable for deployment to a MIG    
-6) Create a [Managed Instance Group cluster](./mig/README.md) and deploy SDRS into the MIG  
+6) Create a [Managed Instance Group cluster](./scripts/deployment/mig/README.md) and deploy SDRS into the MIG  
  
 Note, the application is configured by two key files found in the src/main/resources directory:  
 
