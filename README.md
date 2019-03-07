@@ -9,7 +9,7 @@ bucketX/datasetY/{yyyy}/{mm}/{dd}/{hh}/log.txt
   
 In this example, the information encoded in the object name rather than the GCS object metadata   
 creation time serves to define its age.  An organization can define a TTL for datasets and thereby  
-reliably enforce object retention based of the encoded creation time.  
+reliably enforce object retention based on the encoded creation time.  
    
 At the most fundamental level, SDRS enforces object retention by mapping policy rules defining the time-to-live (TTL) for datasets existing in GCS buckets. 
 Note, for scenarios where GCS object retention management can rely solely on object creation time rather than an encoded prefix,  
@@ -73,7 +73,7 @@ Take care to distinguish between settings found in the applicationConfig file th
 injected post build during deployment by token replacement environment variables.  
 
 Build and deploy a Docker image to your GCP project.  
-For details see [the Docker README](./readme/docker.md).
+For details see [the Docker README](./readme/README-docker.md).
 
 
 ## Enterprise Deployment Steps to Google Cloud Platform (GCP)  
@@ -150,9 +150,3 @@ See the contributing [instructions](./CONTRIBUTING.md) to get started contributi
 ## License
 All solutions within this repository are provided under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Please see the [LICENSE](/LICENSE) file for more detailed terms and conditions.
 
-## Disclaimer
-This repository and its contents are not an official Google Product.
-
-## Contact
-Questions, issues, and comments should be directed to
-[professional-services-oss@google.com](mailto:professional-services-oss@google.com).
