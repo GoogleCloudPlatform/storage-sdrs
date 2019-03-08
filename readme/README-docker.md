@@ -1,5 +1,6 @@
 # Docker
 The SDRS server application is intended to run in a docker container.
+Download and install [Docker](https://www.docker.com/get-started) on your local development environment 
 
 ## Build & Publish
 The docker build process will copy source code, install dependencies, and run the maven package target. 

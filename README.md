@@ -64,11 +64,12 @@ The instructions in this section describe how to quickly get started and deploy 
     mvn clean install package 
 ```
 
-2) Create a [CloudSQL](./scripts/deployment/cloud-sql/README.md) instance  
-3) Run [the MySQL DDL](./scripts/sql/retention_schema.sql) to create a database schema in the Cloud SQL instance created above  
+2) Create a [CloudSQL](https://cloud.google.com/sql/docs/mysql/create-instance) instance   
+3) Run [the MySQL DDL](./scripts/sql/retention_schema.sql) to create a database schema in the Cloud SQL instance created above.  
+Note, set log_bin_trust_function_creators to true to overcome a possible error you may encounter when creating the db trigger.  
 4) Create [the Server Pub/Sub infrastructure](./scripts/deployment/pub-sub/README.md) for SDRS to publish messages  
-5) Build the SDRS [Docker image](./readme/README-docker.md) suitable for deployment to a MIG    
-6) Create a [Managed Instance Group cluster](./scripts/deployment/mig/README.md) and deploy SDRS into the MIG  
+5) Build the SDRS [Docker image](./readme/README-docker.md)    
+6) Deploy the SDRS Docker Image into a [Compute Engine VM](https://cloud.google.com/compute/docs/containers/deploying-containers) 
  
 Note, the application is configured by two key files found in the src/main/resources directory:  
 
@@ -76,7 +77,9 @@ Note, the application is configured by two key files found in the src/main/resou
 2)  [the Hibernate Configuration file](./src/main/resources/hibernate.cfg.xml).  
 
 The sample appConfig.xml file contains example settings that can be leveraged for a development deployment. 
-In general, values that are well known at compile/build/package time can be directly set in the applicationConfig file.    
+In general, values that are well known at compile/build/package time can be directly set in the applicationConfig file.
+For more details on these settings see, [Configurable Values](./readme/README-executor.md#configurable-values)
+    
 However, values that need to be injected post build (during deployment) are set by token replacement environment variables.  
 See this sample [environment file](./scripts/deployment/mig/scripts/env.txt).    
 
