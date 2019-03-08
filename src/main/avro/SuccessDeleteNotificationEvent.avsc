@@ -1,0 +1,40 @@
+{
+  "namespace": "com.google.gcs.sdrs.mq.events",
+  "type": "record",
+  "name": "SuccessDeleteNotificationEvent",
+  "doc": "Event sent to interested parties on deleted dataset.",
+  "fields": [
+    {
+      "name": "context",
+      "type": "com.google.gcs.sdrs.mq.events.context.EventContext"
+    },
+    {
+      "name": "version",
+      "doc": "Version of event",
+      "type": "string"
+    },
+    {
+      "name": "projectId",
+      "type": "string"
+    },
+    {
+      "name": "bucket",
+      "type": "string"
+    },
+    {
+      "name": "directory",
+      "doc": "The directory containing success delete marker that has been deleted. ",
+      "type": "string"
+    },
+    {
+      "name": "trigger",
+      "doc": "The trigger that results in delete. ",
+      "type": "string"
+    },
+    {
+      "name": "deletedAt",
+      "doc": "Timestamp at which the directory was deleted. ISO format in UTC. i.e. 2018-09-01T10:10:00z ",
+      "type": "string"
+    }
+  ]
+}

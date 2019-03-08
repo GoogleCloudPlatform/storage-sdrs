@@ -1,0 +1,12 @@
+/target/
+/.settings/
+/logs/
+credentials.json
+/bin/
+/.idea/
+*.iml
+
+/venv/
+/sample-client/cloudfunctions/gcs_create/common_lib/
+/sample-client/cloudfunctions/gcs_delete/common_lib/
+/sample-client/cloudfunctions/scheduler/common_lib/
