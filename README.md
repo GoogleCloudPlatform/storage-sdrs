@@ -12,8 +12,7 @@ creation time serves to define its age.  An organization can define a TTL for da
 reliably enforce object retention based on the encoded creation time.  
    
 At the most fundamental level, SDRS enforces object retention by mapping policy rules defining the time-to-live (TTL) for datasets existing in GCS buckets. 
-Note, for scenarios where GCS object retention management can rely solely on object creation time rather than an encoded prefix,  
-please see: [Object Lifecycle Management](https://cloud.google.com/storage/docs/lifecycle)   
+Note, for scenarios where GCS object retention management can rely solely on object creation time rather than an encoded prefix, please see: [Object Lifecycle Management](https://cloud.google.com/storage/docs/lifecycle)   
   
 ## High Level Architecture  
   
@@ -59,21 +58,30 @@ The full source code for both the server along with a sample client are included
 
 The instructions in this section describe how to quickly get started and deploy SDRS to a DEV GCP environment. 
 
-Ensure your local environment compiles and builds using Maven:
+1) Ensure your local environment compiles and builds using Maven:
 
+```
     mvn clean install package 
+```
 
-The application is configured by two key files found in the src/main/resources directory:  
+2) Create a [CloudSQL](https://cloud.google.com/sql/docs/mysql/create-instance) instance   
+3) Run [the MySQL DDL](./scripts/sql/retention_schema.sql) to create a database schema in the Cloud SQL instance created above.  
+Note, set log_bin_trust_function_creators to true to overcome a possible error you may encounter when creating the db trigger.  
+4) Create [the Server Pub/Sub infrastructure](./scripts/deployment/pub-sub/README.md) for SDRS to publish messages  
+5) Build the SDRS [Docker image](./readme/README-docker.md)    
+6) Deploy the SDRS Docker Image into a [Compute Engine VM](https://cloud.google.com/compute/docs/containers/deploying-containers) 
+ 
+Note, the application is configured by two key files found in the src/main/resources directory:  
 
 1)  [the ApplicationConfiguration file](./src/main/resources/applicationConfig.xml).  
 2)  [the Hibernate Configuration file](./src/main/resources/hibernate.cfg.xml).  
 
-Take care to distinguish between settings found in the applicationConfig file that are well known at compile/build/package time versus settings that need to be  
-injected post build during deployment by token replacement environment variables.  
-
-Build and deploy a Docker image to your GCP project.  
-For details see [the Docker README](./readme/README-docker.md).
-
+The sample appConfig.xml file contains example settings that can be leveraged for a development deployment. 
+In general, values that are well known at compile/build/package time can be directly set in the applicationConfig file.
+For more details on these settings see, [Configurable Values](./readme/README-executor.md#configurable-values)
+    
+However, values that need to be injected post build (during deployment) are set by token replacement environment variables.  
+See this sample [environment file](./scripts/deployment/mig/scripts/env.txt).    
 
 ## Enterprise Deployment Steps to Google Cloud Platform (GCP)  
 
