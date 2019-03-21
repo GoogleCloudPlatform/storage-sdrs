@@ -17,11 +17,11 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.manager.JobManager;
 import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.Worker;
 import org.junit.Before;

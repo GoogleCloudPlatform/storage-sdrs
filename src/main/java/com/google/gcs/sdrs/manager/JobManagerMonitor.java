@@ -16,11 +16,10 @@
  *
  */
 
-package com.google.gcs.sdrs.JobManager;
+package com.google.gcs.sdrs.manager;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

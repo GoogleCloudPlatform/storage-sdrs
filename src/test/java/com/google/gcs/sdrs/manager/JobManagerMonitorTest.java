@@ -16,8 +16,10 @@
  *
  */
 
-package com.google.gcs.sdrs.JobManager;
+package com.google.gcs.sdrs.manager;
 
+import com.google.gcs.sdrs.manager.JobManager;
+import com.google.gcs.sdrs.manager.JobManagerMonitor;
 import com.google.gcs.sdrs.worker.BaseWorker;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import org.junit.After;

@@ -17,7 +17,6 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
@@ -26,6 +25,7 @@ import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.manager.JobManager;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.impl.CreateDefaultJobWorker;

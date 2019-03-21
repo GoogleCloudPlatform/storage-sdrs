@@ -16,8 +16,10 @@
  *
  */
 
-package com.google.gcs.sdrs.JobScheduler;
+package com.google.gcs.sdrs.manager;
 
+import com.google.gcs.sdrs.manager.JobManager;
+import com.google.gcs.sdrs.worker.BaseWorker;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,33 +27,32 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class JobSchedulerTest {
+/** Test class for JobManager */
+public class JobManagerTest {
+  private JobManager instance;
 
-  private JobScheduler instance;
-
-  /**
-   * Set up steps before each test
-   */
+  /** Set up steps before each test */
   @Before
-  public void setUp(){
-    instance = JobScheduler.getInstance();
+  public void setUp() {
+    instance = JobManager.getInstance();
   }
 
-  /**
-   * Tear down steps after each test
-   */
+  /** Tear down steps after each test */
   @After
-  public void tearDown(){
-    instance.shutdownSchedulerNow();
+  public void tearDown() {
+    instance.shutDownJobManagerNow();
   }
 
   /**
-   * Test that a JobManager instance is created when a getInstance is called without an existing instance
+   * Test that a JobManager instance is created when a getInstance is called without an existing
+   * instance
    */
   @Test
   public void getInstanceWhenInstanceDoesNotExist() {
     // Instance created in test setup
     assertNotNull(instance);
+    assertNotNull(instance.completionService);
+    assertEquals(instance.activeWorkerCount.get(), 0);
   }
 
   /**
@@ -60,7 +61,21 @@ public class JobSchedulerTest {
   @Test
   public void getInstanceWhenInstanceAlreadyExists() {
     assertNotNull(instance);
-    JobScheduler secondInstance = JobScheduler.getInstance();
+    JobManager secondInstance = JobManager.getInstance();
     assertEquals(instance, secondInstance);
+  }
+
+  /** Test that the worker count is incremented when a job is submitted */
+  @Test
+  public void testSubmitJob() {
+    assertNotNull(instance);
+    BaseWorker worker =
+        new BaseWorker() {
+          @Override
+          public void doWork() {}
+        };
+    int currentActiveWorkers = instance.activeWorkerCount.get();
+    instance.submitJob(worker);
+    assertEquals(currentActiveWorkers + 1, instance.activeWorkerCount.get());
   }
 }

@@ -16,19 +16,18 @@
  *
  */
 
-package com.google.gcs.sdrs.server;
+package com.google.gcs.sdrs;
 
-import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
+import com.google.gcs.sdrs.scheduler.JobScheduler;
 import com.google.gcs.sdrs.util.StsQuotaManager;
 import java.util.concurrent.TimeUnit;
 
-import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import com.google.gcs.sdrs.manager.JobManager;
+
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gcs.sdrs.JobManager.JobManager;
 
 /**
  * Wrapper class around a Runnable thread designed to gracefully shutdown the Job Manager.

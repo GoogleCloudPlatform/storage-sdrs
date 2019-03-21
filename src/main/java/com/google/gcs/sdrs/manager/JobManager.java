@@ -16,9 +16,9 @@
  *
  */
 
-package com.google.gcs.sdrs.JobManager;
+package com.google.gcs.sdrs.manager;
 
-import com.google.gcs.sdrs.JobScheduler.JobScheduler;
+import com.google.gcs.sdrs.scheduler.JobScheduler;
 import com.google.gcs.sdrs.worker.Worker;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.util.concurrent.CompletionService;

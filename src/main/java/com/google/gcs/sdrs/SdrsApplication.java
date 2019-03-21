@@ -18,11 +18,10 @@
 
 package com.google.gcs.sdrs;
 
-import com.google.gcs.sdrs.JobScheduler.JobScheduler;
 import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
 import com.google.gcs.sdrs.runners.RuleExecutionRunner;
 import com.google.gcs.sdrs.runners.ValidationRunner;
-import com.google.gcs.sdrs.server.ServerShutdownHook;
+import com.google.gcs.sdrs.scheduler.JobScheduler;
 import com.google.gcs.sdrs.util.StsQuotaManager;
 import java.io.IOException;
 import java.net.URI;
