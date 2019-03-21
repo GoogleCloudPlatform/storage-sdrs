@@ -18,12 +18,11 @@
 
 package com.google.gcs.sdrs;
 
-import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
-import com.google.gcs.sdrs.scheduler.JobScheduler;
+import com.google.gcs.sdrs.service.manager.JobManager;
+import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
+import com.google.gcs.sdrs.service.scheduler.JobScheduler;
 import com.google.gcs.sdrs.util.StsQuotaManager;
 import java.util.concurrent.TimeUnit;
-
-import com.google.gcs.sdrs.manager.JobManager;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.slf4j.Logger;

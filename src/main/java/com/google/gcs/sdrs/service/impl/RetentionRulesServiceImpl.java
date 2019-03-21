@@ -27,12 +27,13 @@ import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.manager.JobManager;
 import com.google.gcs.sdrs.service.RetentionRulesService;
-import com.google.gcs.sdrs.worker.Worker;
-import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
-import com.google.gcs.sdrs.worker.impl.CreateDefaultJobWorker;
-import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
+import com.google.gcs.sdrs.service.manager.JobManager;
+import com.google.gcs.sdrs.service.worker.Worker;
+import com.google.gcs.sdrs.service.worker.impl.CancelDefaultJobWorker;
+import com.google.gcs.sdrs.service.worker.impl.CreateDefaultJobWorker;
+import com.google.gcs.sdrs.service.worker.impl.UpdateDefaultJobWorker;
+
 import java.sql.SQLException;
 import java.util.List;
 import javax.persistence.EntityNotFoundException;
