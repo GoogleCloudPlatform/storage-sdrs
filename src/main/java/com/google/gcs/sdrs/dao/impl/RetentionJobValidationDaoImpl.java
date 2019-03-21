@@ -18,11 +18,12 @@
 
 package com.google.gcs.sdrs.dao.impl;
 
+import com.google.gcs.sdrs.RetentionJobStatusType;
+import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-import com.google.gcs.sdrs.enums.RetentionJobStatusType;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
+
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;

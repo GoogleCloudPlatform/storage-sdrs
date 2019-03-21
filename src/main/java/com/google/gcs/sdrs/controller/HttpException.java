@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.controller.exception;
+package com.google.gcs.sdrs.controller;
 
 /** Base class for exceptions that are exposed with HTTP error codes */
 public abstract class HttpException extends Exception {

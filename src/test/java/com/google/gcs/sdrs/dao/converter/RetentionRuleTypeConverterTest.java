@@ -17,9 +17,10 @@
 
 package com.google.gcs.sdrs.dao.converter;
 
-import com.google.gcs.sdrs.enums.RetentionRuleType;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.gcs.sdrs.RetentionRuleType;
 
 import static org.junit.Assert.assertEquals;
 

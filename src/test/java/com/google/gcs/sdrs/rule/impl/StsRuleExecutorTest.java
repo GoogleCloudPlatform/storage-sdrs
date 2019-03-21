@@ -19,9 +19,9 @@ package com.google.gcs.sdrs.rule.impl;
 
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
+import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import java.io.IOException;
 import java.time.Clock;

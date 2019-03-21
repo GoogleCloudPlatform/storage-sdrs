@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.gcs.sdrs.enums;
+package com.google.gcs.sdrs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;

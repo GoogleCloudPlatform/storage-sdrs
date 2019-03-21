@@ -18,8 +18,9 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.dao.converter.RetentionRuleTypeConverter;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
+
 import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.Column;

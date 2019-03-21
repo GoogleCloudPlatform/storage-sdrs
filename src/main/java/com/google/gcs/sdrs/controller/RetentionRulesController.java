@@ -18,9 +18,8 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.SdrsApplication;
-import com.google.gcs.sdrs.controller.exception.ResourceNotFoundException;
-import com.google.gcs.sdrs.controller.exception.ValidationException;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
@@ -30,7 +29,6 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import java.util.Collection;

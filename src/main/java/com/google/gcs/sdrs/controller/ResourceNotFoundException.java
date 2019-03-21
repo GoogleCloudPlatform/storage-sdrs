@@ -14,7 +14,7 @@
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
-package com.google.gcs.sdrs.controller.exception;
+package com.google.gcs.sdrs.controller;
 
 import javax.ws.rs.core.Response;
 

@@ -17,8 +17,9 @@
 
 package com.google.gcs.sdrs.dao.converter;
 
+import com.google.gcs.sdrs.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
-import com.google.gcs.sdrs.enums.RetentionJobStatusType;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 

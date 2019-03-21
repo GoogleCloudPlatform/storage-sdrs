@@ -20,9 +20,9 @@ package com.google.gcs.sdrs.runners;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gcs.sdrs.ExecutionEventType;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
-import com.google.gcs.sdrs.enums.ExecutionEventType;
 import com.google.gcs.sdrs.util.SdrsRequestClientUtil;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;

@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.enums;
+package com.google.gcs.sdrs.dao.converter;
 
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import java.io.Serializable;

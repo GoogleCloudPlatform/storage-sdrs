@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.controller.exception;
+package com.google.gcs.sdrs.controller;
 
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import java.util.Collection;

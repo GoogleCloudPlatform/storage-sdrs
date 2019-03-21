@@ -17,11 +17,11 @@
 
 package com.google.gcs.sdrs.worker.impl;
 
+import com.google.gcs.sdrs.ExecutionEventType;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.enums.ExecutionEventType;
 import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.worker.WorkerResult;
 import java.io.IOException;
