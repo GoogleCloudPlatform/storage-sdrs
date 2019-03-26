@@ -17,7 +17,6 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.exception.ValidationException;
 import com.google.gcs.sdrs.controller.pojo.EventResponse;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;

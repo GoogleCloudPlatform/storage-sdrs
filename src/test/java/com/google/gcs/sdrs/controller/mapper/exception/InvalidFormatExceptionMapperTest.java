@@ -19,9 +19,10 @@
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
+
 import javax.ws.rs.core.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;

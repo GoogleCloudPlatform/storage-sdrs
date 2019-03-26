@@ -18,7 +18,7 @@
 package com.google.gcs.sdrs.controller.pojo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.enums.ExecutionEventType;
+import com.google.gcs.sdrs.ExecutionEventType;
 
 public class ExecutionEventRequest {
 

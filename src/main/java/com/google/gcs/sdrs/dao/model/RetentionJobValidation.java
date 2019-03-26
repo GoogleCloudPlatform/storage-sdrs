@@ -18,8 +18,9 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.converter.RetentionJobStatusTypeConverter;
-import com.google.gcs.sdrs.enums.RetentionJobStatusType;
+
 import java.sql.Timestamp;
 
 import javax.persistence.Column;

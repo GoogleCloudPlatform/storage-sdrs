@@ -18,10 +18,6 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.exception.HttpException;
-import com.google.gcs.sdrs.controller.exception.InternalServerException;
-import com.google.gcs.sdrs.controller.exception.NotFoundException;
-import com.google.gcs.sdrs.controller.exception.PersistenceException;
 import com.google.gcs.sdrs.controller.filter.ContainerContextProperties;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.BaseHttpResponse;

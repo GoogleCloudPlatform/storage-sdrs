@@ -17,18 +17,19 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
+import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
-import com.google.gcs.sdrs.rule.impl.StsRuleExecutor;
-import com.google.gcs.sdrs.worker.Worker;
-import com.google.gcs.sdrs.worker.impl.CancelDefaultJobWorker;
-import com.google.gcs.sdrs.worker.impl.UpdateDefaultJobWorker;
+import com.google.gcs.sdrs.service.manager.JobManager;
+import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
+import com.google.gcs.sdrs.service.worker.Worker;
+import com.google.gcs.sdrs.service.worker.impl.CancelDefaultJobWorker;
+import com.google.gcs.sdrs.service.worker.impl.UpdateDefaultJobWorker;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;

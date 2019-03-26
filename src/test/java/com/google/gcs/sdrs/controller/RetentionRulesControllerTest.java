@@ -18,8 +18,7 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.exception.HttpException;
-import com.google.gcs.sdrs.controller.exception.ValidationException;
+import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
@@ -27,7 +26,6 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import java.sql.SQLException;
 import javax.ws.rs.container.ContainerRequestContext;

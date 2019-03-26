@@ -19,9 +19,9 @@
 package com.google.gcs.sdrs.controller.pojo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
+import com.google.gcs.sdrs.RetentionRuleType;
 
-import com.google.gcs.sdrs.enums.RetentionRuleType;
+import java.io.Serializable;
 
 /** POJO Tracking JSON input fields/types for creating a retention rule */
 public class RetentionRuleCreateRequest implements Serializable {

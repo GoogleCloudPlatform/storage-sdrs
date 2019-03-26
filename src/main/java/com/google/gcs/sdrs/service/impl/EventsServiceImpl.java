@@ -17,7 +17,6 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.JobManager.JobManager;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
@@ -27,11 +26,13 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.EventsService;
-import com.google.gcs.sdrs.worker.Worker;
-import com.google.gcs.sdrs.worker.impl.CreateDefaultJobWorker;
-import com.google.gcs.sdrs.worker.impl.DeleteNotificationWorker;
-import com.google.gcs.sdrs.worker.impl.ExecuteRetentionWorker;
-import com.google.gcs.sdrs.worker.impl.ValidationWorker;
+import com.google.gcs.sdrs.service.manager.JobManager;
+import com.google.gcs.sdrs.service.worker.Worker;
+import com.google.gcs.sdrs.service.worker.impl.CreateDefaultJobWorker;
+import com.google.gcs.sdrs.service.worker.impl.DeleteNotificationWorker;
+import com.google.gcs.sdrs.service.worker.impl.ExecuteRetentionWorker;
+import com.google.gcs.sdrs.service.worker.impl.ValidationWorker;
+
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
