@@ -69,7 +69,7 @@ The instructions in this section describe how to quickly get started and deploy 
 Note, set log_bin_trust_function_creators to true to overcome a possible error you may encounter when creating the db trigger.  
 4) Create [the Server Pub/Sub infrastructure](./scripts/deployment/pub-sub/README.md) for SDRS to publish messages  
 5) Build the SDRS [Docker image](./readme/README-docker.md)    
-6) Deploy the SDRS Docker Image into a [Compute Engine VM](https://cloud.google.com/compute/docs/containers/deploying-containers) 
+6) Deploy the SDRS Docker Image you just built into a [Compute Engine VM](https://cloud.google.com/compute/docs/containers/deploying-containers) 
  
 Note, the application is configured by two key files found in the src/main/resources directory:  
 
