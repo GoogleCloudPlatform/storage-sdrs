@@ -39,8 +39,11 @@ public class StsJobPool {
   @Column(name = "name")
   private int name;
 
-  @Column(name = "project")
-  private String project;
+  @Column(name = "project_id")
+  private String projectId;
+
+  @Column(name = "schedule")
+  private String schedule;
 
   @Column(name = "source_bucket")
   private String sourceBucket;
@@ -48,8 +51,11 @@ public class StsJobPool {
   @Column(name = "source_project")
   private String sourceProject;
 
-  @Column(name = "schedule")
-  private String schedule;
+  @Column(name = "target_bucket")
+  private String targetBucket;
+
+  @Column(name = "target_project")
+  private String targetProject;
 
   @Column(name = "updated_at")
   private Timestamp updatedAt;
@@ -75,12 +81,12 @@ public class StsJobPool {
     this.name = name;
   }
 
-  public String getProject() {
-    return this.project;
+  public String getProjectId() {
+    return this.projectId;
   }
 
-  public void setProject(String project) {
-    this.project = project;
+  public void setProjectId(String project) {
+    this.projectId = project;
   }
 
   public String getSourceBucket() {
@@ -121,5 +127,13 @@ public class StsJobPool {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getTargetProject() {
+    return targetProject;
+  }
+
+  public void setTargetProject(String targetProject) {
+    this.targetProject = targetProject;
   }
 }
