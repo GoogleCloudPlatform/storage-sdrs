@@ -19,9 +19,9 @@
 package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
-import com.google.gcs.sdrs.service.runners.RuleExecutionRunner;
-import com.google.gcs.sdrs.service.runners.ValidationRunner;
-import com.google.gcs.sdrs.service.scheduler.JobScheduler;
+import com.google.gcs.sdrs.scheduler.runners.RuleExecutionRunner;
+import com.google.gcs.sdrs.scheduler.runners.ValidationRunner;
+import com.google.gcs.sdrs.scheduler.JobScheduler;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;

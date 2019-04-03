@@ -19,6 +19,8 @@ package com.google.gcs.sdrs.dao;
 
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /** Defines available persistence operations for RetentionRule entities */
 public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
@@ -37,4 +39,6 @@ public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
   Integer softDelete(RetentionRule rule);
 
   RetentionRule findGlobalRuleByProjectId(String projectId);
+
+  List<RetentionRule> findDefaultRulesByProjectId(String projectId);
 }

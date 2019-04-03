@@ -38,8 +38,11 @@ import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
+import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
@@ -47,6 +50,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.criteria.CriteriaBuilder.In;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,37 +200,95 @@ public class StsUtil {
    *
    * @param client the {@link Storagetransfer} client to use for the request
    * @param projectId a {@link String} of the project ID to search
-   * @param jobNames a {@link List} of job names to retrieve
+   * @param retentionJobs a {@link List} of jobs to retrieve
    * @return a {@link List} of {@link Operation} objects associated with the given jobs
    */
   public static List<Operation> getSubmittedStsJobs(
-      Storagetransfer client, String projectId, List<String> jobNames) {
+      Storagetransfer client, String projectId, List<RetentionJob> retentionJobs) {
 
     List<Operation> operations = new ArrayList<>();
+    Set<String> jobNames = new HashSet<>();
 
-    try {
-      Storagetransfer.TransferOperations.List operationRequest =
-          client
-              .transferOperations()
-              .list(TRANSFER_OPERATION_STRING)
-              .setFilter(buildOperationFilterString(projectId, jobNames));
+    for (RetentionJob job : retentionJobs) {
 
-      ListOperationsResponse operationResponse;
-      do {
-        operationResponse = operationRequest.execute();
-        if (operationResponse.getOperations() == null) {
+      try {
+        if (jobNames.contains(job.getName())) {
           continue;
+        } else {
+          jobNames.add(job.getName());
+        }
+        List<String> jobNameList = new ArrayList<>();
+        jobNameList.add(job.getName());
+        Storagetransfer.TransferOperations.List operationRequest =
+            client
+                .transferOperations()
+                .list(TRANSFER_OPERATION_STRING)
+                .setFilter(buildOperationFilterString(projectId, jobNameList))
+                .setPageSize(5);
+
+        List<Operation> operationsPerJob = operationRequest.execute().getOperations();
+
+        Operation operationClosestToJobCreatedAtTime = null;
+        Instant closestTime = Instant.MAX;
+        for (Operation operation : operationsPerJob) {
+          if (job.getRetentionRuleType() == RetentionRuleType.DATASET
+              || job.getRetentionRuleType() == RetentionRuleType.USER) {
+            operationClosestToJobCreatedAtTime = operation;
+            break;
+          } else {
+            String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
+            Instant operationStartTime = Instant.parse(opeationStartTimeString);
+            Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
+            if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
+              if (operationClosestToJobCreatedAtTime == null
+                  || operationStartTime.isBefore(closestTime)) {
+                operationClosestToJobCreatedAtTime = operation;
+                closestTime = operationStartTime;
+              }
+            }
+          }
         }
 
-        operations.addAll(operationResponse.getOperations());
-        operationRequest.setPageToken(operationResponse.getNextPageToken());
-      } while (operationResponse.getNextPageToken() != null);
-    } catch (IOException ex) {
-      logger.error("Could not establish connection with STS: ", ex.getMessage());
+        if (operationClosestToJobCreatedAtTime != null) {
+          operations.add(operationClosestToJobCreatedAtTime);
+        }
+      } catch (IOException ex) {
+        logger.error("Could not establish connection with STS: ", ex.getMessage());
+      }
     }
 
     return operations;
   }
+
+  /* public static List<Operation> getSubmittedStsJobs(
+        Storagetransfer client, String projectId, List<String> jobNames) {
+
+      List<Operation> operations = new ArrayList<>();
+
+      try {
+        Storagetransfer.TransferOperations.List operationRequest =
+            client
+                .transferOperations()
+                .list(TRANSFER_OPERATION_STRING)
+                .setFilter(buildOperationFilterString(projectId, jobNames));
+
+        ListOperationsResponse operationResponse;
+        do {
+          operationResponse = operationRequest.execute();
+          if (operationResponse.getOperations() == null) {
+            continue;
+          }
+
+          operations.addAll(operationResponse.getOperations());
+          operationRequest.setPageToken(operationResponse.getNextPageToken());
+        } while (operationResponse.getNextPageToken() != null);
+      } catch (IOException ex) {
+        logger.error("Could not establish connection with STS: ", ex.getMessage());
+      }
+
+      return operations;
+    }
+  */
 
   /**
    * Converts an int value to a Google Duration string

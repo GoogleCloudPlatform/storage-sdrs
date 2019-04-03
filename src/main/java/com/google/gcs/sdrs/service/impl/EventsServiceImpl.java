@@ -61,7 +61,8 @@ public class EventsServiceImpl implements EventsService {
   public void processExecutionEvent(ExecutionEventRequest request) {
     Worker worker = new ExecuteRetentionWorker(request);
     jobManager.submitJob(worker);
-    createDefaultJobIfNonExistent();
+    // **** eshenlog
+    //createDefaultJobIfNonExistent();
   }
 
   /**

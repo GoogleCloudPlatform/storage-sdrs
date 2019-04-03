@@ -23,8 +23,8 @@ import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.service.rule.RuleExecutor;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
+import com.google.gcs.sdrs.service.worker.rule.RuleExecutor;
+import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.service.worker.BaseWorker;
 import com.google.gcs.sdrs.service.worker.WorkerResult;
 

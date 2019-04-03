@@ -15,14 +15,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service.rule.impl;
+package com.google.gcs.sdrs.service.worker.rule.impl;
 
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.api.services.storagetransfer.v1.model.Status;
 import com.google.gcs.sdrs.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleValidator;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import java.io.IOException;
 import java.util.HashMap;

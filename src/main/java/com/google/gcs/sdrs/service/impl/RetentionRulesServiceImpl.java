@@ -101,17 +101,19 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       throw new SQLException(message);
     }
 
-    if (newRule.getType().equals(RetentionRuleType.DATASET)) {
+    // *** eshenlog
+  /*  if (newRule.getType().equals(RetentionRuleType.DATASET)) {
       updateParentGlobalRule(newRule);
-    }
+    }*/
 
-    if (newRule.getType().equals(RetentionRuleType.GLOBAL)) {
+    // *** eshenlog ***
+/*    if (newRule.getType().equals(RetentionRuleType.GLOBAL)) {
       List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
       for (String projectId : projectIds) {
         Worker createDefaultWorker = new CreateDefaultJobWorker(newRule, projectId);
         jobManager.submitJob(createDefaultWorker);
       }
-    }
+    }*/
 
     return newRule.getId();
   }
@@ -158,13 +160,14 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
     ruleDao.update(entity);
 
-    if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
+    // *** eshenlog ****
+  /*  if (entity.getType().equals(RetentionRuleType.GLOBAL)) {
       List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
       for (String projectId : projectIds) {
         Worker updateWorker = new UpdateDefaultJobWorker(entity, projectId);
         jobManager.submitJob(updateWorker);
       }
-    }
+    }*/
 
     return mapRuleToResponse(entity);
   }
@@ -175,7 +178,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     if (rule != null) {
       int deletedRule = ruleDao.softDelete(rule);
 
-      if (rule.getType() == RetentionRuleType.DATASET) {
+      // *** eshenlog
+/*      if (rule.getType() == RetentionRuleType.DATASET) {
         updateParentGlobalRule(rule);
       } else if (rule.getType() == RetentionRuleType.GLOBAL) {
         List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
@@ -183,20 +187,21 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
           Worker updateWorker = new CancelDefaultJobWorker(rule, selectedProjectId);
           jobManager.submitJob(updateWorker);
         }
-      }
+      }*/
 
       return deletedRule;
     }
     return null;
   }
 
-  private void updateParentGlobalRule(RetentionRule childRule) {
+  //** eshenlog ***
+ /* private void updateParentGlobalRule(RetentionRule childRule) {
     RetentionRule globalRule = ruleDao.findGlobalRuleByProjectId(defaultProjectId);
     if (globalRule != null) {
       Worker updateWorker = new UpdateDefaultJobWorker(globalRule, childRule.getProjectId());
       jobManager.submitJob(updateWorker);
     }
-  }
+  }*/
 
   private RetentionRule mapPojoToPersistenceEntity(RetentionRuleCreateRequest pojo, String user) {
     RetentionRule entity = new RetentionRule();

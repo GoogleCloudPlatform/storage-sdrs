@@ -24,12 +24,15 @@ import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.service.rule.RuleExecutor;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.service.worker.BaseWorker;
 import com.google.gcs.sdrs.service.worker.WorkerResult;
+import com.google.gcs.sdrs.service.worker.rule.RuleExecutor;
+import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import java.io.IOException;
+import java.time.Clock;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -66,9 +69,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
     try {
       switch (executionEvent.getExecutionEventType()) {
         case USER_COMMANDED:
-          List<RetentionRule> userRules = new ArrayList<>();
-          userRules.add(getEventDefinedRule());
-          executeRules(userRules, projectId);
+          executeUserCommandedRule(dataStorageName, projectId);
           break;
         case POLICY:
           boolean dataStorageExists = !dataStorageName.isEmpty();
@@ -78,8 +79,8 @@ public class ExecuteRetentionWorker extends BaseWorker {
             rule = retentionRuleDao.findDatasetRuleByBusinessKey(projectId, dataStorageName);
             if (rule != null) {
               List<RetentionRule> datasetRules = new ArrayList<>();
-              datasetRules.add(getEventDefinedRule());
-              executeRules(datasetRules, projectId);
+              datasetRules.add(rule);
+              executeDatasetRules(datasetRules, projectId);
             } else {
               String message =
                   String.format(
@@ -90,9 +91,9 @@ public class ExecuteRetentionWorker extends BaseWorker {
             }
 
           } else if (projectIdExists) {
-            executeAllDatasetRulesByProject(executionEvent.getProjectId());
+            executePolicyByProject(executionEvent.getProjectId());
           } else {
-            executeAllDatasetRules();
+            executePolicy();
           }
           break;
         default:
@@ -102,22 +103,33 @@ public class ExecuteRetentionWorker extends BaseWorker {
                   executionEvent.getExecutionEventType().toString()));
       }
       workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
-    } catch (IOException | IllegalArgumentException ex) {
+    } catch (IOException | IllegalArgumentException | UnsupportedOperationException | NullPointerException ex) {
       logger.error(String.format("Error executing rule: %s", ex.getMessage()));
       workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
     }
   }
 
-  private void executeAllDatasetRules() throws IOException {
+  private void executePolicy() throws IOException {
     List<String> projectIds = retentionRuleDao.getAllDatasetRuleProjectIds();
     for (String projectId : projectIds) {
-      executeAllDatasetRulesByProject(projectId);
+      executePolicyByProject(projectId);
     }
   }
 
-  private void executeAllDatasetRulesByProject(String projectId) throws IOException {
+  private void executePolicyByProject(String projectId) throws IOException {
     List<RetentionRule> datasetRules = retentionRuleDao.findDatasetRulesByProjectId(projectId);
+    List<RetentionRule> defaultRules = retentionRuleDao.findDefaultRulesByProjectId(projectId);
+    RetentionRule globalDefaultRule = retentionRuleDao.findGlobalRuleByProjectId(projectId);
+
     List<RetentionJob> retentionJobs = ruleExecutor.executeDatasetRule(datasetRules, projectId);
+    if (retentionJobs != null) {
+      for (RetentionJob job : retentionJobs) {
+        retentionJobDao.save(job);
+      }
+    }
+
+    retentionJobs = ruleExecutor.executeDefaultRule(
+            globalDefaultRule, defaultRules, datasetRules, atMidnight(), projectId);
     if (retentionJobs != null) {
       for (RetentionJob job : retentionJobs) {
         retentionJobDao.save(job);
@@ -125,7 +137,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
     }
   }
 
-  private void executeRules(List<RetentionRule> rules, String projectId) throws IOException {
+  private void executeDatasetRules(List<RetentionRule> rules, String projectId) throws IOException {
     List<RetentionJob> jobs = ruleExecutor.executeDatasetRule(rules, projectId);
     if (jobs != null) {
       for (RetentionJob job : jobs) {
@@ -134,16 +146,24 @@ public class ExecuteRetentionWorker extends BaseWorker {
     }
   }
 
-  private RetentionRule getEventDefinedRule() {
-    RetentionRule rule = new RetentionRule();
+  private void executeUserCommandedRule(String target, String projectId) throws IOException {
+    List<RetentionRule> userRules = new ArrayList<>();
+    userRules.add(buildUserCommandedRule(target, projectId));
+    List<RetentionJob> jobs = ruleExecutor.executeUserCommandedRule(userRules, projectId);
+    if (jobs != null) {
+      for (RetentionJob job : jobs) {
+        retentionJobDao.save(job);
+      }
+    }
+  }
 
-    String dataStorageName = getDataStorageName(executionEvent.getTarget());
+  private RetentionRule buildUserCommandedRule(String target, String projectId) {
+    RetentionRule rule = new RetentionRule();
+    String dataStorageName = getDataStorageName(target);
 
     rule.setDataStorageName(dataStorageName);
     rule.setDatasetName(RetentionUtil.getDatasetPath(dataStorageName));
-
-    rule.setRetentionPeriodInDays(0);
-    rule.setProjectId(executionEvent.getProjectId());
+    rule.setProjectId(projectId);
     rule.setType(RetentionRuleType.USER);
 
     return rule;
@@ -155,5 +175,9 @@ public class ExecuteRetentionWorker extends BaseWorker {
     }
 
     return target;
+  }
+
+  private ZonedDateTime atMidnight() {
+    return ZonedDateTime.now(Clock.systemUTC()).with(LocalTime.MIDNIGHT).plusDays(1);
   }
 }

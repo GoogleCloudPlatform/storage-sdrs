@@ -11,8 +11,7 @@ import com.google.gcs.sdrs.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleValidator;
-import com.google.gcs.sdrs.service.worker.impl.ValidationWorker;
+import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +73,7 @@ public class ValidationWorkerTest {
     ArgumentCaptor<List> argument = ArgumentCaptor.forClass(List.class);
     verify(retentionJobValidationDaoMock).saveOrUpdateBatch(argument.capture());
     List<RetentionJobValidation> arguments = argument.getValue();
-    assertEquals(2, arguments.size());
+    assertEquals(4, arguments.size());
 
     RetentionJobValidation existingValidation =
         arguments.stream().filter(x -> x.getRetentionJobId().equals(1)).findFirst().orElse(null);

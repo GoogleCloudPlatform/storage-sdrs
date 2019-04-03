@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.gcs.sdrs.service.runners;
+package com.google.gcs.sdrs.scheduler.runners;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

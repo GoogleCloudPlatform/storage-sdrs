@@ -18,14 +18,15 @@
 
 package com.google.gcs.sdrs.dao.impl;
 
+import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
+import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.util.List;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
     implements RetentionJobDao {
@@ -41,9 +42,7 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
     CriteriaQuery<RetentionJob> criteria = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> root = criteria.from(RetentionJob.class);
 
-    criteria
-        .select(root)
-        .where(builder.equal(root.get("retentionRuleId"), ruleId));
+    criteria.select(root).where(builder.equal(root.get("retentionRuleId"), ruleId));
 
     Query<RetentionJob> query = session.createQuery(criteria);
     List<RetentionJob> result = query.getResultList();
@@ -59,12 +58,38 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
 
     criteria
         .select(root)
-        .where(builder.equal(root.get("retentionRuleId"), ruleId),
+        .where(
+            builder.equal(root.get("retentionRuleId"), ruleId),
             builder.equal(root.get("retentionRuleProjectId"), projectId));
 
     Query<RetentionJob> query = session.createQuery(criteria);
     List<RetentionJob> result = query.getResultList();
     closeSession(session);
     return result;
+  }
+
+  @Override
+  public RetentionJob findLatestDefaultJob(String dataStroageName) {
+    RetentionJob retentionJob = null;
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<RetentionJob> criteria = builder.createQuery(RetentionJob.class);
+    Root<RetentionJob> root = criteria.from(RetentionJob.class);
+    criteria
+        .select(root)
+        .where(
+            builder.equal(root.get("retentionRuleDataStorageName"), dataStroageName),
+            builder.or(
+                builder.equal(root.get("retentionRuleType"), RetentionRuleType.DEFAULT),
+                builder.equal(root.get("retentionRuleType"), RetentionRuleType.GLOBAL)))
+        .orderBy(builder.desc(root.get("createdAt")));
+
+    Query<RetentionJob> query = session.createQuery(criteria);
+    List<RetentionJob> result = query.getResultList();
+    if (!result.isEmpty()) {
+      retentionJob = result.get(0);
+    }
+
+    return retentionJob;
   }
 }

@@ -23,7 +23,6 @@ import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -68,8 +67,8 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
 
     results.addAll(findAllSingleRunPendingJobs());
     results.addAll(findAllSingleRunJobsWithNoStatus());
-    results.addAll(findAllDailyPendingJobs());
-    results.addAll(findAllDailyJobsWithNoStatus());
+    //results.addAll(findAllDailyPendingJobs());   eshenlog
+    //results.addAll(findAllDailyJobsWithNoStatus());  eshenlog
 
     return new ArrayList<>(results);
   }
@@ -81,13 +80,14 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
    */
   private List<RetentionJob> findAllSingleRunPendingJobs() {
     Session session = openSession();
+    Date oneDayAgo = Date.valueOf(LocalDate.now().atStartOfDay().toLocalDate());
     CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> job = query.from(RetentionJob.class);
     Join<RetentionJob, RetentionJobValidation> jobValidation =
         job.join("jobValidations", JoinType.INNER);
     jobValidation.on(builder.equal(jobValidation.get("status"), RetentionJobStatusType.PENDING));
-    query.where(builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL));
+    //query.where(builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL)); eshenlog
     List<RetentionJob> results = session.createQuery(query).getResultList();
     closeSession(session);
     return results;
@@ -106,7 +106,7 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     Join<RetentionJob, RetentionJobValidation> jobValidation =
         job.join("jobValidations", JoinType.LEFT);
     query.where(
-        builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
+        //builder.notEqual(job.get("retentionRuleType"), RetentionRuleType.GLOBAL), eshenlog
         builder.isNull(jobValidation.get("id")));
     List<RetentionJob> results = session.createQuery(query).getResultList();
     closeSession(session);
@@ -148,7 +148,12 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
     Join<RetentionJob, RetentionJobValidation> jobValidation =
         job.join("jobValidations", JoinType.LEFT);
     Date oneDayAgo = Date.valueOf(LocalDate.now().atStartOfDay().toLocalDate());
-    jobValidation.on(builder.greaterThanOrEqualTo(jobValidation.get("updatedAt"), oneDayAgo));
+    jobValidation.on(
+        builder.or(
+            builder.and(
+                builder.isNull(jobValidation.get("updatedAt")),
+                builder.greaterThanOrEqualTo(jobValidation.get("createdAt"), oneDayAgo)),
+            builder.greaterThanOrEqualTo(jobValidation.get("updatedAt"), oneDayAgo)));
     query.where(
         builder.equal(job.get("retentionRuleType"), RetentionRuleType.GLOBAL),
         builder.isNull(jobValidation.get("id")));

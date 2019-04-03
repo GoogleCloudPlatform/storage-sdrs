@@ -31,7 +31,6 @@
         <initialDelay>0</initialDelay>
         <frequency>60</frequency>
         <timeUnit>MINUTES</timeUnit>
-        <timezone>America/Los_Angeles</timezone>
       </ruleExecution>
       <validationService>
         <endpoint>events/validation</endpoint>

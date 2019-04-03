@@ -22,7 +22,7 @@ import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.manager.JobManager;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
+import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.service.worker.Worker;
 
 import org.junit.Before;

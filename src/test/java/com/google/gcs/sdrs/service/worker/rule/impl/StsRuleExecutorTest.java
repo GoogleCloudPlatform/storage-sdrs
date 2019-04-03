@@ -15,7 +15,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service.rule.impl;
+package com.google.gcs.sdrs.service.worker.rule.impl;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -65,8 +70,9 @@ public class StsRuleExecutorTest {
   public void globalRuleExecutionWithDatasetType() {
     try {
       Collection<RetentionRule> bucketRules = new HashSet<>();
+      Collection<RetentionRule> defaultRules = new HashSet<>();
       ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
-      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
+      objectUnderTest.executeDefaultRule(testRule, defaultRules, bucketRules, now, "project-id");
     } catch (IllegalArgumentException ex) {
       assertTrue(true);
     } catch (IOException ex) {
@@ -81,37 +87,20 @@ public class StsRuleExecutorTest {
       ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
 
       Collection<RetentionRule> bucketRules = new HashSet<>();
+      Collection<RetentionRule> defaultRules = new HashSet<>();
       for (int i = 0; i < 1002; i++) {
         RetentionRule rule = new RetentionRule();
         rule.setDataStorageName(dataStorageName + "/myPath" + i);
         rule.setProjectId("test-project-id");
         bucketRules.add(rule);
       }
-      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
+      objectUnderTest.executeDefaultRule(testRule, defaultRules, bucketRules, now, "project-id");
       Assert.fail();
     } catch (IOException ex) {
       Assert.fail();
     }
   }
 
-  @Test(expected = IndexOutOfBoundsException.class)
-  public void globalRuleExecutionNoProjectId() {
-    try {
-      testRule.setType(RetentionRuleType.GLOBAL);
-      testRule.setProjectId("");
-      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
-
-      Collection<RetentionRule> bucketRules = new HashSet<>();
-      RetentionRule bucketRule = new RetentionRule();
-      bucketRule.setProjectId("");
-      bucketRule.setDataStorageName("");
-      bucketRules.add(bucketRule);
-      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-      Assert.fail();
-    } catch (IOException ex) {
-      Assert.fail();
-    }
-  }
 
   @Test
   public void buildRetentionJobTest() {

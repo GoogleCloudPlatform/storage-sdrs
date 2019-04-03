@@ -18,13 +18,14 @@
 
 package com.google.gcs.sdrs.service.worker.impl;
 
+import com.google.gcs.sdrs.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleValidator;
 import com.google.gcs.sdrs.service.worker.BaseWorker;
-
+import com.google.gcs.sdrs.service.worker.WorkerResult;
+import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleValidator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,16 +61,25 @@ public class ValidationWorker extends BaseWorker {
           retentionJobs.stream()
               .collect(Collectors.groupingBy(RetentionJob::getRetentionRuleProjectId));
 
-      Map<String, RetentionJobValidation> stsValidations = new HashMap<>();
+      Map<String, List<RetentionJobValidation>> stsValidations = new HashMap<>();
       for (List<RetentionJob> jobs : jobsByProject.values()) {
         // Get validation results from STS for each group of jobs
         List<RetentionJobValidation> retentionJobValidations =
             stsRuleValidator.validateRetentionJobs(jobs);
         // Combine all retentionJobValidation results from STS into one map by JobName so we can
         // quickly search it later on
-        stsValidations.putAll(
-            retentionJobValidations.stream()
-                .collect(Collectors.toMap(RetentionJobValidation::getJobOperationName, x -> x)));
+        retentionJobValidations.stream()
+            .forEach(
+                validation -> {
+                  String jobOperationName = validation.getJobOperationName();
+                  if (stsValidations.containsKey(jobOperationName)) {
+                    stsValidations.get(jobOperationName).add(validation);
+                  } else {
+                    List<RetentionJobValidation> validationSet = new ArrayList<>();
+                    validationSet.add(validation);
+                    stsValidations.put(jobOperationName, validationSet);
+                  }
+                });
       }
 
       if (stsValidations.size() > 0) {
@@ -81,14 +91,29 @@ public class ValidationWorker extends BaseWorker {
         // For each validation that exists in the DB, update the matching STS validation with the Id
         // so it can be properly updated
         for (RetentionJobValidation existingValidation : existingValidations) {
-          RetentionJobValidation stsValidation =
-              stsValidations.get(existingValidation.getJobOperationName());
+          stsValidations.get(existingValidation.getJobOperationName()).stream()
+              .forEach(
+                  validation -> {
+                    if (existingValidation.getRetentionJobId().intValue()
+                        == validation.getRetentionJobId().intValue()) {
+                        validation.setId(existingValidation.getId());
 
-          stsValidation.setId(existingValidation.getId());
+                    }
+                  });
         }
 
-        dao.saveOrUpdateBatch(new ArrayList<>(stsValidations.values()));
+        List<RetentionJobValidation> finalValidationList =
+            stsValidations.values().stream()
+                .reduce(
+                    (v1, v2) -> {
+                      v1.addAll(v2);
+                      return v1;
+                    })
+                .get();
+
+        dao.saveOrUpdateBatch(finalValidationList);
       }
     }
+    workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
   }
 }

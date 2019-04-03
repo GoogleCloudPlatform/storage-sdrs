@@ -38,7 +38,10 @@ public enum RetentionRuleType implements Serializable {
   DATASET(ValidationConstants.DATASET_JSON_VALUE, DatabaseConstants.POLICY_TYPE_DATASET),
 
   @JsonProperty(ValidationConstants.USER_JSON_VALUE)
-  USER(ValidationConstants.USER_JSON_VALUE, DatabaseConstants.POLICY_TYPE_USER);
+  USER(ValidationConstants.USER_JSON_VALUE, DatabaseConstants.POLICY_TYPE_USER),
+
+  @JsonProperty(ValidationConstants.DEFAULT_JSON_VALUE)
+  DEFAULT(ValidationConstants.DEFAULT_JSON_VALUE, DatabaseConstants.POLICY_TYPE_DEFAULT);
 
   private final String jsonValue;
   private final String databaseValue;
