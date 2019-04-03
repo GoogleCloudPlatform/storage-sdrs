@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -100,60 +101,91 @@ public class StsRuleExecutor implements RuleExecutor {
   }
 
   /**
-   * Executes a dataset retention rule
+   * Executes dataset retention rules
    *
-   * @param rule The {@link RetentionRule} to execute
-   * @return A {@link RetentionJob} object
+   * @param datasetRules a list of dataset retention rules
+   * @param projectId the project that the datasets belong to
+   * @return
    * @throws IOException when communication can't be established with STS
-   * @throws IllegalArgumentException when the rule is a global rule
+   * @throws IllegalArgumentException when there is an invalid argument
    */
   @Override
-  public RetentionJob executeDatasetRule(RetentionRule rule)
+  public List<RetentionJob> executeDatasetRule(
+      Collection<RetentionRule> datasetRules, String projectId)
       throws IOException, IllegalArgumentException {
+    List<RetentionJob> datasetRuleJobs = new ArrayList<>();
+    // get all dataset rules for a bucket
+    Map<String, List<RetentionRule>> bucketDatasetMap = new HashMap<>();
+    for (RetentionRule rule : datasetRules) {
+      String key = RetentionUtil.getBucketName(rule.getDataStorageName());
 
-    if (rule.getType().equals(RetentionRuleType.GLOBAL)) {
-      throw new IllegalArgumentException("GLOBAL retention rule type is invalid for this function");
+      if (bucketDatasetMap.containsKey(key)) {
+        bucketDatasetMap.get(key).add(rule);
+      } else {
+        List<RetentionRule> retentionRules = new ArrayList<>();
+        retentionRules.add(rule);
+        bucketDatasetMap.put(key, retentionRules);
+      }
     }
 
-    ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
+    for (String bucketName : bucketDatasetMap.keySet()) {
+      ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
+      List<String> prefixes = new ArrayList<>();
 
-    List<String> prefixes = null;
-    if (rule.getType() == RetentionRuleType.USER) {
-      prefixes = new ArrayList<>();
-      String prefix = RetentionUtil.getDatasetPath(rule.getDataStorageName());
-      prefix = prefix.substring(0, prefix.lastIndexOf("/") + 1);
-      prefixes.add(prefix);
-    } else {
-      prefixes =
-          PrefixGeneratorUtility.generateTimePrefixes(
-              RetentionUtil.getDatasetPath(rule.getDataStorageName()),
-              zonedDateTimeNow.minusDays(lookBackInDays),
-              zonedDateTimeNow.minusDays(rule.getRetentionPeriodInDays()));
+      RetentionRule tmpRule = null;
+      // create prefixes from all dataset rules for a bucket
+      for (RetentionRule datasetRule : bucketDatasetMap.get(bucketName)) {
+        // TODO eshen remove tmpRule once retention_job table is changed. For now just get rule id
+        // from one dataset rule
+        if (tmpRule == null) {
+          tmpRule = datasetRule;
+        }
+
+        if (datasetRule.getType() == RetentionRuleType.USER) {
+          String prefix = RetentionUtil.getDatasetPath(datasetRule.getDataStorageName());
+          prefix = prefix.substring(0, prefix.lastIndexOf("/") + 1);
+          if (prefix.isEmpty()) {
+            String message =
+                String.format(
+                    "The target %s is the root of a bucket. Can not delete a bucket",
+                    datasetRule.getDataStorageName());
+            logger.error(message);
+            throw new IllegalArgumentException(message);
+          }
+          prefixes.add(prefix);
+        } else {
+          prefixes.addAll(
+              PrefixGeneratorUtility.generateTimePrefixes(
+                  RetentionUtil.getDatasetPath(datasetRule.getDataStorageName()),
+                  zonedDateTimeNow.minusDays(lookBackInDays),
+                  zonedDateTimeNow.minusDays(datasetRule.getRetentionPeriodInDays())));
+        }
+      }
+
+      String sourceBucket = bucketName;
+      String destinationBucket = bucketName.concat(suffix);
+      String description = buildDescription(tmpRule, zonedDateTimeNow);
+
+      logger.debug(
+          String.format(
+              "Creating STS job with projectId: %s, "
+                  + "description: %s, source: %s, destination: %s",
+              projectId, description, sourceBucket, destinationBucket));
+
+      TransferJob job =
+          StsUtil.createStsJob(
+              client,
+              projectId,
+              sourceBucket,
+              destinationBucket,
+              prefixes,
+              description,
+              zonedDateTimeNow);
+
+      datasetRuleJobs.add(buildRetentionJobEntity(job.getName(), tmpRule));
     }
 
-    String projectId = rule.getProjectId();
-    String sourceBucket = RetentionUtil.getBucketName(rule.getDataStorageName());
-    String destinationBucket = RetentionUtil.getBucketName(rule.getDataStorageName(), suffix);
-
-    String description = buildDescription(rule, zonedDateTimeNow);
-
-    logger.debug(
-        String.format(
-            "Creating STS job with projectId: %s, "
-                + "description: %s, source: %s, destination: %s",
-            projectId, description, sourceBucket, destinationBucket));
-
-    TransferJob job =
-        StsUtil.createStsJob(
-            client,
-            projectId,
-            sourceBucket,
-            destinationBucket,
-            prefixes,
-            description,
-            zonedDateTimeNow);
-
-    return buildRetentionJobEntity(job.getName(), rule);
+    return datasetRuleJobs;
   }
 
   /**
@@ -299,7 +331,12 @@ public class StsRuleExecutor implements RuleExecutor {
         updatedJob.setTransferSpec(transferSpec);
         updatedJob.setStatus("ENABLED");
 
-        TransferJob returnedTransferJob = StsUtil.updateExistingJob(client, updatedJob, existingTransferJob.getName(), existingTransferJob.getProjectId());
+        TransferJob returnedTransferJob =
+            StsUtil.updateExistingJob(
+                client,
+                updatedJob,
+                existingTransferJob.getName(),
+                existingTransferJob.getProjectId());
         RetentionJob job = buildRetentionJobEntity(returnedTransferJob.getName(), defaultRule);
         // Set the returned job ID to the same as the existing job for updating
         job.setId(defaultJob.getId());
@@ -325,7 +362,12 @@ public class StsRuleExecutor implements RuleExecutor {
       jobToUpdate.setDescription(existingTransferJob.getDescription());
       jobToUpdate.setTransferSpec(existingTransferJob.getTransferSpec());
 
-      TransferJob updatedTransferJob = StsUtil.updateExistingJob(client, jobToUpdate, existingTransferJob.getName(), existingTransferJob.getProjectId());
+      TransferJob updatedTransferJob =
+          StsUtil.updateExistingJob(
+              client,
+              jobToUpdate,
+              existingTransferJob.getName(),
+              existingTransferJob.getProjectId());
       RetentionJob updatedJob = buildRetentionJobEntity(updatedTransferJob.getName(), defaultRule);
       updatedJob.setId(jobToCancel.getId());
       updatedJob.setRetentionRuleProjectId(jobToCancel.getRetentionRuleProjectId());

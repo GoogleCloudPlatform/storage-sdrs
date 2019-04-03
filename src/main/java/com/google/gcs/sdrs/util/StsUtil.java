@@ -47,10 +47,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +57,6 @@ public class StsUtil {
   private static final String STS_ENABLED_STRING = "ENABLED";
   private static final String TRANSFER_OPERATION_STRING = "transferOperations";
   private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
-
-  static StsQuotaManager quotaManager = StsQuotaManager.getInstance();
 
   /** Creates an instance of the STS Client */
   public static Storagetransfer createStsClient(GoogleCredential credential) {
@@ -110,27 +104,7 @@ public class StsUtil {
     logger.info(
         String.format("Creating one time transfer job in STS: %s", transferJob.toPrettyString()));
 
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    Callable<TransferJob> transferJobCallable =
-        () -> client.transferJobs().create(transferJob).execute();
-
-    String uuid = quotaManager.submitStsJob(transferJobCallable, countDownLatch);
-
-    TransferJob scheduledStsJob = null;
-    try {
-      countDownLatch.await(60, TimeUnit.MINUTES);
-      if (countDownLatch.getCount() > 0) {
-        logger.error("Failed to schedule one time STS job. " + countDownLatch.toString());
-      } else {
-        logger.debug(String.format("uuid=%s; latch=%s", uuid, countDownLatch.toString()));
-        scheduledStsJob = quotaManager.getStsJobFuture(uuid).get();
-        quotaManager.removeStsJobFuture(uuid);
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      logger.error("Failed to schedule one time STS job. " + e.getMessage());
-    }
-
-    return scheduledStsJob;
+    return client.transferJobs().create(transferJob).execute();
   }
 
   /**
@@ -173,27 +147,7 @@ public class StsUtil {
     logger.info(
         String.format("Creating recurring transfer job in STS: %s", transferJob.toPrettyString()));
 
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    Callable<TransferJob> transferJobCallable =
-        () -> client.transferJobs().create(transferJob).execute();
-
-    String uuid = quotaManager.submitStsJob(transferJobCallable, countDownLatch);
-
-    TransferJob scheduledDefaultStsJob = null;
-    try {
-      countDownLatch.await(60, TimeUnit.MINUTES);
-      if (countDownLatch.getCount() > 0) {
-        logger.error("Failed to schedule recurring STS job. " + countDownLatch.toString());
-      } else {
-        logger.debug(String.format("uuid=%s; latch=%s", uuid, countDownLatch.toString()));
-        scheduledDefaultStsJob = quotaManager.getStsJobFuture(uuid).get();
-        quotaManager.removeStsJobFuture(uuid);
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      logger.error("Failed to schedule recurring STS job. " + e.getMessage());
-    }
-
-    return scheduledDefaultStsJob;
+    return client.transferJobs().create(transferJob).execute();
   }
 
   /**
@@ -376,7 +330,7 @@ public class StsUtil {
       credential = credential.createScoped(scopes);
     }
 
-    HttpRequestInitializer initializer = new RetryHttpInitializerWrapper(credential);
+    HttpRequestInitializer initializer = new RetryHttpInitializerWrapper(credential, true);
     return new Storagetransfer.Builder(httpTransport, jsonFactory, initializer)
         .setApplicationName("sdrs")
         .build();

@@ -19,14 +19,18 @@
 package com.google.gcs.sdrs.util;
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.http.*;
+import com.google.api.client.http.HttpBackOffIOExceptionHandler;
+import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
+import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler.BackOffRequired;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpUnsuccessfulResponseHandler;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.client.util.Sleeper;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 /**
  * RetryHttpInitializerWrapper will automatically retry upon RPC failures, preserving the
@@ -37,54 +41,77 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
   private static final Logger logger = LoggerFactory.getLogger(RetryHttpInitializerWrapper.class);
   private final Credential wrappedCredential;
   private final Sleeper sleeper;
+  private boolean backOffRequiredAlways;
   private static final int MILLIS_PER_MINUTE = 60 * 1000;
 
   /**
    * A constructor using the default Sleeper.
-   * @param wrappedCredential the credential used to authenticate with a Google Cloud Platform project
+   *
+   * @param wrappedCredential the credential used to authenticate with a Google Cloud Platform
+   *     project
    */
   public RetryHttpInitializerWrapper(Credential wrappedCredential) {
-    this(wrappedCredential, Sleeper.DEFAULT);
+    this(wrappedCredential, Sleeper.DEFAULT, false);
   }
 
   /**
    * A constructor used only for testing.
-   * @param wrappedCredential the credential used to authenticate with a Google Cloud Platform project
+   *
+   * @param wrappedCredential the credential used to authenticate with a Google Cloud Platform
+   *     project
    * @param sleeper a user-supplied Sleeper
    */
-  RetryHttpInitializerWrapper(Credential wrappedCredential, Sleeper sleeper) {
+  RetryHttpInitializerWrapper(
+      Credential wrappedCredential, Sleeper sleeper, boolean backOffRequiredAlways) {
     this.wrappedCredential = Preconditions.checkNotNull(wrappedCredential);
     this.sleeper = sleeper;
+    this.backOffRequiredAlways = backOffRequiredAlways;
+  }
+
+  /**
+   * A constructor using default Sleeper and allow back off retry setting
+   *
+   * @param wrappedCredential the credential used to authenticate with a Google Cloud Platform
+   *     project
+   * @param backOffRequiredAlways whether or not exponential backoff retry is always on or for sever
+   *     error only
+   */
+  public RetryHttpInitializerWrapper(Credential wrappedCredential, boolean backOffRequiredAlways) {
+    this(wrappedCredential, Sleeper.DEFAULT, backOffRequiredAlways);
   }
 
   /**
    * Initialize an HttpRequest.
+   *
    * @param request an HttpRequest that should be initialized
    */
   public void initialize(HttpRequest request) {
     request.setReadTimeout(2 * MILLIS_PER_MINUTE); // 2 minutes read timeout
     final HttpUnsuccessfulResponseHandler backoffHandler =
         new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()).setSleeper(sleeper);
+    if (backOffRequiredAlways) {
+      ((HttpBackOffUnsuccessfulResponseHandler) backoffHandler)
+          .setBackOffRequired(BackOffRequired.ALWAYS);
+    }
     request.setInterceptor(wrappedCredential);
     request.setUnsuccessfulResponseHandler(
         (final HttpRequest unsuccessfulRequest,
-         final HttpResponse response,
-         final boolean supportsRetry) -> {
-      if (wrappedCredential.handleResponse(unsuccessfulRequest, response, supportsRetry)) {
-        // If credential decides it can handle it, the return code or message indicated
-        // something specific to authentication, and no backoff is desired.
-        return true;
-      } else if (backoffHandler.handleResponse(unsuccessfulRequest, response, supportsRetry)) {
-        // Otherwise, we defer to the judgement of our internal backoff handler.
-        logger.info("Retrying " + unsuccessfulRequest.getUrl().toString());
-        return true;
-      } else {
-        return false;
-      }
-    });
+            final HttpResponse response,
+            final boolean supportsRetry) -> {
+          if (wrappedCredential.handleResponse(unsuccessfulRequest, response, supportsRetry)) {
+            // If credential decides it can handle it, the return code or message indicated
+            // something specific to authentication, and no backoff is desired.
+            return true;
+          } else if (backoffHandler.handleResponse(unsuccessfulRequest, response, supportsRetry)) {
+            // Otherwise, we defer to the judgement of our internal backoff handler.
+            logger.info("Retrying " + unsuccessfulRequest.getUrl().toString());
+            return true;
+          } else {
+            return false;
+          }
+        });
 
     request.setIOExceptionHandler(
         new HttpBackOffIOExceptionHandler(new ExponentialBackOff()).setSleeper(sleeper));
   }
 }
-

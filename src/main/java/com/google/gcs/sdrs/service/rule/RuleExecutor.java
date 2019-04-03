@@ -20,7 +20,6 @@ package com.google.gcs.sdrs.service.rule;
 
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -28,7 +27,8 @@ import java.util.List;
 
 public interface RuleExecutor {
 
-  RetentionJob executeDatasetRule(RetentionRule rule) throws IOException, IllegalArgumentException;
+  List<RetentionJob> executeDatasetRule(Collection<RetentionRule> datasetRules, String projectId)
+      throws IOException, IllegalArgumentException;
 
   List<RetentionJob> executeDefaultRule(
       RetentionRule defaultRule,
@@ -36,9 +36,10 @@ public interface RuleExecutor {
       ZonedDateTime scheduledTime)
       throws IOException, IllegalArgumentException;
 
-  List<RetentionJob> updateDefaultRule(List<RetentionJob> defaultJobs,
-                                 RetentionRule defaultRule,
-                                 Collection<RetentionRule> bucketDatasetRules)
+  List<RetentionJob> updateDefaultRule(
+      List<RetentionJob> defaultJobs,
+      RetentionRule defaultRule,
+      Collection<RetentionRule> bucketDatasetRules)
       throws IOException, IllegalArgumentException;
 
   List<RetentionJob> cancelDefaultJobs(List<RetentionJob> jobs, RetentionRule defaultRule)
