@@ -17,12 +17,16 @@
 
 package com.google.gcs.sdrs.service.rule.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import java.io.IOException;
 import java.time.Clock;
@@ -32,11 +36,6 @@ import java.util.HashSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class StsRuleExecutorTest {
 
@@ -60,12 +59,6 @@ public class StsRuleExecutorTest {
         .thenReturn(new MockGoogleCredential(new MockGoogleCredential.Builder()));
     objectUnderTest = StsRuleExecutor.getInstance();
     objectUnderTest.client = mock(Storagetransfer.class);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void datasetRuleExecutionWithGlobalType() throws IOException {
-    testRule.setType(RetentionRuleType.GLOBAL);
-    objectUnderTest.executeDatasetRule(testRule);
   }
 
   @Test
