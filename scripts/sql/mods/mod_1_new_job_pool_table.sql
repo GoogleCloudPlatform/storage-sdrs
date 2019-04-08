@@ -1,12 +1,13 @@
-CREATE TABLE `sts_job_pool` (
+CREATE TABLE `pooled_sts_job` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(256) NOT NULL,
   `project_id` varchar(256) NOT NULL,
+  `type` varchar(256) NOT NULL,
   `schedule` varchar(256) NOT NULL,
   `source_bucket` varchar(256) NOT NULL,
   `source_project` varchar(256) NOT NULL,
-  `target_project` varchar(256) DEFAULT NULL,
   `target_bucket` varchar(256) DEFAULT NULL,
+  `target_project` varchar(256) DEFAULT NULL,
   `updated_at` timestamp(1) NULL DEFAULT NULL,
   `status` varchar(256) DEFAULT NULL,
   PRIMARY KEY (`id`),

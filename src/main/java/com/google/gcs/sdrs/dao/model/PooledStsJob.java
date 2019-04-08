@@ -28,8 +28,8 @@ import javax.persistence.Table;
 
 /** Note - coding to JPA specification, not Hibernate specific annotations */
 @Entity
-@Table(name = "sts_job_pool")
-public class StsJobPool {
+@Table(name = "pooled_sts_job")
+public class PooledStsJob {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,13 +37,16 @@ public class StsJobPool {
   private Integer id;
 
   @Column(name = "name")
-  private int name;
+  private String name;
 
   @Column(name = "project_id")
   private String projectId;
 
   @Column(name = "schedule")
   private String schedule;
+
+  @Column(name = "type")
+  private String type;
 
   @Column(name = "source_bucket")
   private String sourceBucket;
@@ -63,7 +66,7 @@ public class StsJobPool {
   @Column(name = "status")
   private String status;
 
-  public StsJobPool() {}
+  public PooledStsJob() {}
 
   public Integer getId() {
     return this.id;
@@ -73,11 +76,11 @@ public class StsJobPool {
     this.id = id;
   }
 
-  public int getName() {
+  public String getName() {
     return this.name;
   }
 
-  public void setName(int name) {
+  public void setName(String name) {
     this.name = name;
   }
 
