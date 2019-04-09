@@ -45,6 +45,7 @@ public class JobPoolServiceImpl implements JobPoolService {
     PooledStsJob pooledStsJob = new PooledStsJob();
     pooledStsJob.setName(request.getName());
     pooledStsJob.setProjectId(request.getProjectId());
+    pooledStsJob.setType(request.getType());
     pooledStsJob.setSchedule(request.getSchedule());
     pooledStsJob.setSourceBucket(request.getSourceBucket());
     pooledStsJob.setSourceProject(request.getSourceProject());

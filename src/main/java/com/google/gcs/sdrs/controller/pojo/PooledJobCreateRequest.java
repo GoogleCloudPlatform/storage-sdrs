@@ -26,6 +26,7 @@ public class PooledJobCreateRequest implements Serializable {
   private String name;
   private String projectId;
   private String schedule;
+  private String type;
   private String sourceBucket;
   private String sourceProject;
   private String targetBucket; // Optional
@@ -86,4 +87,10 @@ public class PooledJobCreateRequest implements Serializable {
   public void setTargetProject(String targetProject) {
     this.targetProject = targetProject;
   }
+
+public String getType() {
+return type;}
+
+public void setType(String type) {
+this.type = type;}
 }

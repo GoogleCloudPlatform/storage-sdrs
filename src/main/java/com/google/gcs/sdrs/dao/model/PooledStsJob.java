@@ -139,4 +139,16 @@ public class PooledStsJob {
   public void setTargetProject(String targetProject) {
     this.targetProject = targetProject;
   }
+
+public String getType() {
+return type;}
+
+public void setType(String type) {
+this.type = type;}
+
+public String getTargetBucket() {
+return targetBucket;}
+
+public void setTargetBucket(String targetBucket) {
+this.targetBucket = targetBucket;}
 }

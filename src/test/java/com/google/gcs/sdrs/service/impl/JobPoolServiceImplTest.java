@@ -48,7 +48,7 @@ public class JobPoolServiceImplTest {
   }
 
   @Test
-  public void testCreate() {
+  public void testCreateJob() {
     PooledJobCreateRequest pooledJobCreateRequest = new PooledJobCreateRequest();
     pooledJobCreateRequest.setName("9890119");
     pooledJobCreateRequest.setProjectId("sdrs-project");
