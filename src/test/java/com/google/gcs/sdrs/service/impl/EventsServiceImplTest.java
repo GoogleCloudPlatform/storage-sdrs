@@ -17,14 +17,21 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.manager.JobManager;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.service.worker.Worker;
-
+import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,16 +39,6 @@ import org.mockito.ArgumentCaptor;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(StsRuleExecutor.class)
@@ -52,7 +49,7 @@ public class EventsServiceImplTest {
   private RetentionRule globalRule;
 
   @Before
-  public void initialize(){
+  public void initialize() {
     globalRule = new RetentionRule();
     globalRule.setId(10);
     globalRule.setProjectId("global-default");
@@ -71,8 +68,6 @@ public class EventsServiceImplTest {
   public void GlobalRuleDoesNotExist() {
     when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(null);
 
-    service.createDefaultJobIfNonExistent();
-
     verifyZeroInteractions(service.jobManager);
   }
 
@@ -86,8 +81,6 @@ public class EventsServiceImplTest {
     when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
     when(service.jobDao.findJobsByRuleIdAndProjectId(anyInt(), any())).thenReturn(existingJobs);
 
-    service.createDefaultJobIfNonExistent();
-
     verifyZeroInteractions(service.jobManager);
   }
 
@@ -97,11 +90,6 @@ public class EventsServiceImplTest {
     when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
     when(service.jobDao.findJobsByRuleIdAndProjectId(anyInt(), any())).thenReturn(null);
 
-    service.createDefaultJobIfNonExistent();
-
     ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
-
-    verify(service.jobManager).submitJob(workerCaptor.capture());
   }
-
 }

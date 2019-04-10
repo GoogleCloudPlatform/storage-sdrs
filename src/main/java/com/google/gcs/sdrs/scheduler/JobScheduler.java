@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.gcs.sdrs.service.scheduler;
+package com.google.gcs.sdrs.scheduler;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;

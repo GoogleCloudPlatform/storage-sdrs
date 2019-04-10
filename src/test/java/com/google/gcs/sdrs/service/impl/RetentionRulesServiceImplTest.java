@@ -17,6 +17,14 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
@@ -25,11 +33,8 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.manager.JobManager;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.service.worker.Worker;
-import com.google.gcs.sdrs.service.worker.impl.CancelDefaultJobWorker;
-import com.google.gcs.sdrs.service.worker.impl.UpdateDefaultJobWorker;
-
+import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,14 +46,6 @@ import org.mockito.ArgumentCaptor;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(StsRuleExecutor.class)
@@ -94,7 +91,7 @@ public class RetentionRulesServiceImplTest {
     ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
 
     verify(service.ruleDao).save(captor.capture());
-    verify(service.jobManager).submitJob(workerCaptor.capture());
+
     RetentionRule input = captor.getValue();
     assertEquals(1, (int) input.getId());
     assertEquals(RetentionRuleType.DATASET, input.getType());
@@ -162,7 +159,7 @@ public class RetentionRulesServiceImplTest {
     ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
 
     verify(service.ruleDao).save(captor.capture());
-    verify(service.jobManager).submitJob(workerCaptor.capture());
+
     RetentionRule input = captor.getValue();
     assertEquals(1, (int) input.getId());
     assertEquals(RetentionRuleType.GLOBAL, input.getType());
@@ -268,7 +265,7 @@ public class RetentionRulesServiceImplTest {
     ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
 
     verify(service.ruleDao).update(captor.capture());
-    verify(service.jobManager).submitJob(workerCaptor.capture());
+
     RetentionRule input = captor.getValue();
     assertEquals(4, (int) input.getVersion());
     assertEquals(RetentionRuleType.GLOBAL, result.getType());
@@ -297,10 +294,8 @@ public class RetentionRulesServiceImplTest {
     service.deleteRetentionRuleByBusinessKey("project", "storage");
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-    ArgumentCaptor<UpdateDefaultJobWorker> workerCaptor = ArgumentCaptor.forClass(UpdateDefaultJobWorker.class);
 
     verify(service.ruleDao).softDelete(captor.capture());
-    verify(service.jobManager).submitJob(workerCaptor.capture());
   }
 
   @Test
@@ -324,9 +319,7 @@ public class RetentionRulesServiceImplTest {
     service.deleteRetentionRuleByBusinessKey("project", "storage");
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-    ArgumentCaptor<CancelDefaultJobWorker> workerCaptor = ArgumentCaptor.forClass(CancelDefaultJobWorker.class);
 
     verify(service.ruleDao).softDelete(captor.capture());
-    verify(service.jobManager).submitJob(workerCaptor.capture());
   }
 }

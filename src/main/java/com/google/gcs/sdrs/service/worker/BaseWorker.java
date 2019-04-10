@@ -27,12 +27,14 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseWorker implements Worker {
 
   public WorkerResult workerResult;
+  private String uuid;
   private static final Logger logger = LoggerFactory.getLogger(BaseWorker.class);
 
   /** BaseWorker constructor that instantiates the internal WorkerResult object */
   protected BaseWorker() {
     workerResult = new WorkerResult();
     workerResult.setType(this.getClass().getName());
+    uuid = workerResult.getId();
     logger.debug("Worker created: " + this.workerResult.toString());
   }
 
@@ -58,5 +60,9 @@ public abstract class BaseWorker implements Worker {
 
   public WorkerResult getWorkerResult() {
     return workerResult;
+  }
+
+  public String getUuid() {
+    return uuid;
   }
 }

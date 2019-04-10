@@ -16,13 +16,11 @@
  *
  */
 
-package com.google.gcs.sdrs.service.scheduler;
+package com.google.gcs.sdrs.scheduler;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.gcs.sdrs.service.scheduler.JobScheduler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

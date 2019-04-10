@@ -80,45 +80,4 @@ public class RetentionUtil {
 
     return datasetPath;
   }
-
-  /**
-   * Builds a map of buckets based on a list of Dataset rules
-   *
-   * @param datasetRules the list of dataset rules to use as a source
-   * @return a {@link Map} containing a key of format "projectId;bucketName" and a set of the
-   * derived path prefixes
-   */
-  public static Map<String, Set<String>> getPrefixMap(Collection<RetentionRule> datasetRules) {
-    Map<String, Set<String>> prefixMap = new HashMap<>();
-    for (RetentionRule datasetRule : datasetRules) {
-      String bucketName = RetentionUtil.getBucketName(datasetRule.getDataStorageName());
-      String projectId = datasetRule.getProjectId();
-      String mapKey = generatePrefixMapKey(projectId, bucketName);
-
-      String datasetPath = getDatasetPath(datasetRule.getDataStorageName());
-      if (prefixMap.containsKey(mapKey)) {
-        if (datasetPath != null && !datasetPath.isEmpty()) {
-          prefixMap.get(mapKey).add(datasetPath + "/");
-        }
-      } else {
-        Set<String> s = new HashSet<>();
-        if (datasetPath != null && !datasetPath.isEmpty()) {
-          s.add(datasetPath + "/");
-        }
-        prefixMap.put(mapKey, s);
-      }
-    }
-    return prefixMap;
-  }
-
-  /**
-   * Generates the key used in the retention rule map object
-   *
-   * @param projectId the project id of the rule
-   * @param bucketName the bucket name affected by the rule
-   * @return a single string of format "projectId;bucketName"
-   */
-  public static String generatePrefixMapKey(String projectId, String bucketName) {
-    return projectId + ";" + bucketName;
-  }
 }
