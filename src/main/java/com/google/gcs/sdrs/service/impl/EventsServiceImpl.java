@@ -23,17 +23,12 @@ import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
-import com.google.gcs.sdrs.dao.model.RetentionJob;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.service.manager.JobManager;
 import com.google.gcs.sdrs.service.worker.Worker;
-import com.google.gcs.sdrs.service.worker.impl.CreateDefaultJobWorker;
 import com.google.gcs.sdrs.service.worker.impl.DeleteNotificationWorker;
 import com.google.gcs.sdrs.service.worker.impl.ExecuteRetentionWorker;
 import com.google.gcs.sdrs.service.worker.impl.ValidationWorker;
-
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +44,9 @@ public class EventsServiceImpl implements EventsService {
 
   private static final Logger logger = LoggerFactory.getLogger(EventsServiceImpl.class);
 
-  public EventsServiceImpl(){
-    defaultProjectId = SdrsApplication.getAppConfigProperty(
-        "sts.defaultProjectId",
-        DEFAULT_PROJECT_ID);
+  public EventsServiceImpl() {
+    defaultProjectId =
+        SdrsApplication.getAppConfigProperty("sts.defaultProjectId", DEFAULT_PROJECT_ID);
 
     jobManager = JobManager.getInstance();
   }
@@ -61,13 +55,9 @@ public class EventsServiceImpl implements EventsService {
   public void processExecutionEvent(ExecutionEventRequest request) {
     Worker worker = new ExecuteRetentionWorker(request);
     jobManager.submitJob(worker);
-    // **** eshenlog
-    //createDefaultJobIfNonExistent();
   }
 
-  /**
-   * Submits a validation job to the JobManager.
-   */
+  /** Submits a validation job to the JobManager. */
   @Override
   public void processValidationEvent() {
     Worker worker = new ValidationWorker();
@@ -81,33 +71,9 @@ public class EventsServiceImpl implements EventsService {
    * @param correlationId
    */
   @Override
-  public void processDeleteNotificationEvent(NotificationEventRequest request,
-                                             String correlationId) {
+  public void processDeleteNotificationEvent(
+      NotificationEventRequest request, String correlationId) {
     Worker worker = new DeleteNotificationWorker(request, correlationId);
     JobManager.getInstance().submitJob(worker);
-  }
-
-  void createDefaultJobIfNonExistent(){
-    RetentionRule globalRule = ruleDao.findGlobalRuleByProjectId(defaultProjectId);
-
-    //check that a global default rule exists
-    if (globalRule != null) {
-      List<String> projectIds = ruleDao.getAllDatasetRuleProjectIds();
-
-      // check if a global default job exists within each project
-      for (String projectId : projectIds) {
-        List<RetentionJob> globalJobs = jobDao.findJobsByRuleIdAndProjectId(globalRule.getId(), projectId);
-
-        // if the jobs don't exist, create them
-        if (globalJobs == null || globalJobs.size() == 0) {
-          logger.info(String.format(
-              "Job doesn't exist for global rule id: %s, projectId: %s. Creating now...",
-              globalRule.getId(),
-              projectId));
-          Worker createDefaultWorker = new CreateDefaultJobWorker(globalRule, projectId);
-          jobManager.submitJob(createDefaultWorker);
-        }
-      }
-    }
   }
 }

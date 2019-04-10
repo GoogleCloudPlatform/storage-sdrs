@@ -20,7 +20,6 @@ package com.google.gcs.sdrs.dao.model;
 
 import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.dao.converter.RetentionRuleTypeConverter;
-
 import java.sql.Timestamp;
 import java.util.List;
 import javax.persistence.Column;
@@ -66,6 +65,18 @@ public class RetentionJob {
 
   @Column(name = "updated_at", updatable = false)
   private Timestamp updatedAt;
+
+  @Column(name = "batch_id")
+  private String batchId;
+
+  @Column(name = "metadata")
+  private String metadata;
+
+  @Column(name = "data_storage_root")
+  private String dataStorageRoot;
+
+  @Column(name = "type")
+  private String type;
 
   @OneToMany(mappedBy = "retentionJobId")
   private List<RetentionJobValidation> jobValidations;
@@ -134,5 +145,37 @@ public class RetentionJob {
 
   public void setRetentionRuleVersion(Integer retentionRuleVersion) {
     this.retentionRuleVersion = retentionRuleVersion;
+  }
+
+  public String getBatchId() {
+    return batchId;
+  }
+
+  public void setBatchId(String batchId) {
+    this.batchId = batchId;
+  }
+
+  public String getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(String metadata) {
+    this.metadata = metadata;
+  }
+
+  public String getDataStorageRoot() {
+    return dataStorageRoot;
+  }
+
+  public void setDataStorageRoot(String dataStorageRoot) {
+    this.dataStorageRoot = dataStorageRoot;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 }

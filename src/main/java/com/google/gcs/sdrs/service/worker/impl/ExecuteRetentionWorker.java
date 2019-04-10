@@ -30,6 +30,7 @@ import com.google.gcs.sdrs.service.worker.rule.RuleExecutor;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.Clock;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
@@ -103,57 +104,98 @@ public class ExecuteRetentionWorker extends BaseWorker {
                   executionEvent.getExecutionEventType().toString()));
       }
       workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
-    } catch (IOException | IllegalArgumentException | UnsupportedOperationException | NullPointerException ex) {
+    } catch (IOException
+        | IllegalArgumentException
+        | UnsupportedOperationException
+        | NullPointerException
+        | SQLException ex) {
       logger.error(String.format("Error executing rule: %s", ex.getMessage()));
       workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
     }
   }
 
-  private void executePolicy() throws IOException {
+  private void executePolicy() throws IOException, SQLException {
     List<String> projectIds = retentionRuleDao.getAllDatasetRuleProjectIds();
+    if (projectIds == null) {
+      throw new SQLException("Failed to get project IDs");
+    }
     for (String projectId : projectIds) {
       executePolicyByProject(projectId);
     }
   }
 
-  private void executePolicyByProject(String projectId) throws IOException {
+  private void executePolicyByProject(String projectId) throws IOException, SQLException {
     List<RetentionRule> datasetRules = retentionRuleDao.findDatasetRulesByProjectId(projectId);
     List<RetentionRule> defaultRules = retentionRuleDao.findDefaultRulesByProjectId(projectId);
     RetentionRule globalDefaultRule = retentionRuleDao.findGlobalRuleByProjectId(projectId);
+    if (datasetRules == null || defaultRules == null || globalDefaultRule == null) {
+      throw new SQLException("Failed to get rules");
+    }
 
+    List<RetentionJob> errorJobs = new ArrayList<>();
     List<RetentionJob> retentionJobs = ruleExecutor.executeDatasetRule(datasetRules, projectId);
+    retentionJobs.addAll(
+        ruleExecutor.executeDefaultRule(
+            globalDefaultRule, defaultRules, datasetRules, atMidnight(), projectId));
+
     if (retentionJobs != null) {
       for (RetentionJob job : retentionJobs) {
-        retentionJobDao.save(job);
+        job.setBatchId(getUuid());
+        if (job.getName() == null) {
+          errorJobs.add(job);
+        } else {
+          retentionJobDao.save(job);
+        }
       }
     }
 
-    retentionJobs = ruleExecutor.executeDefaultRule(
-            globalDefaultRule, defaultRules, datasetRules, atMidnight(), projectId);
-    if (retentionJobs != null) {
-      for (RetentionJob job : retentionJobs) {
-        retentionJobDao.save(job);
-      }
+    if (!errorJobs.isEmpty()) {
+      throw new IOException(
+          String.format(
+              "Failed to schedule %d retention jobs for policy based execution", errorJobs.size()));
     }
   }
 
   private void executeDatasetRules(List<RetentionRule> rules, String projectId) throws IOException {
+    List<RetentionJob> errorJobs = new ArrayList<>();
     List<RetentionJob> jobs = ruleExecutor.executeDatasetRule(rules, projectId);
     if (jobs != null) {
       for (RetentionJob job : jobs) {
-        retentionJobDao.save(job);
+        job.setBatchId(getUuid());
+        if (job.getName() == null) {
+          errorJobs.add(job);
+        } else {
+          retentionJobDao.save(job);
+        }
       }
+    }
+
+    if (!errorJobs.isEmpty()) {
+      throw new IOException(
+          String.format("Failed to schedule %d retention jobs for dataset rule", errorJobs.size()));
     }
   }
 
   private void executeUserCommandedRule(String target, String projectId) throws IOException {
+    List<RetentionJob> errorJobs = new ArrayList<>();
     List<RetentionRule> userRules = new ArrayList<>();
     userRules.add(buildUserCommandedRule(target, projectId));
     List<RetentionJob> jobs = ruleExecutor.executeUserCommandedRule(userRules, projectId);
     if (jobs != null) {
       for (RetentionJob job : jobs) {
-        retentionJobDao.save(job);
+        job.setBatchId(getUuid());
+        if (job.getName() == null) {
+          errorJobs.add(job);
+        } else {
+          retentionJobDao.save(job);
+        }
       }
+    }
+
+    if (!errorJobs.isEmpty()) {
+      throw new IOException(
+          String.format(
+              "Failed to schedule %d retention jobs for user commanded rule", errorJobs.size()));
     }
   }
 

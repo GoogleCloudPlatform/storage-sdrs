@@ -75,38 +75,16 @@ public class StsRuleExecutorTest {
       objectUnderTest.executeDefaultRule(testRule, defaultRules, bucketRules, now, "project-id");
     } catch (IllegalArgumentException ex) {
       assertTrue(true);
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       Assert.fail();
     }
   }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void globalRuleExecutionWithOver1000DatasetRules() {
-    try {
-      testRule.setType(RetentionRuleType.GLOBAL);
-      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
-
-      Collection<RetentionRule> bucketRules = new HashSet<>();
-      Collection<RetentionRule> defaultRules = new HashSet<>();
-      for (int i = 0; i < 1002; i++) {
-        RetentionRule rule = new RetentionRule();
-        rule.setDataStorageName(dataStorageName + "/myPath" + i);
-        rule.setProjectId("test-project-id");
-        bucketRules.add(rule);
-      }
-      objectUnderTest.executeDefaultRule(testRule, defaultRules, bucketRules, now, "project-id");
-      Assert.fail();
-    } catch (IOException ex) {
-      Assert.fail();
-    }
-  }
-
 
   @Test
   public void buildRetentionJobTest() {
     String jobName = "test";
 
-    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule);
+    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule, null);
 
     assertEquals(result.getName(), jobName);
     assertEquals((int) result.getRetentionRuleId(), (int) testRule.getId());

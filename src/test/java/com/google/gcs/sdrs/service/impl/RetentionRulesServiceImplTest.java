@@ -34,8 +34,6 @@ import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.manager.JobManager;
 import com.google.gcs.sdrs.service.worker.Worker;
-import com.google.gcs.sdrs.service.worker.impl.CancelDefaultJobWorker;
-import com.google.gcs.sdrs.service.worker.impl.UpdateDefaultJobWorker;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -93,8 +91,7 @@ public class RetentionRulesServiceImplTest {
     ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
 
     verify(service.ruleDao).save(captor.capture());
-    // *** eshenlog ***
-    // verify(service.jobManager).submitJob(workerCaptor.capture());
+
     RetentionRule input = captor.getValue();
     assertEquals(1, (int) input.getId());
     assertEquals(RetentionRuleType.DATASET, input.getType());
@@ -162,8 +159,7 @@ public class RetentionRulesServiceImplTest {
     ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
 
     verify(service.ruleDao).save(captor.capture());
-    // *** eshenlog
-    // verify(service.jobManager).submitJob(workerCaptor.capture());
+
     RetentionRule input = captor.getValue();
     assertEquals(1, (int) input.getId());
     assertEquals(RetentionRuleType.GLOBAL, input.getType());
@@ -269,8 +265,7 @@ public class RetentionRulesServiceImplTest {
     ArgumentCaptor<Worker> workerCaptor = ArgumentCaptor.forClass(Worker.class);
 
     verify(service.ruleDao).update(captor.capture());
-    // *** eshenlog
-    // verify(service.jobManager).submitJob(workerCaptor.capture());
+
     RetentionRule input = captor.getValue();
     assertEquals(4, (int) input.getVersion());
     assertEquals(RetentionRuleType.GLOBAL, result.getType());
@@ -299,12 +294,8 @@ public class RetentionRulesServiceImplTest {
     service.deleteRetentionRuleByBusinessKey("project", "storage");
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-    ArgumentCaptor<UpdateDefaultJobWorker> workerCaptor =
-        ArgumentCaptor.forClass(UpdateDefaultJobWorker.class);
 
     verify(service.ruleDao).softDelete(captor.capture());
-    // *** eshenlog
-    // verify(service.jobManager).submitJob(workerCaptor.capture());
   }
 
   @Test
@@ -328,11 +319,7 @@ public class RetentionRulesServiceImplTest {
     service.deleteRetentionRuleByBusinessKey("project", "storage");
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
-    ArgumentCaptor<CancelDefaultJobWorker> workerCaptor =
-        ArgumentCaptor.forClass(CancelDefaultJobWorker.class);
 
     verify(service.ruleDao).softDelete(captor.capture());
-    // ***eshenlog
-    // verify(service.jobManager).submitJob(workerCaptor.capture());
   }
 }

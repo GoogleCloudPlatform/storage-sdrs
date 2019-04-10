@@ -27,6 +27,9 @@ import com.google.gcs.sdrs.service.worker.rule.RuleValidator;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,6 +71,7 @@ public class StsRuleValidator implements RuleValidator {
    * @param job the {@link RetentionJob} to validate
    * @return a {@link RetentionJobValidation} record
    */
+  @Override
   public @Nullable RetentionJobValidation validateRetentionJob(RetentionJob job) {
     List<RetentionJob> jobList = new ArrayList<>();
     jobList.add(job);
@@ -84,13 +88,13 @@ public class StsRuleValidator implements RuleValidator {
    * @param jobs the {@link List} of {@link RetentionJob} objects to validate
    * @return a {@link List} of {@link RetentionJobValidation} records
    */
+  @Override
   public List<RetentionJobValidation> validateRetentionJobs(List<RetentionJob> jobs) {
 
     if (jobs.size() == 0) {
       return new ArrayList<>();
     }
 
-    //List<String> jobNames = new ArrayList<>(); eshenlog
     HashMap<String, Set<Integer>> jobIdStsIdMap = new HashMap<>();
 
     // Get the first project ID. All jobs to validate must have the same project ID.
@@ -114,8 +118,6 @@ public class StsRuleValidator implements RuleValidator {
         retentionJobIdSet.add(job.getId());
         jobIdStsIdMap.put(stsJobId, retentionJobIdSet);
       }
-
-      //eshenlog jobNames.add(job.getName());
     }
 
     List<Operation> jobOperations = StsUtil.getSubmittedStsJobs(client, projectId, jobs);
@@ -140,6 +142,9 @@ public class StsRuleValidator implements RuleValidator {
       validation.setStatus(RetentionJobStatusType.PENDING);
     } else if (operation.getResponse() != null) {
       validation.setStatus(RetentionJobStatusType.SUCCESS);
+      validation.setStartTime(getJobTime(operation, true));
+      validation.setEndTime(getJobTime(operation, false));
+      validation.setMetadata(operation.getMetadata().toString());
       String operationPrettyString = null;
       try {
         operationPrettyString = operation.toPrettyString();
@@ -179,5 +184,24 @@ public class StsRuleValidator implements RuleValidator {
 
   private StsRuleValidator() throws IOException {
     client = StsUtil.createStsClient(credentialsUtil.getCredentials());
+  }
+
+  private Timestamp getJobTime(Operation operation, boolean isStart) {
+    if (operation == null) {
+      return null;
+    }
+
+    String operationTimeStr = isStart ? "startTime" : "endTime";
+    Timestamp timestamp = null;
+    String timeStr = operation.getMetadata().get(operationTimeStr).toString();
+    if (timeStr != null) {
+      try {
+        timestamp = new Timestamp(Instant.parse(timeStr).toEpochMilli());
+      } catch (DateTimeParseException e) {
+        return null;
+      }
+    }
+
+    return timestamp;
   }
 }

@@ -18,7 +18,6 @@
 
 package com.google.gcs.sdrs.service.worker.impl;
 
-import com.google.gcs.sdrs.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
@@ -71,6 +70,7 @@ public class ValidationWorker extends BaseWorker {
         retentionJobValidations.stream()
             .forEach(
                 validation -> {
+                  validation.setBatchId(getUuid());
                   String jobOperationName = validation.getJobOperationName();
                   if (stsValidations.containsKey(jobOperationName)) {
                     stsValidations.get(jobOperationName).add(validation);
@@ -96,8 +96,7 @@ public class ValidationWorker extends BaseWorker {
                   validation -> {
                     if (existingValidation.getRetentionJobId().intValue()
                         == validation.getRetentionJobId().intValue()) {
-                        validation.setId(existingValidation.getId());
-
+                      validation.setId(existingValidation.getId());
                     }
                   });
         }

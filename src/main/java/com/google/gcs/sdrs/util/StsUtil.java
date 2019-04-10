@@ -29,7 +29,6 @@ import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.StoragetransferScopes;
 import com.google.api.services.storagetransfer.v1.model.Date;
 import com.google.api.services.storagetransfer.v1.model.GcsData;
-import com.google.api.services.storagetransfer.v1.model.ListOperationsResponse;
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.api.services.storagetransfer.v1.model.Schedule;
@@ -50,7 +49,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.criteria.CriteriaBuilder.In;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -259,36 +257,6 @@ public class StsUtil {
 
     return operations;
   }
-
-  /* public static List<Operation> getSubmittedStsJobs(
-        Storagetransfer client, String projectId, List<String> jobNames) {
-
-      List<Operation> operations = new ArrayList<>();
-
-      try {
-        Storagetransfer.TransferOperations.List operationRequest =
-            client
-                .transferOperations()
-                .list(TRANSFER_OPERATION_STRING)
-                .setFilter(buildOperationFilterString(projectId, jobNames));
-
-        ListOperationsResponse operationResponse;
-        do {
-          operationResponse = operationRequest.execute();
-          if (operationResponse.getOperations() == null) {
-            continue;
-          }
-
-          operations.addAll(operationResponse.getOperations());
-          operationRequest.setPageToken(operationResponse.getNextPageToken());
-        } while (operationResponse.getNextPageToken() != null);
-      } catch (IOException ex) {
-        logger.error("Could not establish connection with STS: ", ex.getMessage());
-      }
-
-      return operations;
-    }
-  */
 
   /**
    * Converts an int value to a Google Duration string
