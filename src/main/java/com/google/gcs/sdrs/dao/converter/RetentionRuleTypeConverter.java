@@ -23,6 +23,7 @@ import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import static com.google.gcs.sdrs.RetentionRuleType.DATASET;
 import static com.google.gcs.sdrs.RetentionRuleType.GLOBAL;
 import static com.google.gcs.sdrs.RetentionRuleType.USER;
+import static com.google.gcs.sdrs.RetentionRuleType.DEFAULT;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -50,6 +51,8 @@ public class RetentionRuleTypeConverter implements AttributeConverter<RetentionR
         return DATASET;
       case DatabaseConstants.POLICY_TYPE_USER:
         return USER;
+      case DatabaseConstants.POLICY_TYPE_DEFAULT:
+        return DEFAULT;
       default:
         throw new IllegalArgumentException(
             String.format(

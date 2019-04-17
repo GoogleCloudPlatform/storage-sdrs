@@ -16,20 +16,25 @@
  *
  */
 
-package com.google.gcs.sdrs.service.rule.impl;
+package com.google.gcs.sdrs.service.worker.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.gcs.sdrs.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-import com.google.gcs.sdrs.service.rule.RuleValidator;
+import com.google.gcs.sdrs.service.worker.rule.RuleValidator;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +71,7 @@ public class StsRuleValidator implements RuleValidator {
    * @param job the {@link RetentionJob} to validate
    * @return a {@link RetentionJobValidation} record
    */
+  @Override
   public @Nullable RetentionJobValidation validateRetentionJob(RetentionJob job) {
     List<RetentionJob> jobList = new ArrayList<>();
     jobList.add(job);
@@ -82,14 +88,14 @@ public class StsRuleValidator implements RuleValidator {
    * @param jobs the {@link List} of {@link RetentionJob} objects to validate
    * @return a {@link List} of {@link RetentionJobValidation} records
    */
+  @Override
   public List<RetentionJobValidation> validateRetentionJobs(List<RetentionJob> jobs) {
 
     if (jobs.size() == 0) {
       return new ArrayList<>();
     }
 
-    List<String> jobNames = new ArrayList<>();
-    HashMap<String, Integer> jobIdStsIdMap = new HashMap<>();
+    HashMap<String, Set<Integer>> jobIdStsIdMap = new HashMap<>();
 
     // Get the first project ID. All jobs to validate must have the same project ID.
     String projectId = jobs.get(0).getRetentionRuleProjectId();
@@ -105,18 +111,24 @@ public class StsRuleValidator implements RuleValidator {
       }
       // the job name that is required in the request has a different format than the response
       String stsJobId = job.getName().substring(job.getName().indexOf("/") + 1);
-      jobIdStsIdMap.put(stsJobId, job.getId());
-      jobNames.add(job.getName());
+      if (jobIdStsIdMap.containsKey(stsJobId)) {
+        jobIdStsIdMap.get(stsJobId).add(job.getId());
+      } else {
+        Set<Integer> retentionJobIdSet = new HashSet<>();
+        retentionJobIdSet.add(job.getId());
+        jobIdStsIdMap.put(stsJobId, retentionJobIdSet);
+      }
     }
 
-    List<Operation> jobOperations = StsUtil.getSubmittedStsJobs(client, projectId, jobNames);
+    List<Operation> jobOperations = StsUtil.getSubmittedStsJobs(client, projectId, jobs);
     List<RetentionJobValidation> validationRecords = new ArrayList<>();
     for (Operation operation : jobOperations) {
-
       String stsJobId = extractStsJobId(operation.getName());
-      int jobId = jobIdStsIdMap.get(stsJobId);
-
-      validationRecords.add(convertOperationToJobValidation(operation, jobId));
+      jobIdStsIdMap.get(stsJobId).stream()
+          .forEach(
+              jobId -> {
+                validationRecords.add(convertOperationToJobValidation(operation, jobId));
+              });
     }
 
     return validationRecords;
@@ -130,13 +142,23 @@ public class StsRuleValidator implements RuleValidator {
       validation.setStatus(RetentionJobStatusType.PENDING);
     } else if (operation.getResponse() != null) {
       validation.setStatus(RetentionJobStatusType.SUCCESS);
+      validation.setStartTime(getJobTime(operation, true));
+      validation.setEndTime(getJobTime(operation, false));
+      validation.setMetadata(operation.getMetadata().toString());
+      String operationPrettyString = null;
+      try {
+        operationPrettyString = operation.toPrettyString();
+      } catch (IOException e) {
+        operationPrettyString = operation.getMetadata().toString();
+      }
+
       logger.info(
           String.format(
-              "STS Operation %s Successful: %s",
-              operation.getName(), operation.getResponse().toString()));
+              "STS Operation %s Successful: %s", operation.getName(), operationPrettyString));
+
     } else {
       validation.setStatus(RetentionJobStatusType.ERROR);
-      logger.info(
+      logger.error(
           String.format(
               "STS Operation %s failed: %s",
               operation.getName(), operation.getError().getMessage()));
@@ -162,5 +184,24 @@ public class StsRuleValidator implements RuleValidator {
 
   private StsRuleValidator() throws IOException {
     client = StsUtil.createStsClient(credentialsUtil.getCredentials());
+  }
+
+  private Timestamp getJobTime(Operation operation, boolean isStart) {
+    if (operation == null) {
+      return null;
+    }
+
+    String operationTimeStr = isStart ? "startTime" : "endTime";
+    Timestamp timestamp = null;
+    String timeStr = operation.getMetadata().get(operationTimeStr).toString();
+    if (timeStr != null) {
+      try {
+        timestamp = new Timestamp(Instant.parse(timeStr).toEpochMilli());
+      } catch (DateTimeParseException e) {
+        return null;
+      }
+    }
+
+    return timestamp;
   }
 }

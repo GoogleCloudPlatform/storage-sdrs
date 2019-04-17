@@ -18,7 +18,7 @@
 
 package com.google.gcs.sdrs.service.manager;
 
-import com.google.gcs.sdrs.service.scheduler.JobScheduler;
+import com.google.gcs.sdrs.scheduler.JobScheduler;
 import com.google.gcs.sdrs.service.worker.Worker;
 import com.google.gcs.sdrs.service.worker.WorkerResult;
 

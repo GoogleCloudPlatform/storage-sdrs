@@ -20,17 +20,13 @@ package com.google.gcs.sdrs;
 
 import com.google.gcs.sdrs.service.manager.JobManager;
 import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
-import com.google.gcs.sdrs.service.scheduler.JobScheduler;
-import com.google.gcs.sdrs.util.StsQuotaManager;
+import com.google.gcs.sdrs.scheduler.JobScheduler;
 import java.util.concurrent.TimeUnit;
-
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Wrapper class around a Runnable thread designed to gracefully shutdown the Job Manager.
- */
+/** Wrapper class around a Runnable thread designed to gracefully shutdown the Job Manager. */
 public class ServerShutdownHook implements Runnable {
 
   private static HttpServer server;
@@ -41,13 +37,12 @@ public class ServerShutdownHook implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(ServerShutdownHook.class);
 
   /**
-   *
    * @param httpServer The server to shutdown
    * @param gracePeriodInSeconds How long to wait until forcing the http server to shutdown
    * @param isImmediateShutdown Immediately shuts down all threads if true
    */
-  public ServerShutdownHook(HttpServer httpServer, long gracePeriodInSeconds,
-                            boolean isImmediateShutdown) {
+  public ServerShutdownHook(
+      HttpServer httpServer, long gracePeriodInSeconds, boolean isImmediateShutdown) {
     server = httpServer;
     GRACE_PERIOD_IN_SECONDS = gracePeriodInSeconds;
     this.isImmediateShutdown = isImmediateShutdown;
@@ -77,7 +72,6 @@ public class ServerShutdownHook implements Runnable {
     }
 
     PubSubMessageQueueManagerImpl.getInstance().shutdown();
-    StsQuotaManager.getInstance().shutdown();
 
     logger.info("Shutting down web server...");
     server.shutdown(GRACE_PERIOD_IN_SECONDS, TimeUnit.SECONDS);

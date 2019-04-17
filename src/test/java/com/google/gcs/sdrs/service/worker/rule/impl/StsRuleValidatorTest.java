@@ -15,25 +15,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service.rule.impl;
+package com.google.gcs.sdrs.service.worker.rule.impl;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.api.services.storagetransfer.v1.model.Status;
 import com.google.gcs.sdrs.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleValidator;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class StsRuleValidatorTest {
 
@@ -88,12 +89,22 @@ public class StsRuleValidatorTest {
     responseMap.put("type", "transferOperation");
     operation.setResponse(responseMap);
 
+    String startTimeStr = "2019-04-08T23:08:13.864477802Z";
+    String endTimeStr = "2019-04-08T23:08:24.435783372Z";
+    Map<String, Object> metadataMap = new HashMap<>();
+    metadataMap.put("startTime", startTimeStr);
+    metadataMap.put("endTime", endTimeStr);
+    operation.setMetadata(metadataMap);
+
     RetentionJobValidation validation =
         objectUnderTest.convertOperationToJobValidation(operation, jobId);
 
     assertEquals(validation.getJobOperationName(), operation.getName());
     assertEquals((int) validation.getRetentionJobId(), jobId);
     assertEquals(validation.getStatus(), RetentionJobStatusType.SUCCESS);
+    assertEquals(
+        validation.getStartTime(), new Timestamp(Instant.parse(startTimeStr).toEpochMilli()));
+    assertEquals(validation.getEndTime(), new Timestamp(Instant.parse(endTimeStr).toEpochMilli()));
   }
 
   @Test

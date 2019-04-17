@@ -17,32 +17,30 @@
 
 package com.google.gcs.sdrs.service.worker.impl;
 
-import com.google.gcs.sdrs.ExecutionEventType;
-import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
-import com.google.gcs.sdrs.dao.RetentionJobDao;
-import com.google.gcs.sdrs.dao.RetentionRuleDao;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
-import com.google.gcs.sdrs.service.worker.WorkerResult;
-import com.google.gcs.sdrs.service.worker.impl.ExecuteRetentionWorker;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.google.gcs.sdrs.ExecutionEventType;
+import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
+import com.google.gcs.sdrs.dao.RetentionJobDao;
+import com.google.gcs.sdrs.dao.RetentionRuleDao;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.service.worker.WorkerResult;
+import com.google.gcs.sdrs.service.worker.WorkerResult.WorkerResultStatus;
+import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(StsRuleExecutor.class)
@@ -53,11 +51,11 @@ public class ExecuteRetentionWorkerTest {
   private RetentionJobDao retentionJobDaoMock;
 
   @Before
-  public void setup() throws IOException {
+  public void setup() {
     retentionRuleDaoMock = mock(RetentionRuleDao.class);
     retentionJobDaoMock = mock(RetentionJobDao.class);
     ruleExecutorMock = mock(StsRuleExecutor.class);
-    when(ruleExecutorMock.executeDatasetRule(any())).thenReturn(null);
+    when(ruleExecutorMock.executeDatasetRule(any(), any())).thenReturn(null);
     PowerMockito.mockStatic(StsRuleExecutor.class);
     when(StsRuleExecutor.getInstance()).thenReturn(null);
   }
@@ -75,7 +73,7 @@ public class ExecuteRetentionWorkerTest {
   }
 
   @Test
-  public void doWorkRunsAllWhenPolicyOnly(){
+  public void doWorkRunsAllWhenPolicyOnly() {
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
     request.setProjectId(null);
@@ -87,7 +85,27 @@ public class ExecuteRetentionWorkerTest {
     List<String> projectIds = new ArrayList<>();
     String projectId = "testproject";
     projectIds.add(projectId);
+    List<RetentionJob> datasetJobs = new ArrayList<>();
+    RetentionJob datasetJob = new RetentionJob();
+    datasetJob.setName("datasetJob");
+    datasetJobs.add(datasetJob);
+
+    List<RetentionJob> defaultJobs = new ArrayList<>();
+    RetentionJob defaultJob = new RetentionJob();
+    defaultJob.setName("defaultJob");
+    defaultJobs.add(datasetJob);
+
+    List<RetentionRule> datasetRules = new ArrayList<>();
+    List<RetentionRule> defaultRules = new ArrayList<>();
+    RetentionRule globalDefaultRule = new RetentionRule();
+
     when(retentionRuleDaoMock.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
+    when(retentionRuleDaoMock.findDatasetRulesByProjectId(any())).thenReturn(datasetRules);
+    when(retentionRuleDaoMock.findDefaultRulesByProjectId(any())).thenReturn(defaultRules);
+    when(retentionRuleDaoMock.findGlobalRuleByProjectId(any())).thenReturn(globalDefaultRule);
+    when(ruleExecutorMock.executeDefaultRule(any(), any(), any(), any(), any()))
+        .thenReturn(defaultJobs);
+    when(ruleExecutorMock.executeDatasetRule(any(), any())).thenReturn(datasetJobs);
 
     worker.doWork();
 
@@ -96,7 +114,7 @@ public class ExecuteRetentionWorkerTest {
   }
 
   @Test
-  public void doWorkRunsProjectWhenSpecified(){
+  public void doWorkRunsProjectWhenSpecified() {
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
     request.setTarget(null);
@@ -105,6 +123,29 @@ public class ExecuteRetentionWorkerTest {
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
 
+    List<String> projectIds = new ArrayList<>();
+    List<RetentionJob> datasetJobs = new ArrayList<>();
+    RetentionJob datasetJob = new RetentionJob();
+    datasetJob.setName("datasetJob");
+    datasetJobs.add(datasetJob);
+
+    List<RetentionJob> defaultJobs = new ArrayList<>();
+    RetentionJob defaultJob = new RetentionJob();
+    defaultJob.setName("defaultJob");
+    defaultJobs.add(datasetJob);
+
+    List<RetentionRule> datasetRules = new ArrayList<>();
+    List<RetentionRule> defaultRules = new ArrayList<>();
+    RetentionRule globalDefaultRule = new RetentionRule();
+
+    when(retentionRuleDaoMock.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
+    when(retentionRuleDaoMock.findDatasetRulesByProjectId(any())).thenReturn(datasetRules);
+    when(retentionRuleDaoMock.findDefaultRulesByProjectId(any())).thenReturn(defaultRules);
+    when(retentionRuleDaoMock.findGlobalRuleByProjectId(any())).thenReturn(globalDefaultRule);
+    when(ruleExecutorMock.executeDefaultRule(any(), any(), any(), any(), any()))
+        .thenReturn(defaultJobs);
+    when(ruleExecutorMock.executeDatasetRule(any(), any())).thenReturn(datasetJobs);
+
     worker.doWork();
 
     verify(retentionRuleDaoMock).findDatasetRulesByProjectId(request.getProjectId());
@@ -112,7 +153,7 @@ public class ExecuteRetentionWorkerTest {
   }
 
   @Test
-  public void doWorkRunsRuleWhenProjectAndTargetSpecified(){
+  public void doWorkRunsRuleWhenProjectAndTargetSpecified() {
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
     ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
@@ -129,8 +170,8 @@ public class ExecuteRetentionWorkerTest {
     assertEquals(WorkerResult.WorkerResultStatus.SUCCESS, worker.getWorkerResult().getStatus());
   }
 
-  @Test(expected = UnsupportedOperationException.class)
-  public void doWorkErrorsWhenRuleNotFound(){
+  @Test
+  public void doWorkErrorsWhenRuleNotFound() {
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
     ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
@@ -141,6 +182,7 @@ public class ExecuteRetentionWorkerTest {
     when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(null);
 
     worker.doWork();
+    assertEquals(WorkerResultStatus.FAILED, worker.getWorkerResult().getStatus());
   }
 
   @Test
@@ -150,6 +192,12 @@ public class ExecuteRetentionWorkerTest {
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
+
+    List<RetentionJob> retentionJobs = new ArrayList<>();
+    RetentionJob retentionJob = new RetentionJob();
+    retentionJob.setName("retentionJob");
+    retentionJobs.add(retentionJob);
+    when(ruleExecutorMock.executeUserCommandedRule(any(), any())).thenReturn(retentionJobs);
 
     worker.doWork();
 

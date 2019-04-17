@@ -26,4 +26,5 @@ public class ValidationConstants {
   public static final String DATASET_JSON_VALUE = "DATASET";
   public static final String POLICY_JSON_VALUE = "POLICY";
   public static final String USER_JSON_VALUE = "USER";
+  public static final String DEFAULT_JSON_VALUE = "DEFAULT";
 }

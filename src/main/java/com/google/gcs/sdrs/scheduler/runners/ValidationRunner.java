@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service.runners;
+package com.google.gcs.sdrs.scheduler.runners;
 
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.util.SdrsRequestClientUtil;

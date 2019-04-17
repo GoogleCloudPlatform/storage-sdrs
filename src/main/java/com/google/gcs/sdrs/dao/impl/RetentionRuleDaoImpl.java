@@ -18,9 +18,9 @@
 package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-
 import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -131,18 +131,42 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
   @Override
   public RetentionRule findGlobalRuleByProjectId(String projectId) {
     Session session = openSession();
+    RetentionRule globalDefaultRule = null;
     CriteriaBuilder builder = session.getCriteriaBuilder();
-    CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
-    Root<RetentionRule> root = query.from(RetentionRule.class);
+    CriteriaQuery<RetentionRule> criteria = builder.createQuery(RetentionRule.class);
+    Root<RetentionRule> root = criteria.from(RetentionRule.class);
 
-    query
+    criteria
         .select(root)
         .where(
             builder.equal(root.get("isActive"), true),
             builder.equal(root.get("type"), RetentionRuleType.GLOBAL),
             builder.equal(root.get("projectId"), projectId));
 
-    return getSingleRecordWithCriteriaQuery(query, session);
+    Query<RetentionRule> query = session.createQuery(criteria);
+    List<RetentionRule> result = query.getResultList();
+
+    if (result.isEmpty()) {
+      criteria = builder.createQuery(RetentionRule.class);
+      root = criteria.from(RetentionRule.class);
+
+      criteria
+          .select(root)
+          .where(
+              builder.equal(root.get("isActive"), true),
+              builder.equal(root.get("type"), RetentionRuleType.GLOBAL),
+              builder.equal(
+                  root.get("projectId"),
+                  SdrsApplication.getAppConfigProperty("sts.defaultProjectId")));
+
+      query = session.createQuery(criteria);
+      result = query.getResultList();
+    }
+    if (!result.isEmpty()) {
+      globalDefaultRule = result.get(0);
+    }
+    closeSession(session);
+    return globalDefaultRule;
   }
 
   /**
@@ -188,6 +212,26 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
         .where(
             builder.equal(root.get("isActive"), true),
             builder.equal(root.get("type"), RetentionRuleType.DATASET),
+            builder.equal(root.get("projectId"), projectId));
+
+    Query<RetentionRule> query = session.createQuery(criteria);
+    List<RetentionRule> result = query.getResultList();
+    closeSession(session);
+    return result;
+  }
+
+  @Override
+  public List<RetentionRule> findDefaultRulesByProjectId(String projectId) {
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<RetentionRule> criteria = builder.createQuery(RetentionRule.class);
+    Root<RetentionRule> root = criteria.from(RetentionRule.class);
+
+    criteria
+        .select(root)
+        .where(
+            builder.equal(root.get("isActive"), true),
+            builder.equal(root.get("type"), RetentionRuleType.DEFAULT),
             builder.equal(root.get("projectId"), projectId));
 
     Query<RetentionRule> query = session.createQuery(criteria);

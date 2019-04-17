@@ -15,14 +15,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.service.rule.impl;
+package com.google.gcs.sdrs.service.worker.rule.impl;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.service.rule.impl.StsRuleExecutor;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import java.io.IOException;
 import java.time.Clock;
@@ -32,11 +41,6 @@ import java.util.HashSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class StsRuleExecutorTest {
 
@@ -62,60 +66,16 @@ public class StsRuleExecutorTest {
     objectUnderTest.client = mock(Storagetransfer.class);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void datasetRuleExecutionWithGlobalType() throws IOException {
-    testRule.setType(RetentionRuleType.GLOBAL);
-    objectUnderTest.executeDatasetRule(testRule);
-  }
-
   @Test
   public void globalRuleExecutionWithDatasetType() {
     try {
       Collection<RetentionRule> bucketRules = new HashSet<>();
+      Collection<RetentionRule> defaultRules = new HashSet<>();
       ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
-      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
+      objectUnderTest.executeDefaultRule(testRule, defaultRules, bucketRules, now, "project-id");
     } catch (IllegalArgumentException ex) {
       assertTrue(true);
-    } catch (IOException ex) {
-      Assert.fail();
-    }
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void globalRuleExecutionWithOver1000DatasetRules() {
-    try {
-      testRule.setType(RetentionRuleType.GLOBAL);
-      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
-
-      Collection<RetentionRule> bucketRules = new HashSet<>();
-      for (int i = 0; i < 1002; i++) {
-        RetentionRule rule = new RetentionRule();
-        rule.setDataStorageName(dataStorageName + "/myPath" + i);
-        rule.setProjectId("test-project-id");
-        bucketRules.add(rule);
-      }
-      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-      Assert.fail();
-    } catch (IOException ex) {
-      Assert.fail();
-    }
-  }
-
-  @Test(expected = IndexOutOfBoundsException.class)
-  public void globalRuleExecutionNoProjectId() {
-    try {
-      testRule.setType(RetentionRuleType.GLOBAL);
-      testRule.setProjectId("");
-      ZonedDateTime now = ZonedDateTime.now(Clock.systemUTC());
-
-      Collection<RetentionRule> bucketRules = new HashSet<>();
-      RetentionRule bucketRule = new RetentionRule();
-      bucketRule.setProjectId("");
-      bucketRule.setDataStorageName("");
-      bucketRules.add(bucketRule);
-      objectUnderTest.executeDefaultRule(testRule, bucketRules, now);
-      Assert.fail();
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       Assert.fail();
     }
   }
@@ -124,7 +84,7 @@ public class StsRuleExecutorTest {
   public void buildRetentionJobTest() {
     String jobName = "test";
 
-    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule);
+    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule, null);
 
     assertEquals(result.getName(), jobName);
     assertEquals((int) result.getRetentionRuleId(), (int) testRule.getId());

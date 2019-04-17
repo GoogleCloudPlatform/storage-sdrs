@@ -29,7 +29,6 @@ import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.StoragetransferScopes;
 import com.google.api.services.storagetransfer.v1.model.Date;
 import com.google.api.services.storagetransfer.v1.model.GcsData;
-import com.google.api.services.storagetransfer.v1.model.ListOperationsResponse;
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.api.services.storagetransfer.v1.model.Schedule;
@@ -38,8 +37,11 @@ import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
+import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
@@ -47,10 +49,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +59,6 @@ public class StsUtil {
   private static final String STS_ENABLED_STRING = "ENABLED";
   private static final String TRANSFER_OPERATION_STRING = "transferOperations";
   private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
-
-  static StsQuotaManager quotaManager = StsQuotaManager.getInstance();
 
   /** Creates an instance of the STS Client */
   public static Storagetransfer createStsClient(GoogleCredential credential) {
@@ -110,27 +106,7 @@ public class StsUtil {
     logger.info(
         String.format("Creating one time transfer job in STS: %s", transferJob.toPrettyString()));
 
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    Callable<TransferJob> transferJobCallable =
-        () -> client.transferJobs().create(transferJob).execute();
-
-    String uuid = quotaManager.submitStsJob(transferJobCallable, countDownLatch);
-
-    TransferJob scheduledStsJob = null;
-    try {
-      countDownLatch.await(60, TimeUnit.MINUTES);
-      if (countDownLatch.getCount() > 0) {
-        logger.error("Failed to schedule one time STS job. " + countDownLatch.toString());
-      } else {
-        logger.debug(String.format("uuid=%s; latch=%s", uuid, countDownLatch.toString()));
-        scheduledStsJob = quotaManager.getStsJobFuture(uuid).get();
-        quotaManager.removeStsJobFuture(uuid);
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      logger.error("Failed to schedule one time STS job. " + e.getMessage());
-    }
-
-    return scheduledStsJob;
+    return client.transferJobs().create(transferJob).execute();
   }
 
   /**
@@ -173,27 +149,7 @@ public class StsUtil {
     logger.info(
         String.format("Creating recurring transfer job in STS: %s", transferJob.toPrettyString()));
 
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    Callable<TransferJob> transferJobCallable =
-        () -> client.transferJobs().create(transferJob).execute();
-
-    String uuid = quotaManager.submitStsJob(transferJobCallable, countDownLatch);
-
-    TransferJob scheduledDefaultStsJob = null;
-    try {
-      countDownLatch.await(60, TimeUnit.MINUTES);
-      if (countDownLatch.getCount() > 0) {
-        logger.error("Failed to schedule recurring STS job. " + countDownLatch.toString());
-      } else {
-        logger.debug(String.format("uuid=%s; latch=%s", uuid, countDownLatch.toString()));
-        scheduledDefaultStsJob = quotaManager.getStsJobFuture(uuid).get();
-        quotaManager.removeStsJobFuture(uuid);
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      logger.error("Failed to schedule recurring STS job. " + e.getMessage());
-    }
-
-    return scheduledDefaultStsJob;
+    return client.transferJobs().create(transferJob).execute();
   }
 
   /**
@@ -242,33 +198,61 @@ public class StsUtil {
    *
    * @param client the {@link Storagetransfer} client to use for the request
    * @param projectId a {@link String} of the project ID to search
-   * @param jobNames a {@link List} of job names to retrieve
+   * @param retentionJobs a {@link List} of jobs to retrieve
    * @return a {@link List} of {@link Operation} objects associated with the given jobs
    */
   public static List<Operation> getSubmittedStsJobs(
-      Storagetransfer client, String projectId, List<String> jobNames) {
+      Storagetransfer client, String projectId, List<RetentionJob> retentionJobs) {
 
     List<Operation> operations = new ArrayList<>();
+    Set<String> jobNames = new HashSet<>();
 
-    try {
-      Storagetransfer.TransferOperations.List operationRequest =
-          client
-              .transferOperations()
-              .list(TRANSFER_OPERATION_STRING)
-              .setFilter(buildOperationFilterString(projectId, jobNames));
+    for (RetentionJob job : retentionJobs) {
 
-      ListOperationsResponse operationResponse;
-      do {
-        operationResponse = operationRequest.execute();
-        if (operationResponse.getOperations() == null) {
+      try {
+        if (jobNames.contains(job.getName())) {
           continue;
+        } else {
+          jobNames.add(job.getName());
+        }
+        List<String> jobNameList = new ArrayList<>();
+        jobNameList.add(job.getName());
+        Storagetransfer.TransferOperations.List operationRequest =
+            client
+                .transferOperations()
+                .list(TRANSFER_OPERATION_STRING)
+                .setFilter(buildOperationFilterString(projectId, jobNameList))
+                .setPageSize(5);
+
+        List<Operation> operationsPerJob = operationRequest.execute().getOperations();
+
+        Operation operationClosestToJobCreatedAtTime = null;
+        Instant closestTime = Instant.MAX;
+        for (Operation operation : operationsPerJob) {
+          if (job.getRetentionRuleType() == RetentionRuleType.DATASET
+              || job.getRetentionRuleType() == RetentionRuleType.USER) {
+            operationClosestToJobCreatedAtTime = operation;
+            break;
+          } else {
+            String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
+            Instant operationStartTime = Instant.parse(opeationStartTimeString);
+            Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
+            if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
+              if (operationClosestToJobCreatedAtTime == null
+                  || operationStartTime.isBefore(closestTime)) {
+                operationClosestToJobCreatedAtTime = operation;
+                closestTime = operationStartTime;
+              }
+            }
+          }
         }
 
-        operations.addAll(operationResponse.getOperations());
-        operationRequest.setPageToken(operationResponse.getNextPageToken());
-      } while (operationResponse.getNextPageToken() != null);
-    } catch (IOException ex) {
-      logger.error("Could not establish connection with STS: ", ex.getMessage());
+        if (operationClosestToJobCreatedAtTime != null) {
+          operations.add(operationClosestToJobCreatedAtTime);
+        }
+      } catch (IOException ex) {
+        logger.error("Could not establish connection with STS: ", ex.getMessage());
+      }
     }
 
     return operations;
@@ -376,7 +360,7 @@ public class StsUtil {
       credential = credential.createScoped(scopes);
     }
 
-    HttpRequestInitializer initializer = new RetryHttpInitializerWrapper(credential);
+    HttpRequestInitializer initializer = new RetryHttpInitializerWrapper(credential, true);
     return new Storagetransfer.Builder(httpTransport, jsonFactory, initializer)
         .setApplicationName("sdrs")
         .build();

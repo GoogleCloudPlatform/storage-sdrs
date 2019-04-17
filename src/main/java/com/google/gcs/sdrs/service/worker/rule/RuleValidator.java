@@ -16,7 +16,7 @@
  *
  */
 
-package com.google.gcs.sdrs.service.rule;
+package com.google.gcs.sdrs.service.worker.rule;
 
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;

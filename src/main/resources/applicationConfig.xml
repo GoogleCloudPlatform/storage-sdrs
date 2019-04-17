@@ -31,7 +31,6 @@
         <initialDelay>0</initialDelay>
         <frequency>60</frequency>
         <timeUnit>MINUTES</timeUnit>
-        <timezone>America/Los_Angeles</timezone>
       </ruleExecution>
       <validationService>
         <endpoint>events/validation</endpoint>
@@ -43,12 +42,12 @@
   </scheduler>
   <sts>
     <maxPrefixCount>1000</maxPrefixCount>
-    <suffix>shadow</suffix>
+    <shadowBucketName>shadow</shadowBucketName>
+    <shadowBucketNamePrefix>true</shadowBucketNamePrefix>
+    <defaultRuleExlcudePrefixList>_lock/</defaultRuleExlcudePrefixList>
     <defaultProjectId>global-default</defaultProjectId>
     <defaultStorageName>global</defaultStorageName>
     <maxLookBackInDays>365</maxLookBackInDays>
-    <throttleLimit>30</throttleLimit>
-    <throttleInterval>100000</throttleInterval>
   </sts>
   <pubsub>
     <topic>${SDRS_PUBSUB_TOPIC_NAME}</topic>

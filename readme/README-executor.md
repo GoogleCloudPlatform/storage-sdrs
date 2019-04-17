@@ -65,12 +65,11 @@ Additionally, a user can initiate an object deletion without a corresponding rul
 ```
 
 ## Storage Transfer Service
-SDRS is currently built to operate against Google Cloud's Storage Transfer Service. For SDRS to operate correctly, any bucket that is moved must have a "shadow" bucket created **BEFORE** a retention rule is executed. The shadow bucket should be the same name as the source bucket with a suffix appended. The suffix is configurable within SDRS.
+SDRS is currently built to operate against Google Cloud's Storage Transfer Service. For SDRS to operate correctly, any bucket that is moved must have a "shadow" bucket created **BEFORE** a retention rule is executed. The shadow bucket should be the same name as the source bucket with a suffix/prefix appended. The suffix/prefix is configurable within SDRS.
 
 For example, if objects are being moved from `gs://mybucket/dataset/2018` and the configured suffix is "shadow" there **MUST** be a bucket called `gs://mybucketshadow` for SDRS to operate successfully.
 
-NOTE: STS has a limit on the number of requests that can be sent in a given time period. SDRS includes configurable values to throttle requests in case a large number of jobs are scheduled.
-
+NOTE: STS has a limit on the number of requests that can be sent in a given time period. SDRS uses exponential backoff retry to handle the rate limit. 
 ## Scheduled Tasks
 SDRS contains a mechanism for executing certain functionality, including rule execution, validation, and notification, by periodically calling the relevant endpoints. If needed, this built in scheduler can be disabled and the endpoints can be hit directly by an external scheduler.
 
@@ -105,11 +104,11 @@ SDRS contains a mechanism for executing certain functionality, including rule ex
 * frequency: the period between calls
 * timeUnit: the time unit for the initialDelay and frequency config values
 #### Storage Transfer Service
-* maxPrefixCount: The maximum number of path prefixes to include in a single STS job. A max of 1000 is specified by GCP.
-* suffix: the configurable suffix that is used to determine the destination bucket of STS jobs
+* maxPrefixCount: the maximum number of path prefixes to include in a single STS job. A max of 1000 is specified by GCP.
+* shadowBucketName: the configurable shadow bucket name that is used to determine the destination bucket of STS jobs.
+* shadowBucketNamePrefix: whether or not the shdow bucket name is prefix or suffix. True for prefix and false for suffix. 
+* defaultRuleExlcudePrefixList: a list of pre-defined prefix exclude list for default retention rule. prefixes are separated by ";" i.e prefix1/;prefix2/
 * defaultProjectId: the project id value that denotes the GLOBAL rule
 * defaultStorageName: the dataStorageName value that denotes the GLOBAL rule
 * maxLookBackInDays: how long back the global rule will operate. This value is used to tamp down the number of prefixes passed to STS
-* throttleLimit: How many STS jobs that are sent in a given interval. STS has a limit of 100 jobs per second
-* throttleInterval: The interval used in conjunction with the throttleLimit value
 
