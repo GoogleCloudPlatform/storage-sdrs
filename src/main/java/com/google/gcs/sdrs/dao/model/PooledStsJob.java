@@ -60,6 +60,9 @@ public class PooledStsJob {
   @Column(name = "target_project")
   private String targetProject;
 
+  @Column(name = "created_at")
+  private Timestamp createdAt;
+  
   @Column(name = "updated_at")
   private Timestamp updatedAt;
 
@@ -151,4 +154,10 @@ return targetBucket;}
 
 public void setTargetBucket(String targetBucket) {
 this.targetBucket = targetBucket;}
+
+public Timestamp getCreatedAt() {
+return createdAt;}
+
+public void setCreatedAt(Timestamp createdAt) {
+this.createdAt = createdAt;}
 }
