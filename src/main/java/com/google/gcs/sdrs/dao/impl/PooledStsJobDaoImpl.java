@@ -41,9 +41,9 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
   }
 
   /**
-   * Gets all project ids associated with dataset rules
-   *
-   * @return a {@link List} of {@link String} project ids
+   * 
+   * Returns all pooled STS jobs associated to the bucket
+   * 
    */
   @Override
   public List<PooledStsJob> getAllPooledStsJobsByBucketName(
