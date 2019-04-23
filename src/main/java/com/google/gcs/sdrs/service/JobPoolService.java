@@ -28,5 +28,6 @@ public interface JobPoolService {
 	  
 	  Collection<PooledStsJob> getAllPooledStsJobsByBucketName(String sourceBucket, String sourceProject);
 	  
-	  // TODO batch create method
+	  //Boolean createJobs(Collection<PooledStsJob> pooledStsJobs);
+	  
 }

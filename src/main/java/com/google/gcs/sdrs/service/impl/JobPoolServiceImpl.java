@@ -59,7 +59,7 @@ public class JobPoolServiceImpl implements JobPoolService {
 
   @Override
   public Collection<PooledStsJob> getAllPooledStsJobsByBucketName(
-      String sourceBucket, String sourceProject) { // TODO Auto-generated method stub
-    return null;
+      String sourceBucket, String sourceProject) { 
+	 return pooledStsJobDao.getAllPooledStsJobsByBucketName(sourceBucket, sourceProject);
   }
 }
