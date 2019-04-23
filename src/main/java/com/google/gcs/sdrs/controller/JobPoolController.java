@@ -30,7 +30,7 @@ import javax.ws.rs.core.Response;
 
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateResponse;
-import com.google.gcs.sdrs.dao.model.PooledStsJob;
+import com.google.gcs.sdrs.controller.pojo.PooledJobResponse;
 import com.google.gcs.sdrs.service.JobPoolService;
 import com.google.gcs.sdrs.service.impl.JobPoolServiceImpl;
 
@@ -59,7 +59,7 @@ public class JobPoolController extends BaseController {
 
   @GET
   @Produces({MediaType.APPLICATION_JSON})
-  public Collection<PooledStsJob> getPooledJobs (@QueryParam("sourceBucket") String sourceBucket, @QueryParam("sourceProject") String sourceProject){
+  public Collection<PooledJobResponse> getPooledJobs (@QueryParam("sourceBucket") String sourceBucket, @QueryParam("sourceProject") String sourceProject){
 	  return service.getAllPooledStsJobsByBucketName(sourceBucket, sourceProject);
   }
   

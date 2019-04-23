@@ -20,13 +20,13 @@ package com.google.gcs.sdrs.service;
 import java.util.Collection;
 
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateRequest;
-import com.google.gcs.sdrs.dao.model.PooledStsJob;
+import com.google.gcs.sdrs.controller.pojo.PooledJobResponse;
 
 public interface JobPoolService {
 	
 	  Integer createJob(PooledJobCreateRequest request);
 	  
-	  Collection<PooledStsJob> getAllPooledStsJobsByBucketName(String sourceBucket, String sourceProject);
+	  Collection<PooledJobResponse> getAllPooledStsJobsByBucketName(String sourceBucket, String sourceProject);
 	  
 	  //Boolean createJobs(Collection<PooledStsJob> pooledStsJobs);
 	  
