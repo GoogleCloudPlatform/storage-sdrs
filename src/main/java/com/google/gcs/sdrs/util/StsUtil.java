@@ -326,7 +326,7 @@ public class StsUtil {
     return objectConditions;
   }
 
-  static Schedule buildSchedule(ZonedDateTime startDateTime, Boolean isOneTimeSchedule) {
+  public static Schedule buildSchedule(ZonedDateTime startDateTime, Boolean isOneTimeSchedule) {
 
     // Subtracting a day to force STS to trigger the job immediately
     Date date = convertToDate(startDateTime.toLocalDate().minusDays(1));

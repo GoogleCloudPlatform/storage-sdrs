@@ -31,12 +31,8 @@ public class JobPoolServiceImpl implements JobPoolService {
 
   @Override
   public Integer createJob(PooledJobCreateRequest request) {
-
-    // 1) TODO - potentially validate if the job already exists in the db?
-    // 2) convert to entity
     PooledStsJob pooledStsJob = convertToEntity(request);
-    // 3) save
-    pooledStsJob.setId(pooledStsJobDao.save(pooledStsJob));
+    pooledStsJob.setId(pooledStsJobDao.save(pooledStsJob)); 
     return pooledStsJob.getId();
   }
 

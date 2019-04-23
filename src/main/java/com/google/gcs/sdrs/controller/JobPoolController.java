@@ -27,12 +27,13 @@ import javax.ws.rs.core.Response;
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateResponse;
 import com.google.gcs.sdrs.service.JobPoolService;
+import com.google.gcs.sdrs.service.impl.JobPoolServiceImpl;
 
 /** Controller for handling /jobpool endpoints to manage STS job pooling. */
 @Path("/jobpool")
 public class JobPoolController extends BaseController {
 
-  JobPoolService service; // TODO need to wire up the instantiation via a factory
+  JobPoolService service = new JobPoolServiceImpl(); // TODO need to wire up the instantiation via a factory
 
   /** CRUD create endpoint */
   @POST
