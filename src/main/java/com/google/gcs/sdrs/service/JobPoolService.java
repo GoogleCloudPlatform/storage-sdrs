@@ -26,8 +26,10 @@ public interface JobPoolService {
 	
 	  Integer createJob(PooledJobCreateRequest request);
 	  
+	  Boolean createJobs(Collection<PooledJobCreateRequest> pooledStsJobs);
+	  
 	  Collection<PooledJobResponse> getAllPooledStsJobsByBucketName(String sourceBucket, String sourceProject);
 	  
-	  //Boolean createJobs(Collection<PooledStsJob> pooledStsJobs);
+	  Boolean deleteAllJobsByBucketName(String sourceBucket, String sourceProject);
 	  
 }

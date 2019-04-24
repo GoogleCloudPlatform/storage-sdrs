@@ -34,9 +34,35 @@ public class JobPoolServiceImpl implements JobPoolService {
   @Override
   public Integer createJob(PooledJobCreateRequest request) {
     PooledStsJob pooledStsJob = convertToEntity(request);
-    pooledStsJob.setId(pooledStsJobDao.save(pooledStsJob)); 
+    pooledStsJob.setId(pooledStsJobDao.save(pooledStsJob));
     return pooledStsJob.getId();
   }
+
+  @Override
+  public Boolean createJobs(Collection<PooledJobCreateRequest> pooledJobCreateRequests) {
+    for (PooledJobCreateRequest pooledJobCreateRequest : pooledJobCreateRequests) {
+      pooledStsJobDao.save(convertToEntity(pooledJobCreateRequest));
+    }
+    return true;
+  }
+  
+  @Override
+  public Collection<PooledJobResponse> getAllPooledStsJobsByBucketName(
+      String sourceBucket, String sourceProject) {
+    Collection<PooledStsJob> pooledStsJobs =
+        pooledStsJobDao.getAllPooledStsJobsByBucketName(sourceBucket, sourceProject);
+    Collection<PooledJobResponse> pooledJobResponses = new ArrayList<PooledJobResponse>();
+    for (PooledStsJob pooledStsJob : pooledStsJobs) {
+      pooledJobResponses.add(convertToPojo(pooledStsJob));
+    }
+    return pooledJobResponses;
+  }
+  
+
+@Override 
+public Boolean deleteAllJobsByBucketName(String sourceBucket,String sourceProject) {
+	return pooledStsJobDao.deleteAllJobsByBucketName(sourceBucket, sourceProject);
+}
 
   protected PooledStsJob convertToEntity(PooledJobCreateRequest request) {
     // TODO refactor: introduce bean converter
@@ -51,47 +77,37 @@ public class JobPoolServiceImpl implements JobPoolService {
     return pooledStsJob;
   }
 
-  public PooledStsJobDao getPooledStsJobDao() {
-    return pooledStsJobDao;
-  }
-
-  public void setPooledStsJobDao(PooledStsJobDao stsJobPoolDao) {
-    this.pooledStsJobDao = stsJobPoolDao;
-  }
-
-  @Override
-  public Collection<PooledJobResponse> getAllPooledStsJobsByBucketName(
-      String sourceBucket, String sourceProject) { 
-	  Collection<PooledStsJob> pooledStsJobs = pooledStsJobDao.getAllPooledStsJobsByBucketName(sourceBucket, sourceProject);
-	  Collection<PooledJobResponse> pooledJobResponses = new ArrayList<PooledJobResponse>();
-	  for(PooledStsJob pooledStsJob: pooledStsJobs) {
-		  pooledJobResponses.add(convertToPojo(pooledStsJob));
-	  }
-	 return pooledJobResponses;
-  }
-  
   /**
    * TODO refactor using bean utils
+   *
    * @param pooledStsJob
    * @return
    */
-  private PooledJobResponse convertToPojo (PooledStsJob pooledStsJob) {
-	  if (pooledStsJob == null) {
-		  return null;
-	  } 
-	  PooledJobResponse pooledJobResponse = new PooledJobResponse();
-	  pooledJobResponse.setId(pooledStsJob.getId());
-	  pooledJobResponse.setName(pooledStsJob.getName());
-	  pooledJobResponse.setProjectId(pooledStsJob.getProjectId());
-	  pooledJobResponse.setSchedule(pooledStsJob.getSchedule());
-	  pooledJobResponse.setType(pooledStsJob.getType());
-	  pooledJobResponse.setSourceBucket(pooledStsJob.getSourceBucket());
-	  pooledJobResponse.setSourceProject(pooledStsJob.getSourceProject());
-	  pooledJobResponse.setTargetBucket(pooledStsJob.getTargetBucket());
-	  pooledJobResponse.setTargetProject(pooledStsJob.getTargetProject());
-	  pooledJobResponse.setCreatedAt(pooledStsJob.getCreatedAt());
-	  pooledJobResponse.setUpdatedAt(pooledStsJob.getUpdatedAt());
-	  pooledJobResponse.setStatus(pooledStsJob.getStatus());
-	  return pooledJobResponse;
+  private PooledJobResponse convertToPojo(PooledStsJob pooledStsJob) {
+    if (pooledStsJob == null) {
+      return null;
+    }
+    PooledJobResponse pooledJobResponse = new PooledJobResponse();
+    pooledJobResponse.setId(pooledStsJob.getId());
+    pooledJobResponse.setName(pooledStsJob.getName());
+    pooledJobResponse.setProjectId(pooledStsJob.getProjectId());
+    pooledJobResponse.setSchedule(pooledStsJob.getSchedule());
+    pooledJobResponse.setType(pooledStsJob.getType());
+    pooledJobResponse.setSourceBucket(pooledStsJob.getSourceBucket());
+    pooledJobResponse.setSourceProject(pooledStsJob.getSourceProject());
+    pooledJobResponse.setTargetBucket(pooledStsJob.getTargetBucket());
+    pooledJobResponse.setTargetProject(pooledStsJob.getTargetProject());
+    pooledJobResponse.setCreatedAt(pooledStsJob.getCreatedAt());
+    pooledJobResponse.setUpdatedAt(pooledStsJob.getUpdatedAt());
+    pooledJobResponse.setStatus(pooledStsJob.getStatus());
+    return pooledJobResponse;
   }
+
+  public PooledStsJobDao getPooledStsJobDao() {
+	    return pooledStsJobDao;
+	  }
+
+	  public void setPooledStsJobDao(PooledStsJobDao stsJobPoolDao) {
+	    this.pooledStsJobDao = stsJobPoolDao;
+	  }
 }

@@ -20,10 +20,12 @@ package com.google.gcs.sdrs.dao.impl;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,4 +66,24 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
     closeSession(session);
     return result;
   }
+
+@Override 
+public Boolean deleteAllJobsByBucketName(String sourceBucket, String sourceProject) {
+	
+	 Session session = openSession();
+	    CriteriaBuilder builder = session.getCriteriaBuilder();
+	    Transaction transaction = session.beginTransaction();
+	CriteriaDelete<PooledStsJob> delete = builder.createCriteriaDelete(PooledStsJob.class);
+	 Root<PooledStsJob> root = delete.from(PooledStsJob.class);
+	 
+	 delete
+	    .where(
+	        builder.equal(root.get("sourceBucket"), sourceBucket),
+	        builder.equal(root.get("sourceProject"), sourceProject));
+	 
+	    session.createQuery(delete)
+	    .executeUpdate();
+	    closeSessionWithTransaction(session, transaction);
+	    return true;
+	}
 }

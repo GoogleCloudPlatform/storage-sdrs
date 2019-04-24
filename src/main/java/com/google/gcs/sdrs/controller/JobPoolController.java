@@ -20,6 +20,7 @@ package com.google.gcs.sdrs.controller;
 import java.util.Collection;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -30,12 +31,13 @@ import javax.ws.rs.core.Response;
 
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateResponse;
+import com.google.gcs.sdrs.controller.pojo.PooledJobDeleteResponse;
 import com.google.gcs.sdrs.controller.pojo.PooledJobResponse;
 import com.google.gcs.sdrs.service.JobPoolService;
 import com.google.gcs.sdrs.service.impl.JobPoolServiceImpl;
 
 /** Controller for handling /jobpool endpoints to manage STS job pooling. */
-@Path("/jobpool")
+@Path("/stsjobpool")
 public class JobPoolController extends BaseController {
 
   JobPoolService service = new JobPoolServiceImpl(); // TODO need to wire up the instantiation via a factory
@@ -56,6 +58,25 @@ public class JobPoolController extends BaseController {
       return errorResponse(exception);
     }
   }
+  
+  /** CRUD create endpoint */
+  @POST
+  @Path("/batch")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response createByBatch(PooledJobCreateRequest request) {
+    try {
+      validate(request);
+
+      Integer id = service.createJob(request);
+      PooledJobCreateResponse response = new PooledJobCreateResponse();
+      response.setSuccess(true);
+      return successResponse(response);
+    } catch (Exception exception) {
+      return errorResponse(exception);
+    }
+  }
+  
 
   @GET
   @Produces({MediaType.APPLICATION_JSON})
@@ -63,12 +84,36 @@ public class JobPoolController extends BaseController {
 	  return service.getAllPooledStsJobsByBucketName(sourceBucket, sourceProject);
   }
   
+  /** CRUD delete endpoint */
+  @DELETE
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response delete(@QueryParam("sourceBucket") String sourceBucket, @QueryParam("sourceProject") String sourceProject) {
+    try {
+      validateDelete(sourceBucket, sourceProject);
+
+      Boolean success = service.deleteAllJobsByBucketName(sourceBucket, sourceProject);
+      PooledJobDeleteResponse response = new PooledJobDeleteResponse();
+      response.setSuccess(success);
+      return successResponse(response);
+    } catch (Exception exception) {
+      return errorResponse(exception);
+    }
+  }
   
   /**
    * @param request
    * @throws ValidationException
    */
   private void validate(PooledJobCreateRequest request) throws ValidationException {
+    // TODO
+  }
+  
+  /**
+   * @param request
+   * @throws ValidationException
+   */
+  private void validateDelete(String sourceBucket, String sourceProject) throws ValidationException {
     // TODO
   }
 }
