@@ -24,6 +24,7 @@ import com.google.gcs.sdrs.controller.pojo.PooledJobResponse;
 import com.google.gcs.sdrs.service.JobPoolService;
 import com.google.gcs.sdrs.service.impl.JobPoolServiceImpl;
 import java.util.Collection;
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -42,7 +43,7 @@ public class JobPoolController extends BaseController {
   JobPoolService jobPoolService =
       new JobPoolServiceImpl(); // TODO need to wire up the instantiation via a factory
 
-  /** CRUD create endpoint */
+ /* *//** CRUD create endpoint *//*
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -57,18 +58,16 @@ public class JobPoolController extends BaseController {
     } catch (Exception exception) {
       return errorResponse(exception);
     }
-  }
+  }*/
 
   /** CRUD create batch endpoint */
   @POST
-  @Path("/batch")
+  //@Path("/batch")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response createByBatch(PooledJobCreateRequest request) {
+  public Response createByBatch(List<PooledJobCreateRequest> requests) {
     try {
-      // validate(request);
-      Collection<PooledJobCreateRequest> pooledJobCreateRequests = null;
-      Boolean success = jobPoolService.createJobs(pooledJobCreateRequests);
+      Boolean success = jobPoolService.createJobs(requests);
       PooledJobCreateResponse response = new PooledJobCreateResponse();
       response.setSuccess(success);
       return successResponse(response);

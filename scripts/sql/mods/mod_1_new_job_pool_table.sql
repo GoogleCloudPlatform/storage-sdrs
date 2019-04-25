@@ -1,4 +1,4 @@
-CREATE TABLE `pooled_sts_job` (
+CREATE TABLE `sts_job_pool` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(256) NOT NULL,
   `project_id` varchar(256) NOT NULL,
