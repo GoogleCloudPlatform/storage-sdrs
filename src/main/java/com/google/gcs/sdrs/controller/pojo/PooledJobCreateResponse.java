@@ -19,6 +19,7 @@ package com.google.gcs.sdrs.controller.pojo;
 
 public class PooledJobCreateResponse extends BaseHttpResponse {
 
+  private int id;
   private boolean success;
 
   public boolean isSuccess() {
@@ -27,5 +28,13 @@ public class PooledJobCreateResponse extends BaseHttpResponse {
 
   public void setSuccess(boolean success) {
     this.success = success;
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
   }
 }

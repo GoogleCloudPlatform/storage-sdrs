@@ -29,8 +29,8 @@ public class PooledJobCreateRequest implements Serializable {
   private String type;
   private String sourceBucket;
   private String sourceProject;
-  private String targetBucket; // Optional
-  private String targetProject; // Optional
+  private String targetBucket;
+  private String targetProject;
 
   public String getName() {
     return name;
