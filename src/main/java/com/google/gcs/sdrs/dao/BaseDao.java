@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.dao;
 
+import com.google.gcs.sdrs.dao.model.StsJobPool;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -82,13 +83,14 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
         registryBuilder.applySetting(HIBERNATE_CONNECTION_PASSWORD_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_PASSWORD_ENV));
         registry = registryBuilder.build();
 
-
+        // TODO - refactor to remove this hardcoded strategy
         // Create Metadata
         Metadata metadata =
             new MetadataSources(registry)
                 .addAnnotatedClass(RetentionRule.class)
                 .addAnnotatedClass(RetentionJob.class)
                 .addAnnotatedClass(RetentionJobValidation.class)
+                .addAnnotatedClass(StsJobPool.class)
                 .getMetadataBuilder()
                 .build();
 
