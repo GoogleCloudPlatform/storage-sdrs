@@ -17,8 +17,10 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.SdrsApplication;
+import com.google.gcs.sdrs.common.RetentionRuleType;
+import com.google.gcs.sdrs.common.RetentionUnitType;
+import com.google.gcs.sdrs.common.RetentionValue;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
@@ -26,9 +28,11 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
+import com.google.gcs.sdrs.dao.converter.DataStorageType;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.service.manager.JobManager;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import java.sql.SQLException;
 import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
@@ -42,8 +46,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   private static final String DEFAULT_PROJECT_ID = "global-default";
   private static final String DEFAULT_STORAGE_NAME = "global";
   private static final String DEFAULT_UNKNOWN_USER = "unknown";
-  private static String defaultProjectId;
-  private static String defaultStorageName;
+  private String defaultProjectId;
+  private String defaultStorageName;
 
   private static final Logger logger = LoggerFactory.getLogger(RetentionRulesServiceImpl.class);
 
@@ -69,7 +73,8 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     String userName = user.getEmail() == null ? DEFAULT_UNKNOWN_USER : user.getEmail();
 
     RetentionRule existing =
-        ruleDao.findByBusinessKey(rule.getProjectId(), rule.getDataStorageName(), true);
+        ruleDao.findByBusinessKey(
+            rule.getProjectId(), rule.getDataStorageName(), true, rule.getRetentionRuleType());
 
     RetentionRule newRule;
     if (existing == null) {
@@ -107,8 +112,9 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
    */
   @Override
   public RetentionRuleResponse getRetentionRuleByBusinessKey(
-      String projectId, String dataStorageName) {
-    RetentionRule rule = ruleDao.findByBusinessKey(projectId, dataStorageName);
+      String projectId, String dataStorageName, RetentionRuleType retentionRuleType) {
+    RetentionRule rule =
+        ruleDao.findByBusinessKey(projectId, dataStorageName, true, retentionRuleType);
     if (rule == null) {
       throw new EntityNotFoundException(
           String.format(
@@ -131,12 +137,13 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
     RetentionRule entity = ruleDao.findById(ruleId);
 
-    if (entity == null) {
+    if (entity == null || !entity.getIsActive()) {
       throw new SQLException(String.format("No rule exists with ID: %s", ruleId));
     }
 
     entity.setVersion(entity.getVersion() + 1);
-    entity.setRetentionPeriodInDays(request.getRetentionPeriod());
+    entity.setRetentionValue(
+        buildRetentionValue(request.getRetentionPeriod(), RetentionValue.parse(entity.getRetentionValue()).getUnitTypeString()));
 
     ruleDao.update(entity);
 
@@ -144,8 +151,10 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
   }
 
   @Override
-  public Integer deleteRetentionRuleByBusinessKey(String projectId, String dataStorageName) {
-    RetentionRule rule = ruleDao.findByBusinessKey(projectId, dataStorageName);
+  public Integer deleteRetentionRuleByBusinessKey(
+      String projectId, String dataStorageName, RetentionRuleType retentionRuleType) {
+    RetentionRule rule =
+        ruleDao.findByBusinessKey(projectId, dataStorageName, false, retentionRuleType);
     if (rule != null) {
       int deletedRule = ruleDao.softDelete(rule);
       return deletedRule;
@@ -164,13 +173,25 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     return entity;
   }
 
+  private String buildRetentionValue(int retentionPeroid, String unitType) {
+    RetentionUnitType type = RetentionUnitType.getType(unitType);
+    String typeStr = RetentionUnitType.DAY.toDatabaseRepresentation();
+    if (type != null) {
+      typeStr = type.toDatabaseRepresentation();
+    }
+    return String.format("%s:%s", String.valueOf(retentionPeroid), typeStr);
+  }
+
   private void updateUserInputValues(
       RetentionRuleCreateRequest pojo, String user, RetentionRule entity) {
     // Map over input values
     entity.setDataStorageName(pojo.getDataStorageName());
     entity.setProjectId(pojo.getProjectId());
-    entity.setRetentionPeriodInDays(pojo.getRetentionPeriod());
     entity.setType(pojo.getRetentionRuleType());
+    entity.setRetentionValue(
+        buildRetentionValue(pojo.getRetentionPeriod(), pojo.getRetentionPeriodUnit()));
+    entity.setDataStorageRoot(RetentionUtil.getBucketName(pojo.getDataStorageName()));
+    entity.setDataStorageType(DataStorageType.GOOGLE_CLOUD_STORAGE.toDatabaseRepresentation());
 
     String datasetName = pojo.getDatasetName();
     if (datasetName == null) {
@@ -195,9 +216,13 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     response.setDatasetName(rule.getDatasetName());
     response.setDataStorageName(rule.getDataStorageName());
     response.setProjectId(rule.getProjectId());
-    response.setRetentionPeriod(rule.getRetentionPeriodInDays());
     response.setRuleId(rule.getId());
     response.setType(rule.getType());
+    RetentionValue retentionValue = RetentionValue.parse(rule.getRetentionValue());
+    if (retentionValue != null ) {
+      response.setRetentionPeriodUnit(retentionValue.getUnitTypeString());
+      response.setRetentionPeriod(retentionValue.getNumber());
+    }
 
     return response;
   }
@@ -216,4 +241,5 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       return bucketAndDataset[0];
     }
   }
+
 }

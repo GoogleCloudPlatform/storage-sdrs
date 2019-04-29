@@ -19,8 +19,7 @@
 package com.google.gcs.sdrs.controller.pojo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.RetentionRuleType;
-
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import java.io.Serializable;
 
 /** POJO Tracking JSON input fields/types for creating a retention rule */
@@ -29,6 +28,7 @@ public class RetentionRuleCreateRequest implements Serializable {
   private static final long serialVersionUID = -6338592900101329098L;
   private String datasetName;
   private Integer retentionPeriod;
+  private String retentionPeriodUnit;
   private String dataStorageName;
   private String projectId;
 
@@ -73,5 +73,13 @@ public class RetentionRuleCreateRequest implements Serializable {
 
   public void setRetentionRuleType(RetentionRuleType retentionRuleType) {
     this.retentionRuleType = retentionRuleType;
+  }
+
+  public String getRetentionPeriodUnit() {
+    return retentionPeriodUnit;
+  }
+
+  public void setRetentionPeriodUnit(String retentionPeriodUnit) {
+    this.retentionPeriodUnit = retentionPeriodUnit;
   }
 }

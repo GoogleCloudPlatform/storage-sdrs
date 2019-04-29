@@ -20,15 +20,19 @@ package com.google.gcs.sdrs.service.worker.rule.impl;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
+import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
-import com.google.gcs.sdrs.RetentionRuleType;
 import com.google.gcs.sdrs.SdrsApplication;
+import com.google.gcs.sdrs.common.RetentionRuleType;
+import com.google.gcs.sdrs.common.RetentionValue;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+import com.google.gcs.sdrs.dao.PooledStsJobDao;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.dao.model.StsJobPool;
 import com.google.gcs.sdrs.service.worker.rule.RuleExecutor;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
@@ -37,6 +41,7 @@ import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,19 +62,23 @@ public class StsRuleExecutor implements RuleExecutor {
   public static StsRuleExecutor instance;
   static CredentialsUtil credentialsUtil = CredentialsUtil.getInstance();
 
-  private final String DEFAULT_SHADOW_BUCKET_NAME = "shadow";
+  private final String DEFAULT_SHADOW_BUCKET_EXTENSION = "shadow";
   private final String DEFAULT_PROJECT_ID = "global-default";
   private final String DEFAULT_MAX_PREFIX_COUNT = "1000";
   private final String DEFAULT_LOOKBACK_IN_DAYS = "365";
-  private final String[] DEFAULT_LOG_CAT_BUCKET_PREFIX = {"2017/", "2018/", "2019/", "2020/"};
+  private final String[] DEFAULT_LOG_CAT_BUCKET_PREFIX = {
+    "2017/", "2018/", "2019/", "2020/", "2021"
+  };
   private final String JOB_TYPE_STS = "STS";
-  private String shadowBucketName;
-  private boolean isShadowBucetNamePrefix;
+  private String shadowBucketExtension;
+  private boolean isShadowBucketExtensionPrefix;
   private String defaultProjectId;
   private int maxPrefixCount;
   private int lookBackInDays;
+  private boolean isStsJobPoolOnly;
   Storagetransfer client;
   RetentionJobDao retentionJobDao;
+  PooledStsJobDao stsJobDao;
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
 
@@ -92,10 +101,14 @@ public class StsRuleExecutor implements RuleExecutor {
    * @throws IOException when the STS Client cannot be instantiated
    */
   private StsRuleExecutor() throws IOException {
-    shadowBucketName =
-        SdrsApplication.getAppConfigProperty("sts.shadowBucketName", DEFAULT_SHADOW_BUCKET_NAME);
-    isShadowBucetNamePrefix =
-        Boolean.valueOf(SdrsApplication.getAppConfigProperty("sts.shadowBucketNamePrefix", "true"));
+    isStsJobPoolOnly =
+        Boolean.valueOf(SdrsApplication.getAppConfigProperty("sts.jobPoolOnly", "true"));
+    shadowBucketExtension =
+        SdrsApplication.getAppConfigProperty(
+            "sts.shadowBucketExtension", DEFAULT_SHADOW_BUCKET_EXTENSION);
+    isShadowBucketExtensionPrefix =
+        Boolean.valueOf(
+            SdrsApplication.getAppConfigProperty("sts.shadowBucketExtensionPrefix", "true"));
     maxPrefixCount =
         Integer.valueOf(
             SdrsApplication.getAppConfigProperty("sts.maxPrefixCount", DEFAULT_MAX_PREFIX_COUNT));
@@ -109,6 +122,7 @@ public class StsRuleExecutor implements RuleExecutor {
     GoogleCredential credentials = credentialsUtil.getCredentials();
     client = StsUtil.createStsClient(credentials);
     retentionJobDao = SingletonDao.getRetentionJobDao();
+    stsJobDao = SingletonDao.getPooledStsJobDao();
   }
 
   /**
@@ -156,9 +170,9 @@ public class StsRuleExecutor implements RuleExecutor {
 
       String sourceBucket = bucketName;
       String destinationBucket =
-          buildDestinationBucketName(bucketName, shadowBucketName, isShadowBucetNamePrefix);
-      String description =
-          buildDescription(RetentionRuleType.USER.toString(), null, zonedDateTimeNow);
+          buildDestinationBucketName(
+              bucketName, shadowBucketExtension, isShadowBucketExtensionPrefix);
+      String description = buildDescription(RetentionRuleType.USER.toString(), null, null);
 
       logger.debug(
           String.format(
@@ -217,6 +231,7 @@ public class StsRuleExecutor implements RuleExecutor {
     for (String bucketName : bucketDatasetMap.keySet()) {
       ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
       List<String> prefixes = new ArrayList<>();
+      Map<String, List<String>> prefixesPerDatasetMap = new HashMap<>();
 
       // create prefixes from all dataset rules for a bucket
       for (RetentionRule datasetRule : bucketDatasetMap.get(bucketName)) {
@@ -225,44 +240,63 @@ public class StsRuleExecutor implements RuleExecutor {
           continue;
         }
 
-        prefixes.addAll(
+        List<String> tmpPrefixes =
             PrefixGeneratorUtility.generateTimePrefixes(
                 RetentionUtil.getDatasetPath(datasetRule.getDataStorageName()),
                 zonedDateTimeNow.minusDays(lookBackInDays),
-                zonedDateTimeNow.minusDays(datasetRule.getRetentionPeriodInDays())));
+                zonedDateTimeNow.minusDays(
+                    RetentionValue.convertValue(
+                        RetentionValue.parse(datasetRule.getRetentionValue()))));
+        prefixesPerDatasetMap.put(datasetRule.getDataStorageName(), tmpPrefixes);
+        prefixes.addAll(tmpPrefixes);
       }
 
       String sourceBucket = bucketName;
       String destinationBucket =
-          buildDestinationBucketName(bucketName, shadowBucketName, isShadowBucetNamePrefix);
+          buildDestinationBucketName(
+              bucketName, shadowBucketExtension, isShadowBucketExtensionPrefix);
       String description =
           buildDescription(
-              RetentionRuleType.DATASET.toString(),
-              bucketDatasetMap.get(bucketName),
-              zonedDateTimeNow);
+              RetentionRuleType.DATASET.toString(), bucketDatasetMap.get(bucketName), null);
 
-      logger.debug(
+      logger.info(
           String.format(
-              "Creating STS job with projectId: %s, "
+              "Scheduling dataset STS job with projectId: %s, "
                   + "description: %s, source: %s, destination: %s",
               projectId, description, sourceBucket, destinationBucket));
 
       TransferJob job = null;
       try {
-        job =
-            StsUtil.createStsJob(
-                client,
+        TransferJob stsPooledJob =
+            findPooledJob(
                 projectId,
-                sourceBucket,
-                destinationBucket,
-                prefixes,
-                description,
-                zonedDateTimeNow);
+                bucketName,
+                getNextScheduledAt(zonedDateTimeNow, 1),
+                RetentionRuleType.DATASET);
+        if (stsPooledJob == null && !isStsJobPoolOnly) {
+          job =
+              StsUtil.createStsJob(
+                  client,
+                  projectId,
+                  sourceBucket,
+                  destinationBucket,
+                  prefixes,
+                  description,
+                  zonedDateTimeNow);
+        } else {
+          TransferJob jobToUpdate = new TransferJob();
+          jobToUpdate
+              .setDescription(description)
+              .setTransferSpec(
+                  StsUtil.buildTransferSpec(sourceBucket, destinationBucket, prefixes, false, null))
+              .setStatus(StsUtil.STS_ENABLED_STRING);
+          job = StsUtil.updateExistingJob(client, jobToUpdate, stsPooledJob.getName(), projectId);
+        }
       } catch (IOException e) {
         logger.error(
             String.format(
-                "Failed to create dataset STS job for project %s bucket %s",
-                projectId, sourceBucket));
+                "Failed to schedule dataset STS job for %s/%s. %s",
+                projectId, sourceBucket, e.getMessage()));
       }
 
       String jobName = null;
@@ -271,7 +305,12 @@ public class StsRuleExecutor implements RuleExecutor {
       }
 
       for (RetentionRule datasetRule : bucketDatasetMap.get(bucketName)) {
-        datasetRuleJobs.add(buildRetentionJobEntity(jobName, datasetRule, null));
+        datasetRuleJobs.add(
+            buildRetentionJobEntity(
+                jobName,
+                datasetRule,
+                convertPrefixToString(
+                    prefixesPerDatasetMap.get(datasetRule.getDataStorageName()))));
       }
     }
 
@@ -307,7 +346,8 @@ public class StsRuleExecutor implements RuleExecutor {
     for (String bucketName : bucketsToProcess) {
       String fullSourceBucket = ValidationConstants.STORAGE_PREFIX + bucketName;
       String destinationBucket =
-          buildDestinationBucketName(bucketName, shadowBucketName, isShadowBucetNamePrefix);
+          buildDestinationBucketName(
+              bucketName, shadowBucketExtension, isShadowBucketExtensionPrefix);
       List<String> prefixesToExclude = buildPrefixesToExclude(prefixesToExcludeMap, bucketName);
 
       RetentionRule defaultRule = defaultRuleMap.get(bucketName);
@@ -322,7 +362,6 @@ public class StsRuleExecutor implements RuleExecutor {
             applyDefaultRulePerBucket(
                 defaultRule,
                 scheduledTime,
-                fullSourceBucket,
                 projectId,
                 bucketName,
                 destinationBucket,
@@ -339,7 +378,8 @@ public class StsRuleExecutor implements RuleExecutor {
           defaultRule.setProjectId(projectId);
           defaultRule.setDataStorageName(fullSourceBucket);
         }
-        RetentionJob defaultRetentionJob = buildRetentionJobEntity(jobName, defaultRule, null);
+        RetentionJob defaultRetentionJob =
+            buildRetentionJobEntity(jobName, defaultRule, convertPrefixToString(prefixesToExclude));
         defaultRuleJobs.add(defaultRetentionJob);
       }
     }
@@ -349,22 +389,22 @@ public class StsRuleExecutor implements RuleExecutor {
 
   private List<String> buildPrefixesToExclude(
       final Map<String, Set<String>> prefixesToExcludeMap, String bucketName) {
-    List<String> prefixesToExclude = null;
-    if (prefixesToExcludeMap.containsKey(bucketName)) {
-      prefixesToExclude = new ArrayList<>(prefixesToExcludeMap.get(bucketName));
-      if (prefixesToExclude.isEmpty()) {
-        prefixesToExclude.addAll(Arrays.asList(DEFAULT_LOG_CAT_BUCKET_PREFIX));
-      }
-    } else {
-      prefixesToExclude = new ArrayList<>();
-      // we have to add a "fake" no-op exclude prefix. otherwise STS throws an error.
-      prefixesToExclude.add(UUID.randomUUID().toString() + "_NOOP_EXCLUDE_PREFIX/");
-    }
-
+    List<String> prefixesToExclude = new ArrayList<>();
     String predDefinedList =
         SdrsApplication.getAppConfigProperty("sts.defaultRuleExlcudePrefixList");
     if (predDefinedList != null && !predDefinedList.isEmpty()) {
       prefixesToExclude.addAll(Arrays.asList(predDefinedList.split(";")));
+    }
+    if (prefixesToExcludeMap.containsKey(bucketName)) {
+      prefixesToExclude.addAll(prefixesToExcludeMap.get(bucketName));
+      if (prefixesToExclude.isEmpty()) {
+        // we have bucket that has one implied dataset. i.e 2018/, 2019, 2020/ are at the root of
+        // the bucket
+        prefixesToExclude.addAll(Arrays.asList(DEFAULT_LOG_CAT_BUCKET_PREFIX));
+      }
+    } else if (predDefinedList == null || predDefinedList.isEmpty()) {
+      // we have to add a "fake" no-op exclude prefix. otherwise STS throws an error.
+      prefixesToExclude.add(UUID.randomUUID().toString() + "_NOOP_EXCLUDE_PREFIX/");
     }
 
     return prefixesToExclude;
@@ -375,60 +415,65 @@ public class StsRuleExecutor implements RuleExecutor {
     return isPrefix ? appended + sourceBucketName : sourceBucketName + appended;
   }
 
-  private void upcateDefaultJobIfNeeded(
+  private TransferJob upcateDefaultJobIfNeeded(
       TransferJob existingTransferJob,
       RetentionRule defaultRule,
       List<String> prefixesToExclude,
-      String description) {
+      String description)
+      throws IOException {
+
+    if (existingTransferJob == null) {
+      return null;
+    }
     TransferSpec transferSpec = existingTransferJob.getTransferSpec();
+    ObjectConditions objectConditions = transferSpec.getObjectConditions();
+    if (objectConditions == null) {
+      objectConditions = new ObjectConditions();
+      transferSpec.setObjectConditions(objectConditions);
+    }
 
     boolean retentionPeriodChanged = false;
     boolean prefixesToExcludeChanged = false;
 
-    // Check if retention period changed
-    String existingRetention =
-        transferSpec.getObjectConditions().getMinTimeElapsedSinceLastModification();
-    String updatedRetention =
-        StsUtil.convertRetentionInDaysToDuration(defaultRule.getRetentionPeriodInDays());
+    TransferJob updatedJob = existingTransferJob;
 
-    if (!existingRetention.equals(updatedRetention)) {
-      transferSpec.getObjectConditions().setMinTimeElapsedSinceLastModification(updatedRetention);
+    // Check if retention period changed
+    String existingRetention = objectConditions.getMinTimeElapsedSinceLastModification();
+    String updatedRetention =
+        StsUtil.convertRetentionInDaysToDuration(
+            RetentionValue.convertValue(RetentionValue.parse(defaultRule.getRetentionValue())));
+
+    if (existingRetention == null || !existingRetention.equals(updatedRetention)) {
+      objectConditions.setMinTimeElapsedSinceLastModification(updatedRetention);
       retentionPeriodChanged = true;
     }
 
     // check if prefixes to exclude changed
-    List<String> existingExcludePrefixList =
-        transferSpec.getObjectConditions().getExcludePrefixes();
+    List<String> existingExcludePrefixList = objectConditions.getExcludePrefixes();
     List<String> updatedPrefixesToExclude = prefixesToExclude;
 
     if (!isSamePrefixList(existingExcludePrefixList, updatedPrefixesToExclude)) {
-      transferSpec.getObjectConditions().setExcludePrefixes(updatedPrefixesToExclude);
+      objectConditions.setExcludePrefixes(updatedPrefixesToExclude);
       prefixesToExcludeChanged = true;
     }
 
     // only update if the retention period or prefix list has changed
     if (retentionPeriodChanged || prefixesToExcludeChanged) {
       // Build transfer job object
-      TransferJob updatedJob = new TransferJob();
-
+      updatedJob = new TransferJob();
+      updatedJob.setName(existingTransferJob.getName());
       updatedJob.setDescription(description);
       updatedJob.setTransferSpec(transferSpec);
       updatedJob.setStatus("ENABLED");
-      try {
-        StsUtil.updateExistingJob(
-            client, updatedJob, existingTransferJob.getName(), existingTransferJob.getProjectId());
-      } catch (IOException e) {
-        logger.error(
-            "Failed update existing STS job %s for project %s %s",
-            existingTransferJob.getName(), existingTransferJob.getProjectId(), e.getMessage());
-      }
+      StsUtil.updateExistingJob(
+          client, updatedJob, existingTransferJob.getName(), existingTransferJob.getProjectId());
     }
+    return updatedJob;
   }
 
   private TransferJob applyDefaultRulePerBucket(
       RetentionRule defaultRule,
       ZonedDateTime scheduledTime,
-      String fullSourceBucket,
       String projectId,
       String sourceBucket,
       String destinationBucket,
@@ -437,18 +482,23 @@ public class StsRuleExecutor implements RuleExecutor {
         buildDescription(
             defaultRule.getType().toString(),
             Arrays.asList(new RetentionRule[] {defaultRule}),
-            scheduledTime);
+            null);
     TransferJob transferJob = null;
 
-    RetentionJob existingDefaultRetentionJob =
-        retentionJobDao.findLatestDefaultJob(fullSourceBucket);
-    if (existingDefaultRetentionJob == null) {
-      logger.debug(
-          String.format(
-              "Creating STS job with for rule %s, projectId: %s, "
-                  + "description: %s, source: %s, destination: %s",
-              defaultRule.getId(), projectId, description, sourceBucket, destinationBucket));
-      try {
+    TransferJob stsPooledJob = null;
+
+    logger.info(
+        String.format(
+            "Scheduling default STS job for rule %s, projectId: %s, "
+                + "description: %s, source: %s, destination: %s",
+            defaultRule.getId(), projectId, description, sourceBucket, destinationBucket));
+
+    try {
+      stsPooledJob = findPooledJob(projectId, sourceBucket, null, RetentionRuleType.DEFAULT);
+      RetentionJob existingDefaultRetentionJob =
+          retentionJobDao.findLatestDefaultJob(ValidationConstants.STORAGE_PREFIX + sourceBucket);
+
+      if (stsPooledJob == null && existingDefaultRetentionJob == null && !isStsJobPoolOnly) {
         transferJob =
             StsUtil.createDefaultStsJob(
                 client,
@@ -458,41 +508,36 @@ public class StsRuleExecutor implements RuleExecutor {
                 prefixesToExclude,
                 description,
                 scheduledTime,
-                defaultRule.getRetentionPeriodInDays());
-      } catch (IOException e) {
-        logger.error(
-            String.format(
-                "Faield to create default STS job for rule %s project %s %s",
-                defaultRule.getId().toString(), projectId, e.getMessage()));
-        return null;
-      }
-    } else {
-      // get the existing transfer job from STS
-      try {
-        TransferJob existingTransferJob =
-            StsUtil.getExistingJob(
-                client,
-                existingDefaultRetentionJob.getRetentionRuleProjectId(),
-                existingDefaultRetentionJob.getName());
-        transferJob = existingTransferJob;
+                RetentionValue.convertValue(RetentionValue.parse(defaultRule.getRetentionValue())));
 
-        upcateDefaultJobIfNeeded(existingTransferJob, defaultRule, prefixesToExclude, description);
-      } catch (IOException e) {
-        logger.error(
-            String.format(
-                "Failed to get existing STS job %s for project %s %s",
-                existingDefaultRetentionJob.getName(),
-                existingDefaultRetentionJob.getRetentionRuleProjectId(),
-                e.getMessage()));
-        return null;
+      } else {
+        if (stsPooledJob == null && existingDefaultRetentionJob != null) {
+          stsPooledJob =
+              StsUtil.getExistingJob(
+                  client,
+                  existingDefaultRetentionJob.getRetentionRuleProjectId(),
+                  existingDefaultRetentionJob.getName());
+          if (stsPooledJob == null
+              || !stsPooledJob.getStatus().equals(StsUtil.STS_ENABLED_STRING)) {
+            return null;
+          }
+        }
+        transferJob =
+            upcateDefaultJobIfNeeded(stsPooledJob, defaultRule, prefixesToExclude, description);
       }
+    } catch (IOException e) {
+      logger.error(
+          String.format(
+              "Failed to schedule default STS job for %s/%s. %s",
+              projectId, sourceBucket, e.getMessage()));
+      return null;
     }
 
     return transferJob;
   }
 
   private String buildDescription(
-      String type, List<RetentionRule> rules, ZonedDateTime scheduledTime) {
+      String type, List<RetentionRule> rules, @Nullable String details) {
     StringBuilder sb = new StringBuilder();
     if (rules != null) {
       for (RetentionRule rule : rules) {
@@ -501,7 +546,8 @@ public class StsRuleExecutor implements RuleExecutor {
       sb.deleteCharAt(sb.length() - 1);
     }
 
-    return String.format("%s %s %s", type, sb.toString(), scheduledTime.toString());
+    String moreDetails = details == null ? "" : details;
+    return String.format("%s %s %s", type, sb.toString(), moreDetails);
   }
 
   private boolean isSamePrefixList(List<String> oldList, List<String> newList) {
@@ -593,5 +639,93 @@ public class StsRuleExecutor implements RuleExecutor {
     retentionJob.setMetadata(metadata);
 
     return retentionJob;
+  }
+
+  private TransferJob findPooledJob(
+      String projectId,
+      String bucketName,
+      @Nullable String scheduledAt,
+      RetentionRuleType retentionRuleType)
+      throws IOException {
+    StsJobPool pooledJob =
+        stsJobDao.getJob(
+            bucketName, projectId, scheduledAt, retentionRuleType.toDatabaseRepresentation());
+    String jobName = null;
+    if (pooledJob != null) {
+      jobName = pooledJob.getName();
+    } else {
+      logger.error(
+          String.format(
+              "No pooled STS job found to run at %s for %s/%s",
+              scheduledAt, projectId, bucketName));
+      return null;
+    }
+
+    TransferJob transferJob = StsUtil.getExistingJob(client, projectId, jobName);
+    if (!isValidPooledJob(transferJob, jobName, projectId, bucketName, scheduledAt)) {
+      logger.error(
+          String.format("Pooled job %s scheduled at %s for %s/%s is not valid"),
+          jobName,
+          scheduledAt,
+          projectId,
+          bucketName);
+      return null;
+    }
+
+    return transferJob;
+  }
+
+  private boolean isValidPooledJob(
+      TransferJob pooledJob,
+      String jobName,
+      String projectId,
+      String bucketName,
+      String scheduledAt) {
+    if (pooledJob == null) {
+      return false;
+    }
+
+    boolean result =
+        pooledJob.getName().equals(jobName)
+            && pooledJob.getProjectId().equals(projectId)
+            && pooledJob.getSchedule().getScheduleEndDate() == null
+            && (scheduledAt == null || isScheduledAtSame(pooledJob, scheduledAt))
+            && pooledJob.getTransferSpec().getGcsDataSource().getBucketName().equals(bucketName);
+
+    return result;
+  }
+
+  private boolean isScheduledAtSame(TransferJob pooledJob, String scheduledAt) {
+    if (pooledJob == null || scheduledAt == null) {
+      return false;
+    }
+
+    int hours =
+        pooledJob.getSchedule().getStartTimeOfDay().getHours() != null
+            ? pooledJob.getSchedule().getStartTimeOfDay().getHours()
+            : 0;
+    int minutes =
+        pooledJob.getSchedule().getStartTimeOfDay().getMinutes() != null
+            ? pooledJob.getSchedule().getStartTimeOfDay().getMinutes()
+            : 0;
+    int seconds =
+        pooledJob.getSchedule().getStartTimeOfDay().getSeconds() != null
+            ? pooledJob.getSchedule().getStartTimeOfDay().getSeconds()
+            : 0;
+
+    return scheduledAt.equals(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+  }
+
+  public static String getNextScheduledAt(ZonedDateTime zonedDateTime, int nextHours) {
+    String hour = zonedDateTime.plusHours(nextHours).format(DateTimeFormatter.ofPattern("HH"));
+    return String.format("%s:00:00", hour);
+  }
+
+  public static String convertPrefixToString(List<String> prefixes) {
+    if (prefixes == null || prefixes.isEmpty()) {
+      return null;
+    }
+
+    return prefixes.stream().reduce((a, b) -> a + ";" + b).get();
   }
 }

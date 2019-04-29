@@ -18,7 +18,15 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.RetentionRuleType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
@@ -33,14 +41,6 @@ import javax.ws.rs.core.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RetentionRulesControllerTest {
 

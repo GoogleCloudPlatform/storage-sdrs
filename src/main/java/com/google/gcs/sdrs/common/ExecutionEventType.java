@@ -15,7 +15,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs;
+package com.google.gcs.sdrs.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;

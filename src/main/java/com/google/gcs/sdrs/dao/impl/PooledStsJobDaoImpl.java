@@ -18,11 +18,13 @@
 package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
-import com.google.gcs.sdrs.dao.model.PooledStsJob;
+import com.google.gcs.sdrs.dao.model.StsJobPool;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -30,25 +32,23 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
+public class PooledStsJobDaoImpl extends GenericDao<StsJobPool, Integer>
     implements PooledStsJobDao {
 
   private static final Logger logger = LoggerFactory.getLogger(PooledStsJobDaoImpl.class);
 
   public PooledStsJobDaoImpl() {
-    super(PooledStsJob.class);
+    super(StsJobPool.class);
   }
 
   /** Returns all pooled STS jobs associated to the bucket */
   @Override
-  public List<PooledStsJob> getAllPooledStsJobsByBucketName(
+  public List<StsJobPool> getAllPooledStsJobsByBucketName(
       String sourceBucket, String sourceProject) {
     Session session = openSession();
     CriteriaBuilder builder = session.getCriteriaBuilder();
-    CriteriaQuery<PooledStsJob> criteria = builder.createQuery(PooledStsJob.class);
-    Root<PooledStsJob> root = criteria.from(PooledStsJob.class);
+    CriteriaQuery<StsJobPool> criteria = builder.createQuery(StsJobPool.class);
+    Root<StsJobPool> root = criteria.from(StsJobPool.class);
 
     criteria
         .select(root)
@@ -56,10 +56,31 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
             builder.equal(root.get("sourceBucket"), sourceBucket),
             builder.equal(root.get("sourceProject"), sourceProject));
 
-    Query<PooledStsJob> query = session.createQuery(criteria);
-    List<PooledStsJob> result = query.getResultList();
+    Query<StsJobPool> query = session.createQuery(criteria);
+    List<StsJobPool> result = query.getResultList();
     closeSession(session);
     return result;
+  }
+
+  @Override
+  public StsJobPool getJob(
+      String sourceBucket, String sourceProjectId, String scheduleTimeOfDay, String type) {
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<StsJobPool> query = builder.createQuery(StsJobPool.class);
+    Root<StsJobPool> root = query.from(StsJobPool.class);
+
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.equal(root.get("sourceBucket"), sourceBucket));
+    predicates.add(builder.equal(root.get("sourceProject"), sourceProjectId));
+    predicates.add(builder.equal(root.get("type"), type));
+
+    if (scheduleTimeOfDay != null) {
+      predicates.add(builder.equal(root.get("schedule"), scheduleTimeOfDay));
+    }
+    query.select(root).where(predicates.toArray(new Predicate[predicates.size()]));
+
+    return getSingleRecordWithCriteriaQuery(query, session);
   }
 
   @Override
@@ -68,8 +89,8 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
     Session session = openSession();
     CriteriaBuilder builder = session.getCriteriaBuilder();
     Transaction transaction = session.beginTransaction();
-    CriteriaDelete<PooledStsJob> delete = builder.createCriteriaDelete(PooledStsJob.class);
-    Root<PooledStsJob> root = delete.from(PooledStsJob.class);
+    CriteriaDelete<StsJobPool> delete = builder.createCriteriaDelete(StsJobPool.class);
+    Root<StsJobPool> root = delete.from(StsJobPool.class);
 
     delete.where(
         builder.equal(root.get("sourceBucket"), sourceBucket),

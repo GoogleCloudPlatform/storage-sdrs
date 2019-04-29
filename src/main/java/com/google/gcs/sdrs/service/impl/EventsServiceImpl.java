@@ -17,12 +17,8 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
-import com.google.gcs.sdrs.dao.RetentionJobDao;
-import com.google.gcs.sdrs.dao.RetentionRuleDao;
-import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.service.manager.JobManager;
 import com.google.gcs.sdrs.service.worker.Worker;
@@ -37,30 +33,22 @@ public class EventsServiceImpl implements EventsService {
 
   JobManager jobManager;
 
-  RetentionRuleDao ruleDao = SingletonDao.getRetentionRuleDao();
-  RetentionJobDao jobDao = SingletonDao.getRetentionJobDao();
-  private static final String DEFAULT_PROJECT_ID = "global-default";
-  private static String defaultProjectId;
-
   private static final Logger logger = LoggerFactory.getLogger(EventsServiceImpl.class);
 
   public EventsServiceImpl() {
-    defaultProjectId =
-        SdrsApplication.getAppConfigProperty("sts.defaultProjectId", DEFAULT_PROJECT_ID);
-
     jobManager = JobManager.getInstance();
   }
 
   @Override
-  public void processExecutionEvent(ExecutionEventRequest request) {
-    Worker worker = new ExecuteRetentionWorker(request);
+  public void processExecutionEvent(ExecutionEventRequest request, String correlationId) {
+    Worker worker = new ExecuteRetentionWorker(request, correlationId);
     jobManager.submitJob(worker);
   }
 
   /** Submits a validation job to the JobManager. */
   @Override
-  public void processValidationEvent() {
-    Worker worker = new ValidationWorker();
+  public void processValidationEvent(String correlationId) {
+    Worker worker = new ValidationWorker(correlationId);
     jobManager.submitJob(worker);
   }
 

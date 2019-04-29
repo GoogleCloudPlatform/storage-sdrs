@@ -7,14 +7,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.gcs.sdrs.RetentionJobStatusType;
+import com.google.gcs.sdrs.common.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleValidator;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +64,7 @@ public class ValidationWorkerTest {
 
   @Test
   public void doWorkRunsSuccessfully() {
-    ValidationWorker worker = new ValidationWorker();
+    ValidationWorker worker = new ValidationWorker(UUID.randomUUID().toString());
     worker.dao = retentionJobValidationDaoMock;
     worker.stsRuleValidator = ruleValidatorMock;
 
