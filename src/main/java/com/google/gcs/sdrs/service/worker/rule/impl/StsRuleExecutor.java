@@ -30,9 +30,9 @@ import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
+import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
-import com.google.gcs.sdrs.dao.model.StsJobPool;
 import com.google.gcs.sdrs.service.worker.rule.RuleExecutor;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
@@ -647,7 +647,7 @@ public class StsRuleExecutor implements RuleExecutor {
       @Nullable String scheduledAt,
       RetentionRuleType retentionRuleType)
       throws IOException {
-    StsJobPool pooledJob =
+    PooledStsJob pooledJob =
         stsJobDao.getJob(
             bucketName, projectId, scheduledAt, retentionRuleType.toDatabaseRepresentation());
     String jobName = null;
