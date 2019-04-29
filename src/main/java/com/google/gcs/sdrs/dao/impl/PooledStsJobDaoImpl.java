@@ -18,7 +18,7 @@
 package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
-import com.google.gcs.sdrs.dao.model.StsJobPool;
+import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
@@ -32,23 +32,23 @@ import org.slf4j.LoggerFactory;
 
 
 
-public class PooledStsJobDaoImpl extends GenericDao<StsJobPool, Integer>
+public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
     implements PooledStsJobDao {
 
   private static final Logger logger = LoggerFactory.getLogger(PooledStsJobDaoImpl.class);
 
   public PooledStsJobDaoImpl() {
-    super(StsJobPool.class);
+    super(PooledStsJob.class);
   }
 
   /** Returns all pooled STS jobs associated to the bucket */
   @Override
-  public List<StsJobPool> getAllPooledStsJobsByBucketName(
+  public List<PooledStsJob> getAllPooledStsJobsByBucketName(
       String sourceBucket, String sourceProject) {
     Session session = openSession();
     CriteriaBuilder builder = session.getCriteriaBuilder();
-    CriteriaQuery<StsJobPool> criteria = builder.createQuery(StsJobPool.class);
-    Root<StsJobPool> root = criteria.from(StsJobPool.class);
+    CriteriaQuery<PooledStsJob> criteria = builder.createQuery(PooledStsJob.class);
+    Root<PooledStsJob> root = criteria.from(PooledStsJob.class);
 
     criteria
         .select(root)
@@ -56,8 +56,8 @@ public class PooledStsJobDaoImpl extends GenericDao<StsJobPool, Integer>
             builder.equal(root.get("sourceBucket"), sourceBucket),
             builder.equal(root.get("sourceProject"), sourceProject));
 
-    Query<StsJobPool> query = session.createQuery(criteria);
-    List<StsJobPool> result = query.getResultList();
+    Query<PooledStsJob> query = session.createQuery(criteria);
+    List<PooledStsJob> result = query.getResultList();
     closeSession(session);
     return result;
   }
@@ -68,8 +68,8 @@ public class PooledStsJobDaoImpl extends GenericDao<StsJobPool, Integer>
     Session session = openSession();
     CriteriaBuilder builder = session.getCriteriaBuilder();
     Transaction transaction = session.beginTransaction();
-    CriteriaDelete<StsJobPool> delete = builder.createCriteriaDelete(StsJobPool.class);
-    Root<StsJobPool> root = delete.from(StsJobPool.class);
+    CriteriaDelete<PooledStsJob> delete = builder.createCriteriaDelete(PooledStsJob.class);
+    Root<PooledStsJob> root = delete.from(PooledStsJob.class);
 
     delete.where(
         builder.equal(root.get("sourceBucket"), sourceBucket),

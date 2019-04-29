@@ -18,7 +18,6 @@
 package com.google.gcs.sdrs.dao.model;
 
 import java.sql.Timestamp;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,8 +27,8 @@ import javax.persistence.Table;
 
 /** Note - coding to JPA specification, not Hibernate specific annotations */
 @Entity
-@Table(name = "sts_job_pool")
-public class StsJobPool {
+@Table(name = "pooled_sts_job")
+public class PooledStsJob {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -62,14 +61,14 @@ public class StsJobPool {
 
   @Column(name = "created_at")
   private Timestamp createdAt;
-  
+
   @Column(name = "updated_at")
   private Timestamp updatedAt;
 
   @Column(name = "status")
   private String status;
 
-  public StsJobPool() {}
+  public PooledStsJob() {}
 
   public Integer getId() {
     return this.id;
@@ -143,21 +142,27 @@ public class StsJobPool {
     this.targetProject = targetProject;
   }
 
-public String getType() {
-return type;}
+  public String getType() {
+    return type;
+  }
 
-public void setType(String type) {
-this.type = type;}
+  public void setType(String type) {
+    this.type = type;
+  }
 
-public String getTargetBucket() {
-return targetBucket;}
+  public String getTargetBucket() {
+    return targetBucket;
+  }
 
-public void setTargetBucket(String targetBucket) {
-this.targetBucket = targetBucket;}
+  public void setTargetBucket(String targetBucket) {
+    this.targetBucket = targetBucket;
+  }
 
-public Timestamp getCreatedAt() {
-return createdAt;}
+  public Timestamp getCreatedAt() {
+    return createdAt;
+  }
 
-public void setCreatedAt(Timestamp createdAt) {
-this.createdAt = createdAt;}
+  public void setCreatedAt(Timestamp createdAt) {
+    this.createdAt = createdAt;
+  }
 }
