@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.dao.model.StsJobPool;
+import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
@@ -90,7 +90,7 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
                 .addAnnotatedClass(RetentionRule.class)
                 .addAnnotatedClass(RetentionJob.class)
                 .addAnnotatedClass(RetentionJobValidation.class)
-                .addAnnotatedClass(StsJobPool.class)
+                .addAnnotatedClass(PooledStsJob.class)
                 .getMetadataBuilder()
                 .build();
 

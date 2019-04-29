@@ -24,7 +24,7 @@ import com.google.gcs.sdrs.controller.pojo.PooledJobCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.PooledJobResponse;
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
-import com.google.gcs.sdrs.dao.model.StsJobPool;
+import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import com.google.gcs.sdrs.service.JobPoolService;
 
 public class JobPoolServiceImpl implements JobPoolService {
@@ -33,7 +33,7 @@ public class JobPoolServiceImpl implements JobPoolService {
 
   @Override
   public Integer createJob(PooledJobCreateRequest request) {
-    StsJobPool pooledStsJob = convertToEntity(request);
+    PooledStsJob pooledStsJob = convertToEntity(request);
     pooledStsJob.setId(pooledStsJobDao.save(pooledStsJob));
     return pooledStsJob.getId();
   }
@@ -49,10 +49,10 @@ public class JobPoolServiceImpl implements JobPoolService {
   @Override
   public Collection<PooledJobResponse> getAllPooledStsJobsByBucketName(
       String sourceBucket, String sourceProject) {
-    Collection<StsJobPool> pooledStsJobs =
+    Collection<PooledStsJob> pooledStsJobs =
         pooledStsJobDao.getAllPooledStsJobsByBucketName(sourceBucket, sourceProject);
     Collection<PooledJobResponse> pooledJobResponses = new ArrayList<PooledJobResponse>();
-    for (StsJobPool pooledStsJob : pooledStsJobs) {
+    for (PooledStsJob pooledStsJob : pooledStsJobs) {
       pooledJobResponses.add(convertToPojo(pooledStsJob));
     }
     return pooledJobResponses;
@@ -64,9 +64,9 @@ public Boolean deleteAllJobsByBucketName(String sourceBucket,String sourceProjec
 	return pooledStsJobDao.deleteAllJobsByBucketName(sourceBucket, sourceProject);
 }
 
-  protected StsJobPool convertToEntity(PooledJobCreateRequest request) {
+  protected PooledStsJob convertToEntity(PooledJobCreateRequest request) {
     // TODO refactor: introduce bean converter
-    StsJobPool pooledStsJob = new StsJobPool();
+    PooledStsJob pooledStsJob = new PooledStsJob();
     pooledStsJob.setName(request.getName());
     pooledStsJob.setProjectId(request.getProjectId());
     pooledStsJob.setType(request.getType());
@@ -83,7 +83,7 @@ public Boolean deleteAllJobsByBucketName(String sourceBucket,String sourceProjec
    * @param pooledStsJob
    * @return
    */
-  private PooledJobResponse convertToPojo(StsJobPool pooledStsJob) {
+  private PooledJobResponse convertToPojo(PooledStsJob pooledStsJob) {
     if (pooledStsJob == null) {
       return null;
     }
