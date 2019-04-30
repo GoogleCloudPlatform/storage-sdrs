@@ -41,8 +41,8 @@ public class ValidationWorker extends BaseWorker {
   RetentionJobValidationDao dao = SingletonDao.getRetentionJobValidationDao();
   StsRuleValidator stsRuleValidator = StsRuleValidator.getInstance();
 
-  public ValidationWorker() {
-    super();
+  public ValidationWorker(String correlationId) {
+    super(correlationId);
   }
 
   /**

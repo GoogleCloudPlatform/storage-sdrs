@@ -17,7 +17,7 @@
 
 package com.google.gcs.sdrs.service.worker.impl;
 
-import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
@@ -54,8 +54,8 @@ public class ExecuteRetentionWorker extends BaseWorker {
    *
    * @param executionEvent the {@link ExecutionEventRequest} to execute
    */
-  public ExecuteRetentionWorker(ExecutionEventRequest executionEvent) {
-    super();
+  public ExecuteRetentionWorker(ExecutionEventRequest executionEvent, String correlationId) {
+    super(correlationId);
 
     this.executionEvent = executionEvent;
     ruleExecutor = StsRuleExecutor.getInstance();
@@ -109,7 +109,8 @@ public class ExecuteRetentionWorker extends BaseWorker {
         | UnsupportedOperationException
         | NullPointerException
         | SQLException ex) {
-      logger.error(String.format("Error executing rule: %s", ex.getMessage()));
+      logger.error("Error executing rule: ", ex);
+      ex.printStackTrace();
       workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
     }
   }

@@ -17,13 +17,14 @@
 
 package com.google.gcs.sdrs.controller.pojo;
 
-import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.common.RetentionRuleType;
 
 /** POJO Tracking JSON response fields/types for a retention rule */
 public class RetentionRuleResponse extends BaseHttpResponse {
   private Integer ruleId;
   private String datasetName;
   private Integer retentionPeriod;
+  private String retentionPeriodUnit;
   private String dataStorageName;
   private String projectId;
   private RetentionRuleType type;
@@ -74,5 +75,13 @@ public class RetentionRuleResponse extends BaseHttpResponse {
 
   public void setType(RetentionRuleType type) {
     this.type = type;
+  }
+
+  public String getRetentionPeriodUnit() {
+    return retentionPeriodUnit;
+  }
+
+  public void setRetentionPeriodUnit(String retentionPeriodUnit) {
+    this.retentionPeriodUnit = retentionPeriodUnit;
   }
 }

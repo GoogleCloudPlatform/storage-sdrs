@@ -52,7 +52,7 @@ public class EventsController extends BaseController {
       validateExecutionEvent(request);
       EventResponse eventResponse =
           generateResponse("Execution event received and being processed");
-      service.processExecutionEvent(request);
+      service.processExecutionEvent(request, getCorrelationId());
       return successResponse(eventResponse);
     } catch (Exception exception) {
       return errorResponse(exception);
@@ -67,7 +67,7 @@ public class EventsController extends BaseController {
     try {
       EventResponse eventResponse =
           generateResponse("Validation event received and being processed");
-      service.processValidationEvent();
+      service.processValidationEvent(getCorrelationId());
       return successResponse(eventResponse);
     } catch (Exception exception) {
       return errorResponse(exception);
@@ -83,7 +83,7 @@ public class EventsController extends BaseController {
       validateNotificationEvent(request);
       EventResponse eventResponse =
           generateResponse("Delete notification event received and being processed");
-      service.processDeleteNotificationEvent(request, eventResponse.getUuid());
+      service.processDeleteNotificationEvent(request, getCorrelationId());
       return successResponse(eventResponse);
     } catch (Exception exception) {
       return errorResponse(exception);

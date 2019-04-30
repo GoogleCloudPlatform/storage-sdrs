@@ -37,7 +37,7 @@ import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
-import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -56,8 +56,8 @@ import org.slf4j.LoggerFactory;
 /** Manages the concrete integration with STS */
 public class StsUtil {
 
-  private static final String STS_ENABLED_STRING = "ENABLED";
-  private static final String TRANSFER_OPERATION_STRING = "transferOperations";
+  public static final String STS_ENABLED_STRING = "ENABLED";
+  public static final String TRANSFER_OPERATION_STRING = "transferOperations";
   private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
 
   /** Creates an instance of the STS Client */
@@ -171,7 +171,9 @@ public class StsUtil {
 
     Storagetransfer.TransferJobs.Patch request = client.transferJobs().patch(jobName, requestBody);
 
-    logger.info(String.format("Updating transfer job in STS: %s", jobToUpdate.toPrettyString()));
+    logger.info(
+        String.format(
+            "Updating transfer job %s in STS: %s", jobName, jobToUpdate.toPrettyString()));
 
     return request.execute();
   }
@@ -225,23 +227,24 @@ public class StsUtil {
                 .setPageSize(5);
 
         List<Operation> operationsPerJob = operationRequest.execute().getOperations();
-
         Operation operationClosestToJobCreatedAtTime = null;
         Instant closestTime = Instant.MAX;
-        for (Operation operation : operationsPerJob) {
-          if (job.getRetentionRuleType() == RetentionRuleType.DATASET
-              || job.getRetentionRuleType() == RetentionRuleType.USER) {
-            operationClosestToJobCreatedAtTime = operation;
-            break;
-          } else {
-            String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
-            Instant operationStartTime = Instant.parse(opeationStartTimeString);
-            Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
-            if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
-              if (operationClosestToJobCreatedAtTime == null
-                  || operationStartTime.isBefore(closestTime)) {
-                operationClosestToJobCreatedAtTime = operation;
-                closestTime = operationStartTime;
+        if (operationsPerJob != null) {
+          for (Operation operation : operationsPerJob) {
+            if (job.getRetentionRuleType() == RetentionRuleType.DATASET
+                || job.getRetentionRuleType() == RetentionRuleType.USER) {
+              operationClosestToJobCreatedAtTime = operation;
+              break;
+            } else {
+              String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
+              Instant operationStartTime = Instant.parse(opeationStartTimeString);
+              Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
+              if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
+                if (operationClosestToJobCreatedAtTime == null
+                    || operationStartTime.isBefore(closestTime)) {
+                  operationClosestToJobCreatedAtTime = operation;
+                  closestTime = operationStartTime;
+                }
               }
             }
           }
@@ -269,7 +272,7 @@ public class StsUtil {
     return (retentionInDays * ONE_DAY_IN_SECS) + "s";
   }
 
-  static TransferJob buildTransferJob(
+  public static TransferJob buildTransferJob(
       String projectId,
       String sourceBucket,
       String destinationBucket,
@@ -289,7 +292,7 @@ public class StsUtil {
         .setStatus(STS_ENABLED_STRING);
   }
 
-  static TransferSpec buildTransferSpec(
+  public static TransferSpec buildTransferSpec(
       String sourceBucket,
       String destinationBucket,
       List<String> prefixes,
@@ -307,7 +310,7 @@ public class StsUtil {
                 .setOverwriteObjectsAlreadyExistingInSink(true));
   }
 
-  static ObjectConditions buildObjectConditions(
+  public static ObjectConditions buildObjectConditions(
       List<String> prefixes, Boolean isExcludePrefixes, Integer retentionInDays) {
 
     ObjectConditions objectConditions = new ObjectConditions();

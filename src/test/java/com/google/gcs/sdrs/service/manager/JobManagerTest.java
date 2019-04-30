@@ -18,15 +18,14 @@
 
 package com.google.gcs.sdrs.service.manager;
 
-import com.google.gcs.sdrs.service.manager.JobManager;
-import com.google.gcs.sdrs.service.worker.BaseWorker;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import com.google.gcs.sdrs.service.worker.BaseWorker;
+import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /** Test class for JobManager */
 public class JobManagerTest {
@@ -71,7 +70,7 @@ public class JobManagerTest {
   public void testSubmitJob() {
     assertNotNull(instance);
     BaseWorker worker =
-        new BaseWorker() {
+        new BaseWorker(UUID.randomUUID().toString()) {
           @Override
           public void doWork() {}
         };

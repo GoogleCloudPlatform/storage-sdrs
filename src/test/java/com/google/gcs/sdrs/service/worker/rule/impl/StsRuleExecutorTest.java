@@ -22,14 +22,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
-import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.util.CredentialsUtil;
@@ -54,7 +49,7 @@ public class StsRuleExecutorTest {
     testRule.setId(1);
     testRule.setProjectId("sdrs-test");
     testRule.setDatasetName("test");
-    testRule.setRetentionPeriodInDays(30);
+    testRule.setRetentionValue("30:day");
     testRule.setDataStorageName(dataStorageName);
     testRule.setType(RetentionRuleType.DATASET);
     testRule.setVersion(2);

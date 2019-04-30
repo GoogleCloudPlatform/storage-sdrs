@@ -17,14 +17,13 @@
 
 package com.google.gcs.sdrs.dao.converter;
 
-import com.google.gcs.sdrs.RetentionRuleType;
+import static com.google.gcs.sdrs.common.RetentionRuleType.DATASET;
+import static com.google.gcs.sdrs.common.RetentionRuleType.DEFAULT;
+import static com.google.gcs.sdrs.common.RetentionRuleType.GLOBAL;
+import static com.google.gcs.sdrs.common.RetentionRuleType.USER;
+
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
-
-import static com.google.gcs.sdrs.RetentionRuleType.DATASET;
-import static com.google.gcs.sdrs.RetentionRuleType.GLOBAL;
-import static com.google.gcs.sdrs.RetentionRuleType.USER;
-import static com.google.gcs.sdrs.RetentionRuleType.DEFAULT;
-
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 

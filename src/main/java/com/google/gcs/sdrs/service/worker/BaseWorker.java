@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.service.worker;
 
+import java.util.UUID;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -27,14 +28,18 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseWorker implements Worker {
 
   public WorkerResult workerResult;
-  private String uuid;
   private static final Logger logger = LoggerFactory.getLogger(BaseWorker.class);
 
   /** BaseWorker constructor that instantiates the internal WorkerResult object */
-  protected BaseWorker() {
+  protected BaseWorker(String uuid) {
     workerResult = new WorkerResult();
     workerResult.setType(this.getClass().getName());
-    uuid = workerResult.getId();
+    if (uuid == null) {
+      workerResult.setId(UUID.randomUUID().toString());
+    } else {
+      workerResult.setId(uuid);
+    }
+
     logger.debug("Worker created: " + this.workerResult.toString());
   }
 
@@ -46,6 +51,8 @@ public abstract class BaseWorker implements Worker {
   @Override
   public WorkerResult call() {
     workerResult.setStartTime(DateTime.now(DateTimeZone.UTC));
+    String currentName = Thread.currentThread().getName();
+    Thread.currentThread().setName(currentName + "-" + workerResult.getId());
     logger.info("Worker processing begins: " + this.workerResult.toString());
 
     doWork();
@@ -53,6 +60,7 @@ public abstract class BaseWorker implements Worker {
     workerResult.setEndTime(DateTime.now(DateTimeZone.UTC));
     logger.info("Worker processing ends: " + this.workerResult.toString());
 
+    Thread.currentThread().setName(currentName);
     return workerResult;
   }
 
@@ -63,6 +71,6 @@ public abstract class BaseWorker implements Worker {
   }
 
   public String getUuid() {
-    return uuid;
+    return workerResult.getId();
   }
 }

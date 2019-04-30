@@ -17,14 +17,14 @@
 
 package com.google.gcs.sdrs.dao;
 
+import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import java.util.List;
 
-import com.google.gcs.sdrs.dao.model.PooledStsJob;
-
 public interface PooledStsJobDao extends Dao<PooledStsJob, Integer> {
-	
+
   List<PooledStsJob> getAllPooledStsJobsByBucketName(String bucketName, String projectId);
-  
+
+  PooledStsJob getJob(String bucketName, String projectId, String scheduleTimeOfDay, String type);
+
   Boolean deleteAllJobsByBucketName(String sourceBucket, String sourceProject);
-  
 }

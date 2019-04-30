@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
@@ -64,7 +64,7 @@ public class RetentionRulesServiceImplTest {
     globalRule.setId(10);
     globalRule.setProjectId("global-default");
     globalRule.setDataStorageName("global");
-    globalRule.setRetentionPeriodInDays(365);
+    globalRule.setRetentionValue("365:day");
     String projectId = "test";
     projectIds.add(projectId);
 
@@ -77,6 +77,7 @@ public class RetentionRulesServiceImplTest {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
+    createRule.setRetentionPeriodUnit("day");
     createRule.setDatasetName("dataset");
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
@@ -95,7 +96,7 @@ public class RetentionRulesServiceImplTest {
     RetentionRule input = captor.getValue();
     assertEquals(1, (int) input.getId());
     assertEquals(RetentionRuleType.DATASET, input.getType());
-    assertEquals(123, (int) input.getRetentionPeriodInDays());
+    assertEquals("123:day", input.getRetentionValue());
     assertEquals(true, input.getIsActive());
     assertEquals("projectId", input.getProjectId());
     assertEquals("gs://b/d", input.getDataStorageName());
@@ -148,6 +149,7 @@ public class RetentionRulesServiceImplTest {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
+    createRule.setRetentionPeriodUnit("day");
 
     when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(globalRule);
     when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
@@ -163,11 +165,11 @@ public class RetentionRulesServiceImplTest {
     RetentionRule input = captor.getValue();
     assertEquals(1, (int) input.getId());
     assertEquals(RetentionRuleType.GLOBAL, input.getType());
-    assertEquals(123, (int) input.getRetentionPeriodInDays());
+    assertEquals("123:day", input.getRetentionValue());
     assertEquals(true, input.getIsActive());
     assertEquals("global-default", input.getProjectId());
     assertEquals(1, (int) input.getVersion());
-    assertEquals("global", input.getDataStorageName());
+    assertEquals("gs://global", input.getDataStorageName());
     assertNull(input.getDatasetName());
   }
 
@@ -182,10 +184,12 @@ public class RetentionRulesServiceImplTest {
     RetentionRule existingRule = new RetentionRule();
     existingRule.setDataStorageName("dataStorageName");
     existingRule.setProjectId("projectId");
-    existingRule.setRetentionPeriodInDays(1);
+    existingRule.setRetentionValue("1:day");
     existingRule.setIsActive(false);
     existingRule.setVersion(2);
-    when(service.ruleDao.findByBusinessKey("projectId", "gs://b/d", true)).thenReturn(existingRule);
+    when(service.ruleDao.findByBusinessKey(
+            "projectId", "gs://b/d", true, RetentionRuleType.DATASET))
+        .thenReturn(existingRule);
 
     service.createRetentionRule(createRule, new UserInfo());
 
@@ -195,7 +199,7 @@ public class RetentionRulesServiceImplTest {
     RetentionRule input = captor.getValue();
     assertNull(input.getId());
     assertEquals(RetentionRuleType.DATASET, input.getType());
-    assertEquals(123, (int) input.getRetentionPeriodInDays());
+    assertEquals("123:day", input.getRetentionValue());
     assertEquals(true, input.getIsActive());
     assertEquals(input.getProjectId(), "projectId");
     assertEquals(input.getDataStorageName(), "gs://b/d");
@@ -207,12 +211,14 @@ public class RetentionRulesServiceImplTest {
   public void getRuleByBusinessKeyReturnsMappedValues() {
     RetentionRule existingRule = new RetentionRule();
     existingRule.setId(2);
-    existingRule.setRetentionPeriodInDays(12);
+    existingRule.setRetentionValue("12:day");
     existingRule.setProjectId("projectId");
     existingRule.setDataStorageName("gs://bucket");
-    when(service.ruleDao.findByBusinessKey(anyString(), anyString())).thenReturn(existingRule);
+    when(service.ruleDao.findByBusinessKey(anyString(), anyString(), any(), any()))
+        .thenReturn(existingRule);
 
-    RetentionRuleResponse result = service.getRetentionRuleByBusinessKey("any", "any");
+    RetentionRuleResponse result =
+        service.getRetentionRuleByBusinessKey("any", "any", RetentionRuleType.DATASET);
     assertEquals(12, (int) result.getRetentionPeriod());
     assertEquals("projectId", result.getProjectId());
     assertEquals("gs://bucket", result.getDataStorageName());
@@ -220,9 +226,10 @@ public class RetentionRulesServiceImplTest {
 
   @Test(expected = EntityNotFoundException.class)
   public void getRuleByBusinessKeyThrowsErrorWhenNull() {
-    when(service.ruleDao.findByBusinessKey(anyString(), anyString())).thenReturn(null);
+    when(service.ruleDao.findByBusinessKey(anyString(), anyString(), any(), any()))
+        .thenReturn(null);
 
-    service.getRetentionRuleByBusinessKey("any", "any");
+    service.getRetentionRuleByBusinessKey("any", "any", RetentionRuleType.DATASET);
   }
 
   @Test
@@ -231,9 +238,10 @@ public class RetentionRulesServiceImplTest {
     request.setRetentionPeriod(123);
     RetentionRule existingRule = new RetentionRule();
     existingRule.setId(2);
-    existingRule.setRetentionPeriodInDays(12);
+    existingRule.setRetentionValue("12:day");
     existingRule.setVersion(3);
     existingRule.setType(RetentionRuleType.DATASET);
+    existingRule.setIsActive(true);
     when(service.ruleDao.findById(2)).thenReturn(existingRule);
 
     RetentionRuleResponse result = service.updateRetentionRule(2, request);
@@ -253,9 +261,10 @@ public class RetentionRulesServiceImplTest {
     request.setRetentionPeriod(123);
     RetentionRule existingRule = new RetentionRule();
     existingRule.setId(2);
-    existingRule.setRetentionPeriodInDays(12);
+    existingRule.setRetentionValue("12:day");
     existingRule.setVersion(3);
     existingRule.setType(RetentionRuleType.GLOBAL);
+    existingRule.setIsActive(true);
     when(service.ruleDao.findById(2)).thenReturn(existingRule);
     when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
 
@@ -278,20 +287,20 @@ public class RetentionRulesServiceImplTest {
 
     RetentionRule datasetRule = new RetentionRule();
     datasetRule.setId(3);
-    datasetRule.setRetentionPeriodInDays(123);
+    datasetRule.setRetentionValue("123:day");
     datasetRule.setVersion(2);
     datasetRule.setType(RetentionRuleType.DATASET);
 
     RetentionRule globalRule = new RetentionRule();
     globalRule.setId(2);
-    globalRule.setRetentionPeriodInDays(12);
+    globalRule.setRetentionValue("12:day");
     globalRule.setVersion(3);
     globalRule.setType(RetentionRuleType.GLOBAL);
 
-    when(service.ruleDao.findByBusinessKey(any(), any())).thenReturn(datasetRule);
+    when(service.ruleDao.findByBusinessKey(any(), any(), any(), any())).thenReturn(datasetRule);
     when(service.ruleDao.findGlobalRuleByProjectId(any())).thenReturn(globalRule);
 
-    service.deleteRetentionRuleByBusinessKey("project", "storage");
+    service.deleteRetentionRuleByBusinessKey("project", "storage", RetentionRuleType.DATASET);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 
@@ -303,20 +312,20 @@ public class RetentionRulesServiceImplTest {
 
     RetentionRule datasetRule = new RetentionRule();
     datasetRule.setId(3);
-    datasetRule.setRetentionPeriodInDays(123);
+    datasetRule.setRetentionValue("123:day");
     datasetRule.setVersion(2);
     datasetRule.setType(RetentionRuleType.DATASET);
 
     RetentionRule globalRule = new RetentionRule();
     globalRule.setId(2);
-    globalRule.setRetentionPeriodInDays(12);
+    globalRule.setRetentionValue("12:day");
     globalRule.setVersion(3);
     globalRule.setType(RetentionRuleType.GLOBAL);
 
-    when(service.ruleDao.findByBusinessKey(any(), any())).thenReturn(globalRule);
+    when(service.ruleDao.findByBusinessKey(any(), any(), any(), any())).thenReturn(globalRule);
     when(service.ruleDao.getAllDatasetRuleProjectIds()).thenReturn(projectIds);
 
-    service.deleteRetentionRuleByBusinessKey("project", "storage");
+    service.deleteRetentionRuleByBusinessKey("project", "storage", RetentionRuleType.DATASET);
 
     ArgumentCaptor<RetentionRule> captor = ArgumentCaptor.forClass(RetentionRule.class);
 

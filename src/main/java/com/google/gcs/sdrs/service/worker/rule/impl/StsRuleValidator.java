@@ -20,7 +20,7 @@ package com.google.gcs.sdrs.service.worker.rule.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.Operation;
-import com.google.gcs.sdrs.RetentionJobStatusType;
+import com.google.gcs.sdrs.common.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.service.worker.rule.RuleValidator;

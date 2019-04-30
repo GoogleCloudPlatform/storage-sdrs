@@ -19,18 +19,18 @@ package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
 import com.google.gcs.sdrs.dao.model.PooledStsJob;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
 
 public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
     implements PooledStsJobDao {
@@ -60,6 +60,27 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
     List<PooledStsJob> result = query.getResultList();
     closeSession(session);
     return result;
+  }
+
+  @Override
+  public PooledStsJob getJob(
+      String sourceBucket, String sourceProjectId, String scheduleTimeOfDay, String type) {
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<PooledStsJob> query = builder.createQuery(PooledStsJob.class);
+    Root<PooledStsJob> root = query.from(PooledStsJob.class);
+
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.equal(root.get("sourceBucket"), sourceBucket));
+    predicates.add(builder.equal(root.get("sourceProject"), sourceProjectId));
+    predicates.add(builder.equal(root.get("type"), type));
+
+    if (scheduleTimeOfDay != null) {
+      predicates.add(builder.equal(root.get("schedule"), scheduleTimeOfDay));
+    }
+    query.select(root).where(predicates.toArray(new Predicate[predicates.size()]));
+
+    return getSingleRecordWithCriteriaQuery(query, session);
   }
 
   @Override

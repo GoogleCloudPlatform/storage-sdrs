@@ -18,7 +18,7 @@
 
 package com.google.gcs.sdrs.dao.impl;
 
-import com.google.gcs.sdrs.RetentionRuleType;
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import java.util.List;
@@ -89,7 +89,7 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
     if (!result.isEmpty()) {
       retentionJob = result.get(0);
     }
-
+    closeSession(session);
     return retentionJob;
   }
 }

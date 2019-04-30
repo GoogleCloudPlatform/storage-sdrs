@@ -49,6 +49,18 @@ public abstract class BaseController {
     return (UserInfo) context.getProperty(ContainerContextProperties.USER_INFO.toString());
   }
 
+  protected String getCorrelationId() {
+    if (context == null) {
+      return null;
+    }
+    Object id = context.getProperty(ContainerContextProperties.CORRELATION_UUID.toString());
+    if (id != null) {
+      return id.toString();
+    } else {
+      return null;
+    }
+  }
+
   protected Response successResponse(BaseHttpResponse responseBody) {
     return Response.status(HttpStatus.OK_200).entity(responseBody).build();
   }
