@@ -415,7 +415,7 @@ public class StsRuleExecutor implements RuleExecutor {
     return isPrefix ? appended + sourceBucketName : sourceBucketName + appended;
   }
 
-  private TransferJob upcateDefaultJobIfNeeded(
+  private TransferJob updateDefaultJobIfNeeded(
       TransferJob existingTransferJob,
       RetentionRule defaultRule,
       List<String> prefixesToExclude,
@@ -523,7 +523,7 @@ public class StsRuleExecutor implements RuleExecutor {
           }
         }
         transferJob =
-            upcateDefaultJobIfNeeded(stsPooledJob, defaultRule, prefixesToExclude, description);
+            updateDefaultJobIfNeeded(stsPooledJob, defaultRule, prefixesToExclude, description);
       }
     } catch (IOException e) {
       logger.error(

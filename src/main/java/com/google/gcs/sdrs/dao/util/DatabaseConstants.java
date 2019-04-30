@@ -28,7 +28,7 @@ public class DatabaseConstants {
   public static final String STS_JOB_STATUS_SUCCESS = "success";
   public static final String STS_JOB_STATUS_PENDING = "pending";
   public static final String STS_JOB_STATUS_ERROR = "error";
-  public static final String RETENTION_PEROID_UNIT_DAY = "day";
-  public static final String RETENTION_PEROID_UNIT_MONTH = "month";
-  public static final String RETENTION_PEROID_UNIT_VERSION = "version";
+  public static final String RETENTION_PERIOD_UNIT_DAY = "day";
+  public static final String RETENTION_PERIOD_UNIT_MONTH = "month";
+  public static final String RETENTION_PERIOD_UNIT_VERSION = "version";
 }

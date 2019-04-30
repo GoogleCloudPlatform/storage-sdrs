@@ -31,16 +31,16 @@ import java.io.Serializable;
  * <p>Enum string values indicate how this value is serialized to the database.
  */
 public enum RetentionUnitType implements Serializable {
-  @JsonProperty(ValidationConstants.RETENTION_PEROID_UNIT_DAY_JSON)
+  @JsonProperty(ValidationConstants.RETENTION_PERIOD_UNIT_DAY_JSON)
   DAY(
-      ValidationConstants.RETENTION_PEROID_UNIT_DAY_JSON,
-      DatabaseConstants.RETENTION_PEROID_UNIT_DAY),
+      ValidationConstants.RETENTION_PERIOD_UNIT_DAY_JSON,
+      DatabaseConstants.RETENTION_PERIOD_UNIT_DAY),
 
-  @JsonProperty(ValidationConstants.RETENTION_PEROID_UNIT_MONTH_JSON)
-  MONTH(ValidationConstants.RETENTION_PEROID_UNIT_MONTH_JSON, DatabaseConstants.RETENTION_PEROID_UNIT_MONTH),
+  @JsonProperty(ValidationConstants.RETENTION_PERIOD_UNIT_MONTH_JSON)
+  MONTH(ValidationConstants.RETENTION_PERIOD_UNIT_MONTH_JSON, DatabaseConstants.RETENTION_PERIOD_UNIT_MONTH),
 
-  @JsonProperty(ValidationConstants.RETENTION_PEROID_UNIT_VERSION_JSON)
-  VERSION(ValidationConstants.RETENTION_PEROID_UNIT_VERSION_JSON, DatabaseConstants.RETENTION_PEROID_UNIT_VERSION);
+  @JsonProperty(ValidationConstants.RETENTION_PERIOD_UNIT_VERSION_JSON)
+  VERSION(ValidationConstants.RETENTION_PERIOD_UNIT_VERSION_JSON, DatabaseConstants.RETENTION_PERIOD_UNIT_VERSION);
 
   private final String jsonValue;
   private final String databaseValue;
