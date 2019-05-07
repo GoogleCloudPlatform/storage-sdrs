@@ -22,6 +22,7 @@ import com.google.gcs.sdrs.controller.filter.ContainerContextProperties;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.BaseHttpResponse;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import java.io.IOException;
 import java.sql.SQLException;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -77,6 +78,8 @@ public abstract class BaseController {
     if (exception instanceof SQLException) {
       logger.error(exception.getMessage());
       outgoingException = new PersistenceException(exception);
+    } else if (exception instanceof IOException) {
+      outgoingException = new ServiceLayerException(exception);
     } else if (exception instanceof EntityNotFoundException) {
       outgoingException = new NotFoundException(exception.getMessage());
     } else if (exception instanceof HttpException) {

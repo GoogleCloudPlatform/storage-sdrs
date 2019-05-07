@@ -52,7 +52,7 @@ public abstract class BaseWorker implements Worker {
   public WorkerResult call() {
     workerResult.setStartTime(DateTime.now(DateTimeZone.UTC));
     String currentName = Thread.currentThread().getName();
-    Thread.currentThread().setName(currentName + "-" + workerResult.getId());
+    Thread.currentThread().setName(currentName + ";" + workerResult.getId());
     logger.info("Worker processing begins: " + this.workerResult.toString());
 
     doWork();
@@ -72,5 +72,13 @@ public abstract class BaseWorker implements Worker {
 
   public String getUuid() {
     return workerResult.getId();
+  }
+
+  public static String getCorrelationId() {
+    String threadName = Thread.currentThread().getName();
+    if (threadName != null && threadName.lastIndexOf(";") > 0) {
+      return threadName.substring(threadName.lastIndexOf(";"), threadName.length());
+    }
+    return null;
   }
 }

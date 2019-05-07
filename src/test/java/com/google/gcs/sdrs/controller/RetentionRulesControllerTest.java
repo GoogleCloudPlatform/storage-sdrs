@@ -35,6 +35,7 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
+import java.io.IOException;
 import java.sql.SQLException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
@@ -63,7 +64,7 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException {
+  public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException, IOException {
     when(controller.service.createRetentionRule(
             any(RetentionRuleCreateRequest.class), any(UserInfo.class)))
         .thenReturn(543);

@@ -18,10 +18,11 @@
 
 package com.google.gcs.sdrs;
 
-import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
+import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
+import com.google.gcs.sdrs.scheduler.JobScheduler;
 import com.google.gcs.sdrs.scheduler.runners.RuleExecutionRunner;
 import com.google.gcs.sdrs.scheduler.runners.ValidationRunner;
-import com.google.gcs.sdrs.scheduler.JobScheduler;
+import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +55,16 @@ public class SdrsApplication {
 
     // if web server fails to start, consider it a fatal error and exit the application with error
     startWebServer();
-    registerPubSub();
+    if (registerPubSub()) {
+      logger.info("PubSub topic registered");
+    } else {
+      logger.error("Failed to register PubSub topic");
+    }
+    if (connectDatabase()) {
+      logger.info("Database is connected");
+    } else {
+      logger.error("Failed to connect to database");
+    }
     if (Boolean.valueOf(getAppConfigProperty("scheduler.enabled", "false"))) {
       scheduleExecutionServiceJob();
       scheduleValidationServiceJob();
@@ -165,9 +175,17 @@ public class SdrsApplication {
     return System.getenv(envVariable);
   }
 
-  private static void registerPubSub() {
+  private static boolean registerPubSub() {
     if (PubSubMessageQueueManagerImpl.getInstance().getPublisher() == null) {
       logger.error("Failed to register pubsub publisher");
+      return false;
     }
+    return true;
+  }
+
+  private static boolean connectDatabase() {
+    RetentionRuleDaoImpl retentionRuleDao = new RetentionRuleDaoImpl();
+    retentionRuleDao.findGlobalRuleByProjectId("");
+    return retentionRuleDao.isSessionFactoryAvailable();
   }
 }

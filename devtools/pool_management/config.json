@@ -1,0 +1,21 @@
+{
+  "database": {
+    "host": "35.202.0.248",
+    "schema": "sdrs",
+    "user": "sdrs",
+    "password": "sdrsgreat"
+  },
+  "pool": [
+    {
+      "project_id": "sdrs-server",
+      "buckets": [
+        "sdrs-func-testing-log-cat1",
+        "sdrs-func-testing-user-steve"
+      ]
+    }
+  ],
+  "shadow_bucket_ext": {
+    "ext": "shadow",
+    "suffix": true
+  }
+}

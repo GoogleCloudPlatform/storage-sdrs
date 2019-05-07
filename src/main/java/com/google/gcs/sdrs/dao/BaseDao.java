@@ -44,9 +44,11 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
   private static final String HIBERNATE_CONNECTION_URL_ENV = "HIBERNATE_CONNECTION_URL";
   private static final String HIBERNATE_CONNECTION_URL_PROPERTY_KEY = "hibernate.connection.url";
   private static final String HIBERNATE_CONNECTION_USER_ENV = "HIBERNATE_CONNECTION_USER";
-  private static final String HIBERNATE_CONNECTION_USER_PROPERTY_KEY = "hibernate.connection.username";
+  private static final String HIBERNATE_CONNECTION_USER_PROPERTY_KEY =
+      "hibernate.connection.username";
   private static final String HIBERNATE_CONNECTION_PASSWORD_ENV = "HIBERNATE_CONNECTION_PASSWORD";
-  private static final String HIBERNATE_CONNECTION_PASSWORD_PROPERTY_KEY = "hibernate.connection.password";
+  private static final String HIBERNATE_CONNECTION_PASSWORD_PROPERTY_KEY =
+      "hibernate.connection.password";
 
   private static StandardServiceRegistry registry;
   private static SessionFactory sessionFactory;
@@ -77,10 +79,15 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
     if (sessionFactory == null) {
       try {
         // Create registry
-        StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder().configure();
-        registryBuilder.applySetting(HIBERNATE_CONNECTION_URL_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_URL_ENV));
-        registryBuilder.applySetting(HIBERNATE_CONNECTION_USER_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_USER_ENV));
-        registryBuilder.applySetting(HIBERNATE_CONNECTION_PASSWORD_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_PASSWORD_ENV));
+        StandardServiceRegistryBuilder registryBuilder =
+            new StandardServiceRegistryBuilder().configure();
+        registryBuilder.applySetting(
+            HIBERNATE_CONNECTION_URL_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_URL_ENV));
+        registryBuilder.applySetting(
+            HIBERNATE_CONNECTION_USER_PROPERTY_KEY, System.getenv(HIBERNATE_CONNECTION_USER_ENV));
+        registryBuilder.applySetting(
+            HIBERNATE_CONNECTION_PASSWORD_PROPERTY_KEY,
+            System.getenv(HIBERNATE_CONNECTION_PASSWORD_ENV));
         registry = registryBuilder.build();
 
         // TODO - refactor to remove this hardcoded strategy
@@ -105,5 +112,13 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
       }
     }
     return sessionFactory;
+  }
+
+  public static boolean isSessionFactoryAvailable() {
+    if (sessionFactory == null) {
+      return false;
+    } else {
+      return sessionFactory.isOpen();
+    }
   }
 }

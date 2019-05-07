@@ -17,6 +17,7 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import com.google.api.services.storage.model.Bucket;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.common.RetentionUnitType;
@@ -32,8 +33,11 @@ import com.google.gcs.sdrs.dao.converter.DataStorageType;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.RetentionRulesService;
 import com.google.gcs.sdrs.service.manager.JobManager;
+import com.google.gcs.sdrs.util.GcsHelper;
 import com.google.gcs.sdrs.util.RetentionUtil;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,21 +71,31 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
    * @param rule the {@link RetentionRuleCreateRequest} object input by the user
    * @return the {@link Integer} id of the created rule
    */
-  @Override()
+  @Override
   public Integer createRetentionRule(RetentionRuleCreateRequest rule, UserInfo user)
-      throws SQLException {
+      throws SQLException, IOException {
+    String bucketName = RetentionUtil.getBucketName(rule.getDataStorageName());
+    if (rule.getRetentionRuleType() != RetentionRuleType.GLOBAL) {
+      Bucket bucket = GcsHelper.getInstance().getBucket(bucketName);
+      if (bucket == null) {
+        throw new IOException(String.format("Bucket %s does not exist", bucketName));
+      }
+    }
     String userName = user.getEmail() == null ? DEFAULT_UNKNOWN_USER : user.getEmail();
 
-    RetentionRule existing =
-        ruleDao.findByBusinessKey(
-            rule.getProjectId(), rule.getDataStorageName(), true, rule.getRetentionRuleType());
+    List<RetentionRule> bucketRules =
+        ruleDao.findRulesByStorageRoot(
+            rule.getProjectId(),
+            RetentionUtil.getBucketName(rule.getDataStorageName()),
+            rule.getRetentionRuleType(),
+            true);
 
-    RetentionRule newRule;
+    RetentionRule existing = getExistingRule(bucketRules, rule);
+    RetentionRule newRule = null;
     if (existing == null) {
       // This is a truly new rule
-      RetentionRule entity = mapPojoToPersistenceEntity(rule, userName);
-      newRule = entity;
-      newRule.setId(ruleDao.save(entity));
+      newRule = mapPojoToPersistenceEntity(rule, userName);
+      newRule.setId(ruleDao.save(newRule));
     } else if (!existing.getIsActive()) {
       // The rule is not new; re-use the previously deactivated rule with updated values
       updateUserInputValues(rule, userName, existing);
@@ -90,17 +104,37 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
       newRule = existing;
       ruleDao.update(newRule);
-    } else {
-      // This rule is still active; surface an exception
-      String message =
-          String.format(
-              "Unique constraint violation. "
-                  + "A rule already exists with project id: %s, data storage name: %s",
-              rule.getProjectId(), rule.getDataStorageName());
-      throw new SQLException(message);
     }
 
     return newRule.getId();
+  }
+
+  private RetentionRule getExistingRule(
+      List<RetentionRule> rules, RetentionRuleCreateRequest ruleRequest) throws SQLException {
+    if (rules != null) {
+      for (RetentionRule rule : rules) {
+        String dataStroargeName = ruleRequest.getDataStorageName();
+        if (dataStroargeName.equals(rule.getDataStorageName())) {
+          if (rule.getIsActive()) {
+            throw new SQLException(
+                String.format(
+                    "A rule already exists with project id: %s, data storage name: %s",
+                    rule.getProjectId(), rule.getDataStorageName()));
+          } else {
+            return rule;
+          }
+        }
+
+        if (dataStroargeName.contains(rule.getDataStorageName())
+            || rule.getDataStorageName().contains(dataStroargeName)) {
+          throw new SQLException(
+              String.format(
+                  "A rule for %s already exists with project id: %s. The request for %s is not allowed for violating non-nesting rule",
+                  rule.getDataStorageName(), rule.getProjectId(), dataStroargeName));
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -143,7 +177,9 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
 
     entity.setVersion(entity.getVersion() + 1);
     entity.setRetentionValue(
-        buildRetentionValue(request.getRetentionPeriod(), RetentionValue.parse(entity.getRetentionValue()).getUnitTypeString()));
+        buildRetentionValue(
+            request.getRetentionPeriod(),
+            RetentionValue.parse(entity.getRetentionValue()).getUnitTypeString()));
 
     ruleDao.update(entity);
 
@@ -219,7 +255,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     response.setRuleId(rule.getId());
     response.setType(rule.getType());
     RetentionValue retentionValue = RetentionValue.parse(rule.getRetentionValue());
-    if (retentionValue != null ) {
+    if (retentionValue != null) {
       response.setRetentionPeriodUnit(retentionValue.getUnitTypeString());
       response.setRetentionPeriod(retentionValue.getNumber());
     }
@@ -241,5 +277,4 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       return bucketAndDataset[0];
     }
   }
-
 }

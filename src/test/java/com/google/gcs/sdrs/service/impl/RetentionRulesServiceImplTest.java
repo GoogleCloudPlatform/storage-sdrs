@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.api.services.storage.model.Bucket;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
@@ -35,10 +36,13 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.manager.JobManager;
 import com.google.gcs.sdrs.service.worker.Worker;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
+import com.google.gcs.sdrs.util.GcsHelper;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityNotFoundException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,18 +52,20 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(StsRuleExecutor.class)
+@PrepareForTest({StsRuleExecutor.class, GcsHelper.class})
 public class RetentionRulesServiceImplTest {
 
   private RetentionRulesServiceImpl service = new RetentionRulesServiceImpl();
   private RetentionRule globalRule;
   private List<String> projectIds = new ArrayList<>();
+  private GcsHelper mockGcsHelper;
 
   @Before
   public void setup() {
     service.ruleDao = mock(RetentionRuleDaoImpl.class);
     service.jobManager.shutDownJobManagerNow();
     service.jobManager = mock(JobManager.class);
+    mockGcsHelper = mock(GcsHelper.class);
     globalRule = new RetentionRule();
     globalRule.setId(10);
     globalRule.setProjectId("global-default");
@@ -70,10 +76,14 @@ public class RetentionRulesServiceImplTest {
 
     PowerMockito.mockStatic(StsRuleExecutor.class);
     when(StsRuleExecutor.getInstance()).thenReturn(null);
+
+    PowerMockito.mockStatic(GcsHelper.class);
+    when(GcsHelper.getInstance()).thenReturn(mockGcsHelper);
+    when(mockGcsHelper.getBucket(any())).thenReturn(new Bucket());
   }
 
   @Test
-  public void createRulePersistsDatasetEntity() throws SQLException {
+  public void createRulePersistsDatasetEntity() throws SQLException, IOException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
@@ -105,7 +115,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRuleUsesBucketForDatasetWhenNoDataset() throws SQLException {
+  public void createRuleUsesBucketForDatasetWhenNoDataset() throws SQLException, IOException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
@@ -125,7 +135,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRuleUsesDataStorageDatasetForDataset() throws SQLException {
+  public void createRuleUsesDataStorageDatasetForDataset() throws SQLException, IOException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
@@ -145,7 +155,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRulePersistsGlobalEntity() throws SQLException {
+  public void createRulePersistsGlobalEntity() throws SQLException, IOException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     createRule.setRetentionPeriod(123);
@@ -174,7 +184,7 @@ public class RetentionRulesServiceImplTest {
   }
 
   @Test
-  public void createRuleOverwritesDeletedEntity() throws SQLException {
+  public void createRuleOverwritesDeletedEntity() throws SQLException, IOException {
     RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
     createRule.setRetentionRuleType(RetentionRuleType.DATASET);
     createRule.setRetentionPeriod(123);
@@ -182,14 +192,17 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://b/d");
     createRule.setProjectId("projectId");
     RetentionRule existingRule = new RetentionRule();
-    existingRule.setDataStorageName("dataStorageName");
+    existingRule.setDataStorageName("gs://b/d");
     existingRule.setProjectId("projectId");
     existingRule.setRetentionValue("1:day");
     existingRule.setIsActive(false);
     existingRule.setVersion(2);
-    when(service.ruleDao.findByBusinessKey(
-            "projectId", "gs://b/d", true, RetentionRuleType.DATASET))
-        .thenReturn(existingRule);
+
+    List<RetentionRule> bucketRules = new ArrayList<>();
+    bucketRules.add(existingRule);
+
+    when(service.ruleDao.findRulesByStorageRoot(any(), any(), any(), any()))
+        .thenReturn(bucketRules);
 
     service.createRetentionRule(createRule, new UserInfo());
 
@@ -205,6 +218,51 @@ public class RetentionRulesServiceImplTest {
     assertEquals(input.getDataStorageName(), "gs://b/d");
     assertEquals(input.getDatasetName(), "dataset");
     assertEquals(3, (int) input.getVersion());
+  }
+
+  @Test()
+  public void createRuleBucketNotExist() throws SQLException {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDatasetName("dataset");
+    createRule.setDataStorageName("gs://bucket-not-exist/d");
+    createRule.setProjectId("projectId");
+
+    when(mockGcsHelper.getBucket("bucket-not-exist")).thenReturn(null);
+
+    try {
+      service.createRetentionRule(createRule, new UserInfo());
+    } catch (IOException e) {
+      Assert.assertTrue(e.getMessage().contains("Bucket bucket-not-exist does not exist"));
+    }
+  }
+
+  @Test
+  public void createRuleBuckeNestedRuleViolation() throws IOException {
+    RetentionRuleCreateRequest createRule = new RetentionRuleCreateRequest();
+    createRule.setRetentionRuleType(RetentionRuleType.DATASET);
+    createRule.setRetentionPeriod(123);
+    createRule.setDatasetName("dataset");
+    createRule.setDataStorageName("gs://b/d/c");
+    createRule.setProjectId("projectId");
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setDataStorageName("gs://b/d");
+    existingRule.setProjectId("projectId");
+    existingRule.setRetentionValue("1:day");
+    existingRule.setIsActive(true);
+    existingRule.setVersion(2);
+
+    List<RetentionRule> bucketRules = new ArrayList<>();
+    bucketRules.add(existingRule);
+
+    when(service.ruleDao.findRulesByStorageRoot(any(), any(), any(), any()))
+        .thenReturn(bucketRules);
+    try {
+      service.createRetentionRule(createRule, new UserInfo());
+    } catch (SQLException e) {
+      Assert.assertTrue(e.getMessage().contains("violating non-nesting rule"));
+    }
   }
 
   @Test

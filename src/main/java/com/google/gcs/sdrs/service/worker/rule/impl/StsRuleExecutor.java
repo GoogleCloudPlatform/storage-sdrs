@@ -33,6 +33,9 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
+import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
+import com.google.gcs.sdrs.service.mq.pojo.DeleteNotificationMessage;
+import com.google.gcs.sdrs.service.worker.BaseWorker;
 import com.google.gcs.sdrs.service.worker.rule.RuleExecutor;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
@@ -40,6 +43,7 @@ import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -53,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
+import javax.persistence.criteria.CriteriaBuilder.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,9 +144,10 @@ public class StsRuleExecutor implements RuleExecutor {
     List<RetentionJob> datasetRuleJobs = new ArrayList<>();
     // get all rules for a bucket
     Map<String, List<RetentionRule>> bucketDatasetMap = buildBucketRuleMap(userCommandedRules);
+    String correlationId = getCorrelationId();
+    ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
 
     for (String bucketName : bucketDatasetMap.keySet()) {
-      ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
       List<String> prefixes = new ArrayList<>();
 
       // create prefixes from all user commanded rules for a bucket
@@ -168,6 +174,7 @@ public class StsRuleExecutor implements RuleExecutor {
         continue;
       }
 
+      sendDeleteNotification(projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
       String sourceBucket = bucketName;
       String destinationBucket =
           buildDestinationBucketName(
@@ -227,9 +234,12 @@ public class StsRuleExecutor implements RuleExecutor {
     List<RetentionJob> datasetRuleJobs = new ArrayList<>();
     // get all dataset rules for a bucket
     Map<String, List<RetentionRule>> bucketDatasetMap = buildBucketRuleMap(datasetRules);
+    String correlationId = getCorrelationId();
+    ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
+    String scheduleTimeOfDay = getNextScheduledAt(zonedDateTimeNow, 1);
 
     for (String bucketName : bucketDatasetMap.keySet()) {
-      ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
+
       List<String> prefixes = new ArrayList<>();
       Map<String, List<String>> prefixesPerDatasetMap = new HashMap<>();
 
@@ -251,13 +261,15 @@ public class StsRuleExecutor implements RuleExecutor {
         prefixes.addAll(tmpPrefixes);
       }
 
+      sendDeleteNotification(projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
+
       String sourceBucket = bucketName;
       String destinationBucket =
           buildDestinationBucketName(
               bucketName, shadowBucketExtension, isShadowBucketExtensionPrefix);
       String description =
           buildDescription(
-              RetentionRuleType.DATASET.toString(), bucketDatasetMap.get(bucketName), null);
+              RetentionRuleType.DATASET.toString(), bucketDatasetMap.get(bucketName), scheduleTimeOfDay);
 
       logger.info(
           String.format(
@@ -271,7 +283,7 @@ public class StsRuleExecutor implements RuleExecutor {
             findPooledJob(
                 projectId,
                 bucketName,
-                getNextScheduledAt(zonedDateTimeNow, 1),
+                scheduleTimeOfDay,
                 RetentionRuleType.DATASET);
         if (stsPooledJob == null && !isStsJobPoolOnly) {
           job =
@@ -727,5 +739,26 @@ public class StsRuleExecutor implements RuleExecutor {
     }
 
     return prefixes.stream().reduce((a, b) -> a + ";" + b).get();
+  }
+
+  private void sendDeleteNotification(String projectId, String bucket, List<String> prefixList, Instant deletedAt, String correlationId) {
+
+    for (String prefix : prefixList) {
+      DeleteNotificationMessage msg = new DeleteNotificationMessage();
+      msg.setCorrelationId(correlationId);
+      msg.setDeletedAt(deletedAt);
+      msg.setProjectId(projectId);
+      msg.setTrigger(correlationId);
+      msg.setDeletedDirectoryUri(ValidationConstants.STORAGE_PREFIX + bucket +  ValidationConstants.STORAGE_SEPARATOR + prefix);
+      PubSubMessageQueueManagerImpl.getInstance().sendSuccessDeleteMessage(msg);
+    }
+  }
+
+  private String getCorrelationId() {
+    String correlationId = BaseWorker.getCorrelationId();
+    if (correlationId == null) {
+      correlationId = UUID.randomUUID().toString();
+    }
+    return correlationId;
   }
 }
