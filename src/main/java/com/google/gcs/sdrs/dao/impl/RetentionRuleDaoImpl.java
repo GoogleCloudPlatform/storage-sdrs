@@ -206,8 +206,17 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     return result;
   }
 
+  /**
+   * Find all retention rules by data stroage root, i.e. GCS bucket
+   *
+   * @param projectId  GCP project ID
+   * @param dataStorageRoot The root of the data storage. i.e. GCS bucket
+   * @param retentionRuleType Retention rule type
+   * @param includeDeactivated Whether or not to include deactivated rules
+   * @return
+   */
   @Override
-  public List<RetentionRule> findRulesByStorageRoot(
+  public List<RetentionRule> findRulesByDataStorageRoot(
       String projectId,
       String dataStorageRoot,
       RetentionRuleType retentionRuleType,

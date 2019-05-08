@@ -84,25 +84,25 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
     String userName = user.getEmail() == null ? DEFAULT_UNKNOWN_USER : user.getEmail();
 
     List<RetentionRule> bucketRules =
-        ruleDao.findRulesByStorageRoot(
+        ruleDao.findRulesByDataStorageRoot(
             rule.getProjectId(),
             RetentionUtil.getBucketName(rule.getDataStorageName()),
             rule.getRetentionRuleType(),
             true);
 
-    RetentionRule existing = getExistingRule(bucketRules, rule);
+    RetentionRule existingRule = getExistingRule(bucketRules, rule);
     RetentionRule newRule = null;
-    if (existing == null) {
+    if (existingRule == null) {
       // This is a truly new rule
       newRule = mapPojoToPersistenceEntity(rule, userName);
       newRule.setId(ruleDao.save(newRule));
-    } else if (!existing.getIsActive()) {
+    } else if (!existingRule.getIsActive()) {
       // The rule is not new; re-use the previously deactivated rule with updated values
-      updateUserInputValues(rule, userName, existing);
-      existing.setIsActive(true);
-      existing.setVersion(existing.getVersion() + 1);
+      updateUserInputValues(rule, userName, existingRule);
+      existingRule.setIsActive(true);
+      existingRule.setVersion(existingRule.getVersion() + 1);
 
-      newRule = existing;
+      newRule = existingRule;
       ruleDao.update(newRule);
     }
 
@@ -113,24 +113,27 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       List<RetentionRule> rules, RetentionRuleCreateRequest ruleRequest) throws SQLException {
     if (rules != null) {
       for (RetentionRule rule : rules) {
-        String dataStroargeName = ruleRequest.getDataStorageName();
-        if (dataStroargeName.equals(rule.getDataStorageName())) {
+        String dataStorageName = ruleRequest.getDataStorageName();
+        if (dataStorageName.equals(rule.getDataStorageName())) {
           if (rule.getIsActive()) {
             throw new SQLException(
                 String.format(
-                    "A rule already exists with project id: %s, data storage name: %s",
-                    rule.getProjectId(), rule.getDataStorageName()));
+                    "A %s rule already exists with project id: %s, data storage name: %s",
+                    rule.getType().toString(), rule.getProjectId(), rule.getDataStorageName()));
           } else {
             return rule;
           }
         }
 
-        if (dataStroargeName.contains(rule.getDataStorageName())
-            || rule.getDataStorageName().contains(dataStroargeName)) {
+        if (dataStorageName.contains(rule.getDataStorageName())
+            || rule.getDataStorageName().contains(dataStorageName)) {
           throw new SQLException(
               String.format(
-                  "A rule for %s already exists with project id: %s. The request for %s is not allowed for violating non-nesting rule",
-                  rule.getDataStorageName(), rule.getProjectId(), dataStroargeName));
+                  "A %s rule for %s already exists with project id: %s. The request for %s is not allowed for violating non-nesting rule",
+                  rule.getType().toString(),
+                  rule.getDataStorageName(),
+                  rule.getProjectId(),
+                  dataStorageName));
         }
       }
     }

@@ -28,7 +28,7 @@ public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
 
   List<RetentionRule> findDatasetRulesByProjectId(String projectId);
 
-  List<RetentionRule> findRulesByStorageRoot(
+  List<RetentionRule> findRulesByDataStorageRoot(
       String projectId,
       String dataStorageRoot,
       RetentionRuleType retentionRuleType,

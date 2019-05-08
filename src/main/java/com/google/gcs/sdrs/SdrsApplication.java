@@ -55,16 +55,9 @@ public class SdrsApplication {
 
     // if web server fails to start, consider it a fatal error and exit the application with error
     startWebServer();
-    if (registerPubSub()) {
-      logger.info("PubSub topic registered");
-    } else {
-      logger.error("Failed to register PubSub topic");
-    }
-    if (connectDatabase()) {
-      logger.info("Database is connected");
-    } else {
-      logger.error("Failed to connect to database");
-    }
+    registerPubSub();
+    connectDatabase();
+
     if (Boolean.valueOf(getAppConfigProperty("scheduler.enabled", "false"))) {
       scheduleExecutionServiceJob();
       scheduleValidationServiceJob();
@@ -175,17 +168,21 @@ public class SdrsApplication {
     return System.getenv(envVariable);
   }
 
-  private static boolean registerPubSub() {
+  private static void registerPubSub() {
     if (PubSubMessageQueueManagerImpl.getInstance().getPublisher() == null) {
-      logger.error("Failed to register pubsub publisher");
-      return false;
+      logger.error("Failed to register PubSub topic");
+    } else {
+      logger.info("PubSub topic registered");
     }
-    return true;
   }
 
-  private static boolean connectDatabase() {
+  private static void connectDatabase() {
     RetentionRuleDaoImpl retentionRuleDao = new RetentionRuleDaoImpl();
     retentionRuleDao.findGlobalRuleByProjectId("");
-    return retentionRuleDao.isSessionFactoryAvailable();
+    if (retentionRuleDao.isSessionFactoryAvailable()) {
+      logger.info("Database is connected");
+    } else {
+      logger.error("Failed to connect to database");
+    }
   }
 }

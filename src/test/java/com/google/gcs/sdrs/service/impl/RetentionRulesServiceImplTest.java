@@ -201,7 +201,7 @@ public class RetentionRulesServiceImplTest {
     List<RetentionRule> bucketRules = new ArrayList<>();
     bucketRules.add(existingRule);
 
-    when(service.ruleDao.findRulesByStorageRoot(any(), any(), any(), any()))
+    when(service.ruleDao.findRulesByDataStorageRoot(any(), any(), any(), any()))
         .thenReturn(bucketRules);
 
     service.createRetentionRule(createRule, new UserInfo());
@@ -251,12 +251,13 @@ public class RetentionRulesServiceImplTest {
     existingRule.setProjectId("projectId");
     existingRule.setRetentionValue("1:day");
     existingRule.setIsActive(true);
+    existingRule.setType(RetentionRuleType.DATASET);
     existingRule.setVersion(2);
 
     List<RetentionRule> bucketRules = new ArrayList<>();
     bucketRules.add(existingRule);
 
-    when(service.ruleDao.findRulesByStorageRoot(any(), any(), any(), any()))
+    when(service.ruleDao.findRulesByDataStorageRoot(any(), any(), any(), any()))
         .thenReturn(bucketRules);
     try {
       service.createRetentionRule(createRule, new UserInfo());
