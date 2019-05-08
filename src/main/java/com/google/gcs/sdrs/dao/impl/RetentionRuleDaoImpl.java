@@ -206,6 +206,41 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
     return result;
   }
 
+  /**
+   * Find all retention rules by data stroage root, i.e. GCS bucket
+   *
+   * @param projectId  GCP project ID
+   * @param dataStorageRoot The root of the data storage. i.e. GCS bucket
+   * @param retentionRuleType Retention rule type
+   * @param includeDeactivated Whether or not to include deactivated rules
+   * @return
+   */
+  @Override
+  public List<RetentionRule> findRulesByDataStorageRoot(
+      String projectId,
+      String dataStorageRoot,
+      RetentionRuleType retentionRuleType,
+      Boolean includeDeactivated) {
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<RetentionRule> query = builder.createQuery(RetentionRule.class);
+    Root<RetentionRule> root = query.from(RetentionRule.class);
+
+    List<Predicate> predicates = new LinkedList<>();
+    predicates.add(builder.equal(root.get("projectId"), projectId));
+    predicates.add(builder.equal(root.get("dataStorageRoot"), dataStorageRoot));
+    predicates.add(builder.equal(root.get("type"), retentionRuleType));
+    if (!includeDeactivated) {
+      predicates.add(builder.equal(root.get("isActive"), true));
+    }
+    Predicate[] predicateArray = new Predicate[predicates.size()];
+    predicateArray = predicates.toArray(predicateArray);
+    query.select(root).where(predicateArray);
+    List<RetentionRule> result = session.createQuery(query).getResultList();
+    closeSession(session);
+    return result;
+  }
+
   @Override
   public List<RetentionRule> findDefaultRulesByProjectId(String projectId) {
     Session session = openSession();

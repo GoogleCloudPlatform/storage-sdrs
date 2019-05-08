@@ -29,6 +29,7 @@ import com.google.api.client.http.HttpUnsuccessfulResponseHandler;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.client.util.Sleeper;
 import com.google.common.base.Preconditions;
+import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
   private static final Logger logger = LoggerFactory.getLogger(RetryHttpInitializerWrapper.class);
   private final Credential wrappedCredential;
   private final Sleeper sleeper;
-  private boolean backOffRequiredAlways;
+  private boolean backOffRequiredRateLimit;
   private static final int MILLIS_PER_MINUTE = 60 * 1000;
 
   /**
@@ -62,10 +63,10 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
    * @param sleeper a user-supplied Sleeper
    */
   RetryHttpInitializerWrapper(
-      Credential wrappedCredential, Sleeper sleeper, boolean backOffRequiredAlways) {
+      Credential wrappedCredential, Sleeper sleeper, boolean backOffRequiredRateLimit) {
     this.wrappedCredential = Preconditions.checkNotNull(wrappedCredential);
     this.sleeper = sleeper;
-    this.backOffRequiredAlways = backOffRequiredAlways;
+    this.backOffRequiredRateLimit = backOffRequiredRateLimit;
   }
 
   /**
@@ -73,11 +74,12 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
    *
    * @param wrappedCredential the credential used to authenticate with a Google Cloud Platform
    *     project
-   * @param backOffRequiredAlways whether or not exponential backoff retry is always on or for sever
-   *     error only
+   * @param backOffRequiredRateLimit whether or not exponential backoff retry is for server error or
+   *     server error plugs rate limit error only
    */
-  public RetryHttpInitializerWrapper(Credential wrappedCredential, boolean backOffRequiredAlways) {
-    this(wrappedCredential, Sleeper.DEFAULT, backOffRequiredAlways);
+  public RetryHttpInitializerWrapper(
+      Credential wrappedCredential, boolean backOffRequiredRateLimit) {
+    this(wrappedCredential, Sleeper.DEFAULT, backOffRequiredRateLimit);
   }
 
   /**
@@ -89,9 +91,9 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
     request.setReadTimeout(2 * MILLIS_PER_MINUTE); // 2 minutes read timeout
     final HttpUnsuccessfulResponseHandler backoffHandler =
         new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()).setSleeper(sleeper);
-    if (backOffRequiredAlways) {
+    if (backOffRequiredRateLimit) {
       ((HttpBackOffUnsuccessfulResponseHandler) backoffHandler)
-          .setBackOffRequired(BackOffRequired.ALWAYS);
+          .setBackOffRequired(SdrsBackOffRequired.ON_SERVER_ERROR_RATE_LIMIT);
     }
     request.setInterceptor(wrappedCredential);
     request.setUnsuccessfulResponseHandler(
@@ -113,5 +115,12 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
 
     request.setIOExceptionHandler(
         new HttpBackOffIOExceptionHandler(new ExponentialBackOff()).setSleeper(sleeper));
+  }
+
+  public interface SdrsBackOffRequired extends BackOffRequired {
+    HttpBackOffUnsuccessfulResponseHandler.BackOffRequired ON_SERVER_ERROR_RATE_LIMIT =
+        response ->
+            response.getStatusCode() / 100 == 5
+                || response.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS_429;
   }
 }
