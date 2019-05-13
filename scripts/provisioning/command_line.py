@@ -14,17 +14,13 @@
 # [START all]
 
 # TODO
-# 1) Pass in only germane arguments for 1 bucket
 # 2) Wire in call to fire off to SDRS REST end point 
 # 3) make it work for many buckets (iterate over data set)
 #
 
-"""Command-line sample that creates a daily transfer from a standard
-GCS bucket to a Nearline GCS bucket for objects untouched for 30 days.
+"""Command-line sample that creates pooled STS jobs and syncs with SDRS.
 
-This sample is used on this page:
-
-    https://cloud.google.com/storage/transfer/create-transfer
+Note the start times are in UTC (GMT-7 for PDT months)
 
 For more information, see README.md.
 """
@@ -40,15 +36,12 @@ import googleapiclient.discovery
 def main(project_id, start_date, source_bucket,
          sink_bucket):
     storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
-    # set i to 24 or 12 depending on frequency
     frequency = 24
     i = 0
     while i < frequency:
         job_name = 'Pooled STS Job ' + str(i) + ' for bucket ' + source_bucket
         print(job_name)
-        #start_time_string = str(i) + ':00:00'
-        #print(start_time_string)
-            # Edit this template with desired parameters.
+        #UTC Time (24hr) HH:MM:SS.
         start_time_string = '{:02d}:00:01'.format(i)
         start_time = datetime.datetime.strptime(start_time_string, '%H:%M:%S')
         
@@ -91,24 +84,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    #parser.add_argument('description', help='Transfer description.')
     parser.add_argument('project_id', help='Your Google Cloud project ID.')
     parser.add_argument('start_date', help='Date YYYY/MM/DD.')
-    #parser.add_argument('frequency', help='Frequency hourly.')
-    #parser.add_argument('start_time', help='UTC Time (24hr) HH:MM:SS.')
     parser.add_argument('source_bucket', help='Source GCS bucket name.')
     parser.add_argument('sink_bucket', help='Target GCS bucket name.')
 
     args = parser.parse_args()
     start_date = datetime.datetime.strptime(args.start_date, '%Y/%m/%d')
-    #start_time = datetime.datetime.strptime(args.start_time, '%H:%M:%S')
 
     main(
-        #args.description,
         args.project_id,
         start_date,
-        #args.frequency,
-        #start_time,
         args.source_bucket,
         args.sink_bucket)
 # [END all]
