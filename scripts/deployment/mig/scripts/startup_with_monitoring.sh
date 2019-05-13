@@ -39,6 +39,7 @@ docker run --detach -v /root/cred:/var/sdrs \
            --name=sdrs --env-file=./env.txt \
            --log-driver=gcplogs \
            --publish=8080:8080 \
+           --publish=8086:8086 \
            --net=esp_network $CONTAINER_IMAGE_PATH
 
 # Delete the env.txt file after running container.
