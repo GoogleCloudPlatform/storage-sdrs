@@ -109,8 +109,7 @@ public class ExecuteRetentionWorker extends BaseWorker {
         | UnsupportedOperationException
         | NullPointerException
         | SQLException ex) {
-      logger.error("Error executing rule: ", ex);
-      ex.printStackTrace();
+      logger.error(String.format("Error executing rule: %s", RetentionUtil.convertStackTrace(ex)));
       workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
     }
   }

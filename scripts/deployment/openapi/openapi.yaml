@@ -34,6 +34,7 @@ paths:
       responses:
         '200':
           description: Application status
+      description: Get application status
       operationId: getAppStatus
   /retentionrules:
     post:
@@ -268,6 +269,8 @@ definitions:
         type: string
       retentionPeriod:
         $ref: '#/definitions/RetentionPeriod'
+      retentionPeriodUnit:
+        $ref: '#/definitions/RetentionPeriodUnit'
       type:
         $ref: '#/definitions/RetentionRuleType'
     required:
@@ -285,6 +288,13 @@ definitions:
     maximum: 1000
     minimum: 0
     type: integer
+  RetentionPeriodUnit:
+    enum:
+      - DAY
+      - MONTH
+      - VERSION
+    type: string
+    default: DAY
   RetentionRuleResponse:
     allOf:
       - $ref: '#/definitions/BaseResponse'
@@ -297,6 +307,8 @@ definitions:
             type: string
           retentionPeriod:
             $ref: '#/definitions/RetentionPeriod'
+          retentionPeriodUnit:
+            $ref: '#/definitions/RetentionPeriodUnit'
           ruleId:
             type: integer
           type:
@@ -317,6 +329,9 @@ definitions:
         type: string
       target:
         type: string
+    required:
+      - type
+    type: object
   NotificationEventRequest:
     properties:
       projectId:
@@ -326,10 +341,12 @@ definitions:
       deletedAt:
         type: string
         format: date-time
+    type: object
   RetentionRuleType:
     enum:
       - GLOBAL
       - DATASET
+      - DEFAULT
     type: string
   ExecutionType:
     enum:
