@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
-import javax.persistence.criteria.CriteriaBuilder.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,16 +173,17 @@ public class StsRuleExecutor implements RuleExecutor {
         continue;
       }
 
-      sendDeleteNotification(projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
+      sendDeleteNotification(
+          projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
       String sourceBucket = bucketName;
       String destinationBucket =
           buildDestinationBucketName(
               bucketName, shadowBucketExtension, isShadowBucketExtensionPrefix);
       String description = buildDescription(RetentionRuleType.USER.toString(), null, null);
 
-      logger.debug(
+      logger.info(
           String.format(
-              "Creating STS job with projectId: %s, "
+              "Creating user commanded STS job with projectId: %s, "
                   + "description: %s, source: %s, destination: %s",
               projectId, description, sourceBucket, destinationBucket));
 
@@ -201,8 +201,8 @@ public class StsRuleExecutor implements RuleExecutor {
       } catch (IOException e) {
         logger.error(
             String.format(
-                "Failed to create user commanded STS job for project %s bucket %s",
-                projectId, sourceBucket));
+                "Failed to create user commanded STS job for project %s bucket %s. %s",
+                projectId, sourceBucket, RetentionUtil.convertStackTrace(e)));
       }
 
       String jobName = null;
@@ -261,7 +261,8 @@ public class StsRuleExecutor implements RuleExecutor {
         prefixes.addAll(tmpPrefixes);
       }
 
-      sendDeleteNotification(projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
+      sendDeleteNotification(
+          projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
 
       String sourceBucket = bucketName;
       String destinationBucket =
@@ -269,7 +270,9 @@ public class StsRuleExecutor implements RuleExecutor {
               bucketName, shadowBucketExtension, isShadowBucketExtensionPrefix);
       String description =
           buildDescription(
-              RetentionRuleType.DATASET.toString(), bucketDatasetMap.get(bucketName), scheduleTimeOfDay);
+              RetentionRuleType.DATASET.toString(),
+              bucketDatasetMap.get(bucketName),
+              scheduleTimeOfDay);
 
       logger.info(
           String.format(
@@ -280,11 +283,7 @@ public class StsRuleExecutor implements RuleExecutor {
       TransferJob job = null;
       try {
         TransferJob stsPooledJob =
-            findPooledJob(
-                projectId,
-                bucketName,
-                scheduleTimeOfDay,
-                RetentionRuleType.DATASET);
+            findPooledJob(projectId, bucketName, scheduleTimeOfDay, RetentionRuleType.DATASET);
         if (stsPooledJob == null && !isStsJobPoolOnly) {
           job =
               StsUtil.createStsJob(
@@ -308,7 +307,7 @@ public class StsRuleExecutor implements RuleExecutor {
         logger.error(
             String.format(
                 "Failed to schedule dataset STS job for %s/%s. %s",
-                projectId, sourceBucket, e.getMessage()));
+                projectId, sourceBucket, RetentionUtil.convertStackTrace(e)));
       }
 
       String jobName = null;
@@ -541,7 +540,7 @@ public class StsRuleExecutor implements RuleExecutor {
       logger.error(
           String.format(
               "Failed to schedule default STS job for %s/%s. %s",
-              projectId, sourceBucket, e.getMessage()));
+              projectId, sourceBucket, RetentionUtil.convertStackTrace(e)));
       return null;
     }
 
@@ -741,7 +740,12 @@ public class StsRuleExecutor implements RuleExecutor {
     return prefixes.stream().reduce((a, b) -> a + ";" + b).get();
   }
 
-  private void sendDeleteNotification(String projectId, String bucket, List<String> prefixList, Instant deletedAt, String correlationId) {
+  private void sendDeleteNotification(
+      String projectId,
+      String bucket,
+      List<String> prefixList,
+      Instant deletedAt,
+      String correlationId) {
 
     for (String prefix : prefixList) {
       DeleteNotificationMessage msg = new DeleteNotificationMessage();
@@ -749,7 +753,11 @@ public class StsRuleExecutor implements RuleExecutor {
       msg.setDeletedAt(deletedAt);
       msg.setProjectId(projectId);
       msg.setTrigger(correlationId);
-      msg.setDeletedDirectoryUri(ValidationConstants.STORAGE_PREFIX + bucket +  ValidationConstants.STORAGE_SEPARATOR + prefix);
+      msg.setDeletedDirectoryUri(
+          ValidationConstants.STORAGE_PREFIX
+              + bucket
+              + ValidationConstants.STORAGE_SEPARATOR
+              + prefix);
       PubSubMessageQueueManagerImpl.getInstance().sendSuccessDeleteMessage(msg);
     }
   }

@@ -1,16 +1,16 @@
 {
   "database": {
-    "host": "35.202.0.248",
-    "schema": "sdrs",
-    "user": "sdrs",
-    "password": "sdrsgreat"
+    "host": "your-host",
+    "schema": "your-db-schema",
+    "user": "your-db-user",
+    "password": "your-db-user-password"
   },
   "pool": [
     {
-      "project_id": "sdrs-server",
+      "project_id": "your-project-id",
       "buckets": [
-        "sdrs-func-testing-log-cat1",
-        "sdrs-func-testing-user-steve"
+        "your-bucket-1",
+        "your-bucket-2"
       ]
     }
   ],
