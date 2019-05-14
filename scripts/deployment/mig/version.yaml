@@ -20,6 +20,7 @@ resources:
   properties:
     targetSize: 2
     maxNumReplicas: 5
+    image: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/images/centos-docker-sd
     machineType: n1-standard-1
     value: gs://sdrs-server/versions/demo/startup.sh
     externalIp: False

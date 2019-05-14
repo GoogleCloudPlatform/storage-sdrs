@@ -26,6 +26,7 @@ resources:
 - name: {{ INSTANCE_TEMPLATE }}
   type: instance-template.jinja
   properties:
+    image: {{ properties['image'] }}
     machineType: {{ properties['machineType'] }}
     itName: {{ INSTANCE_TEMPLATE }}
     value: {{ properties['value'] }}

@@ -27,6 +27,7 @@ required:
 - targetSize
 - maxNumReplicas
 - machineType
+- image
 - externalIp
 - region
 - network
@@ -45,6 +46,10 @@ properties:
   maxNumReplicas:
     type: integer
     description: The maximum number of instances that the autoscaler can scale up to. This is required when creating or updating an autoscaler. The maximum number of replicas should not be lower than minimal number of replicas.
+
+  image:
+    type: string
+    description: The GCE Instance image selfLink to be used to create the instances
 
   machineType:
     type: string
