@@ -20,11 +20,11 @@ resources:
   properties:
     targetSize: 2
     maxNumReplicas: 5
-    image: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/images/centos-docker-sd
+    image: https://www.googleapis.com/compute/v1/projects/my-project-id/global/images/my-image-name
     machineType: n1-standard-1
-    value: gs://sdrs-server/versions/demo/startup.sh
+    value: gs://my-bucket-name/versions/demo/startup.sh
     externalIp: False
     region: us-central1
     email: default
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
+    network: https://www.googleapis.com/compute/v1/projects/my-project-id/global/networks/my-project-id-dev-vpc
+    subnetwork: https://www.googleapis.com/compute/v1/projects/my-project-id/regions/us-central1/subnetworks/subnet-b
