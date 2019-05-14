@@ -22,20 +22,34 @@
 
 Note the start times are in UTC (GMT-7 for PDT months)
 
-For more information, see README.md.
+For more information, see the README.md.
 """
 
 import argparse
 import datetime
 import json
+import logging
+import requests
 
 import googleapiclient.discovery
 
+LOGGER = logging.getLogger('sdrs_provisioning_cli')
+SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 
 # [START main]
 def main(project_id, start_date, source_bucket,
          sink_bucket):
+    pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
+         sink_bucket)
+    _sync_sdrs_sts_jobs(pooled_sts_jobs)
+
+# [END main]
+
+# [START _create_sts_jobs_for_bucket]
+def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
+         sink_bucket):
     storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
+    sts_jobs = []
     frequency = 24
     i = 0
     while i < frequency:
@@ -74,10 +88,19 @@ def main(project_id, start_date, source_bucket,
         result = storagetransfer.transferJobs().create(body=transfer_job).execute()
         print('Returned transferJob: {}'.format(
         json.dumps(result, indent=4)))
+        
+        sts_jobs.append(transfer_job)
         i += 1
+    return sts_jobs
+# [END _create_sts_jobs_for_bucket]
 
-
-# [END main]
+def _sync_sdrs_sts_jobs(pooled_sts_jobs):
+  """Makes a request to register the STS job with SDRS so it can be utilized."""
+  
+  LOGGER.debug('POST: %s', SDRS_POOL_ENDPOINT)
+  LOGGER.debug('Body: %s', pooled_sts_jobs)
+  response = requests.post(SDRS_POOL_ENDPOINT, json=pooled_sts_jobs)
+  LOGGER.debug('Response: %s', response.text)
 
 
 if __name__ == '__main__':
