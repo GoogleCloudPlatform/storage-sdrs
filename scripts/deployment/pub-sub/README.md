@@ -44,7 +44,7 @@ deploys a PubSub topic and creates a subscription.
 3. Copy the example DM config to be used as a model for the deployment as follows
 
 ```shell
-    cp pub-sub.yaml my_pub-sub.yaml
+    cp pubsub.yaml my_pubsub.yaml
 ```
 
 4. Change the values in the config file to match your specific GCP setup.
@@ -52,7 +52,7 @@ deploys a PubSub topic and creates a subscription.
    editor vim or nano to edit the file.
 
 ```shell
-    vim my_pub-sub.yaml  # <== change values to match your GCP setup
+    vim my_pubsub.yaml  # <== change values to match your GCP setup
     imports:
     - path: pubsub.jinja
 
@@ -70,7 +70,7 @@ deploys a PubSub topic and creates a subscription.
 
 ```shell
     gcloud deployment-manager deployments create <YOUR_DEPLOYMENT_NAME> \
-        --config my_pub-sub.yaml
+        --config my_pubsub.yaml
 ```
 
 6. To list your deployment:
@@ -89,7 +89,7 @@ deploys a PubSub topic and creates a subscription.
 
 ```shell
     gcloud deployment-manager deployments update <YOUR_DEPLOYMENT_NAME> \
-      --config my_pub-sub.yaml  
+      --config my_pubsub.yaml  
 
 ```
 

@@ -5,6 +5,7 @@ Download and install [Docker](https://www.docker.com/get-started) on your local 
 ## Build & Publish
 The docker build process will copy source code, install dependencies, and run the maven package target. 
 The docker image exposes port 8080 for the service.
+The docker image optionally exposes port 8086 if it gets the environment variable ENABLE_JMX=true
 
 The docker image can be published to the GCP container registry.
 

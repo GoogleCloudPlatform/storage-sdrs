@@ -80,20 +80,3 @@ resources:
     region: {{ properties["region"] }}
     backendService: $(ref.{{ BACK_END }}.selfLink)
     loadBalancingScheme: INTERNAL
-
-- name: {{ env["deployment"] }}-allow-health-check-firewall-rule
-  type: compute.v1.firewall
-  properties:
-    network: {{ properties["network"] }}
-    sourceRanges: ['130.211.0.0/22','35.191.0.0/16']
-    allowed:
-    - IPProtocol: 'TCP'
-
-- name: {{ env["deployment"] }}-allow-internal-lb-firewall-rule
-  type: compute.v1.firewall
-  properties:
-    network: {{ properties["network"] }}
-    sourceRanges: ['10.20.20.0/22']
-    allowed:
-    - IPProtocol: 'TCP'
-      ports: ['80', '443']
