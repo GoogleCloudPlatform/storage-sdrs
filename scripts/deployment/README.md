@@ -137,8 +137,7 @@ Cloud Endpoints is a distributed API management system that helps you secure, mo
 
         gcloud endpoints services deploy my_openapi.yaml 
 
-
-You can view the Endpoints service configuration on the Endpoints > Services page in the GCP Console.    
+3. You can view the Endpoints service configuration on the Endpoints > Services page in the GCP Console.    
     
 #### OpenAPI Configuration    
 OpenAPI configuration file, openapi.yaml is based on OpenAPI Specification v2.0.    
