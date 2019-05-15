@@ -188,9 +188,9 @@ The docker container image will contain the SDRS application build and it will b
 
         cd storage-sdrs
 
-5. Build docker container image and wait for it to successfully build the image
+5. Build docker container image and wait for it to successfully build the image. (Note the `.` at the end of below command)
 
-        docker build --tag gcr.io/my-project-id/my-sdrs-build:0.1.0
+        docker build --tag gcr.io/my-project-id/my-sdrs-build:0.1.0 .
 
 6. Push docker image to GCR. Refer to [GCR Documentation for Image management](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
 
