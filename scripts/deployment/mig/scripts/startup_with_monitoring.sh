@@ -1,19 +1,19 @@
 #! /bin/bash
 
 # UPDATE the path to your env.txt stored on your GCS Bucket
-ENV_VARS_GCS_PATH=gs://vars-env/env.txt
+ENV_VARS_GCS_PATH=gs://my-bucket-name/env.txt
 
 # UPDATE the path to your service account credentials.json stored on your GCS Bucket
-CRED_FILE_GCS_PATH=gs://vars-env/credentials.json 
+CRED_FILE_GCS_PATH=gs://my-bucket-name/credentials.json 
 
 # UPDATE the path to your container image
 # To be updated with desired conatiner image and with an updated image for every subsequent software update
 # GCR Format: gcr.io/<YOUR_GOOGLE_PROJECT_ID>/YOUR_CONTAINER_IMAGE:TAG
-CONTAINER_IMAGE_PATH=gcr.io/sdrs-server/eshen-sdrs-demo:private-db-1
+CONTAINER_IMAGE_PATH=gcr.io/my-project-id/my-sdrs-build:0.1.0
 
 # UPDATE Cloud Endpoints Services URL
 # Format: <ENDPOINT_NAME>.endpoints.<ENDPOINTS_PROJECT_ID>.cloud.goog
-ENDPOINT_SERVICE_URL=sdrs-api.endpoints.sdrs-server.cloud.goog
+ENDPOINT_SERVICE_URL=sdrs-api.endpoints.my-project-id.cloud.goog
 
 # NO CHANGES required below this point unless you know what you are doing
 gcloud auth configure-docker
