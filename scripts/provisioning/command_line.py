@@ -88,11 +88,14 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
         result = storagetransfer.transferJobs().create(body=transfer_job).execute()
         print('Returned transferJob: {}'.format(
         json.dumps(result, indent=4)))
+        
         pooled_sts_job = {    
         'name': job_name,
         'status': 'DISABLED',
+        'type': 'pooledDataset',
         'projectId': project_id,
         'sourceBucket': source_bucket,
+        'sourceProject': project_id,
         'targetBucket': sink_bucket,
         'schedule': start_time_string
         }
