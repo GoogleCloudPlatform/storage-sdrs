@@ -31,6 +31,7 @@ public class PooledJobCreateRequest implements Serializable {
   private String sourceProject;
   private String targetBucket;
   private String targetProject;
+  private String status;
 
   public String getName() {
     return name;
@@ -95,4 +96,10 @@ public class PooledJobCreateRequest implements Serializable {
   public void setType(String type) {
     this.type = type;
   }
+
+public String getStatus() {
+return status;}
+
+public void setStatus(String status) {
+this.status = status;}
 }

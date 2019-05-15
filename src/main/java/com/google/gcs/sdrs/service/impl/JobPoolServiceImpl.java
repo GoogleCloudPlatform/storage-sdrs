@@ -73,7 +73,7 @@ public Boolean deleteAllJobsByBucketName(String sourceBucket,String sourceProjec
     pooledStsJob.setSchedule(request.getSchedule());
     pooledStsJob.setSourceBucket(request.getSourceBucket());
     pooledStsJob.setSourceProject(request.getSourceProject());
-
+    pooledStsJob.setStatus(request.getStatus());
     return pooledStsJob;
   }
 
