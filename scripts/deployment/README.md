@@ -75,7 +75,7 @@ The service account should have proper permissions to:
 
     
 ### SDRS Deployment    
-The following are instructions to deploy SDRS and click the links for details for each step:     
+The following are instructions to deploy SDRS. Click the links for details on each step:     
 
 1. Create a [CloudSQL](./cloud-sql/README.md) instance. (Takes about 10-15 minutes).
 2. Set [log_bin_trust_function_creators](https://stackoverflow.com/questions/47359508/cant-create-trigger-on-mysql-table-within-google-cloud) to true.
@@ -83,6 +83,14 @@ The following are instructions to deploy SDRS and click the links for details fo
         gcloud sql instances patch <CLOUDSQL_INSTANCE_NAME> --database-flags log_bin_trust_function_creators=on
 
 3. Run [SQL DDL](../sql/retention_schema.sql) to create a database schema in Cloud SQL created above.
+
+    > Connecting to Cloud SQL over Private IP will require a bastion host within the VPC or a private connection like VPN from origin to the VPC
+
+    > Once the Cloud SQL is reachable, the below command can be run to create the database schema:
+
+        mysql --host=<CLOUDSQL_PRIVATE_IP> --user=root --password < retention_sdrs.sql
+
+
 4. Create a [Pub/Sub topic](./pub-sub) for SDRS to publish messages. 
 5. Create a [custom image](#custom-image) to be used by MIG.  
 6. Create a [Docker Container Image](#docker-container-image) containing SDRS application build.
@@ -90,9 +98,9 @@ The following are instructions to deploy SDRS and click the links for details fo
     
         Follow the steps section I (subsection 1 through 11) to create a Managed Instance Group.    
    
-8. Deploying the [Endpoints configuration](#cloud-endpoints) using the following command.    
-    
-        gcloud endpoints services deploy openapi.yaml    
+8. Deploying the [Endpoints configuration](#cloud-endpoints)
+
+9. Verify the status of SDRS using [Check SDRS Status](#check-sdrs-status)
 
 ### SDRS Update    
 Update the SDRS application using [MIG Updater](./mig/README.md).    
@@ -123,7 +131,13 @@ The following are instructions to enable monitoring of SDRS JVM environment:
 ### Cloud Endpoints
 
 Cloud Endpoints is a distributed API management system that helps you secure, monitor, analyze, and set quotas on your APIs using the same infrastructure Google uses for its own APIs. Endpoints works with the Extensible Service Proxy (ESP) to provide API management. It provides an API console, hosting, logging, monitoring, and Authenticating API users to help you create, share, maintain, and secure your APIs.    
-    
+
+1. Edit opemapi.yaml file with required details as per comments within the file and save it as my_openapi.yaml file.
+2. Run the below gcloud command to deploy the Endpoint service config:
+
+        gcloud endpoints services deploy my_openapi.yaml 
+
+
 You can view the Endpoints service configuration on the Endpoints > Services page in the GCP Console.    
     
 #### OpenAPI Configuration    
@@ -168,12 +182,16 @@ A custom CentOS-7 image is created to be used by MIG as the startup script needs
 9.  Via the GCP Cloud Console, shut down the VM
     
 10.  Create an image
-    
 
-	a)  Compute Engine → Images → Create Image → Source (Disk) → Source Disk (VM name you just created) → Create
+       > Compute Engine → Images → Create Image → Source (Disk) → Source Disk (VM name you just created) → Create
     
 
 11.  It would typically take 10 minutes to get the image created.
+
+12. Once the image is created you can fetch the image selfLink that will need to be supplied to instance template Deployment Manager config file.
+
+        gcloud compute images describe <INSTANCE_IMAGE_NAME> --project <YOUR_PROJECT_NAME> | grep selfLink
+
 
 ### Docker Container Image
 The docker container image will contain the SDRS application build and it will be used to deploy SDRS on the MIG cluster. The following steps will let you build the docker image and upload it to GCR repository.
