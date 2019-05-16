@@ -68,7 +68,7 @@ See the `properties` section in the schema file(s)
             region: us-central1  # <== change values to match your desired region
             zone: us-central1-c  # <== change values to match your desired zone from the region above
             dataDiskSizeGb: 150
-            privateNetwork: https://www.googleapis.com/compute/v1/projects/my-project-id/global/networks/my-vpc-name  # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
+            privateNetwork: https://www.googleapis.com/compute/v1/projects/your-project-id/global/networks/your-vpc-name  # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
 
           database:
             name: sdrs

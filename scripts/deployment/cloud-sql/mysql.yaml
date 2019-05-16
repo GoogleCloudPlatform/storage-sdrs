@@ -22,7 +22,7 @@ resources:
         zone: us-west1-c
         tier: db-n1-standard-1
         dataDiskSizeGb: 150
-        privateNetwork: https://www.googleapis.com/compute/v1/projects/my-project-id/global/networks/my-project-id-dev-vpc
+        privateNetwork: https://www.googleapis.com/compute/v1/projects/your-project-id/global/networks/your-project-id-dev-vpc
 
       database:
         name: sdrs

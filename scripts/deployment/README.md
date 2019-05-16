@@ -40,7 +40,7 @@ Create a custom mode VPC via GCP Console or gcloud command. Configure the networ
 
    
     
-#### 3. Create a subnet.    
+#### 3. Create a subnet 
 Create a subnet and enable [Private Google Access](https://cloud.google.com/vpc/docs/private-access-options#pga). MIG 
 uses the subnet and all VM instances in MIG run on private IP only. 
 
@@ -114,7 +114,7 @@ Follow the steps section II (subsection 1 through 4) to update the version of ne
 > replaced by the new VM instances running newer software version.    
 > 3. You can not stop or restart VM instances in a MIG.
 
-### SDRS Monitoring
+### SDRS JVM Monitoring
 The following are instructions to enable monitoring of SDRS JVM environment:
 1. Use [startup_with_monitoring.sh](./mig/scripts/startup_with_monitoring.sh) instead of [startup.sh](./mig/scripts/startup.sh) when creating the MIG using the Deployment Manager template.
 2. Set ENABLE_JMX=true (set to false by default) inside [env.txt](./mig/scripts/env.txt)
@@ -207,15 +207,15 @@ The docker container image will contain the SDRS application build and it will b
 
 5. Build docker container image and wait for it to successfully build the image. (Note the `.` at the end of below command)
 
-        docker build --tag gcr.io/my-project-id/my-sdrs-build:0.1.0 .
+        docker build --tag gcr.io/your-project-id/your-sdrs-build:0.1.0 .
 
 6. Push docker image to GCR. Refer to [GCR Documentation for Image management](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
 
-        docker push gcr.io/my-project-id/my-sdrs-build:0.1.0
+        docker push gcr.io/your-project-id/your-sdrs-build:0.1.0
 
 7. Verify the image is uploaded to GCR
 
-        docker container images list-tags gcr.io/my-project-id/my-sdrs-build
+        docker container images list-tags gcr.io/your-project-id/your-sdrs-build
 
 
 ### Google Project

@@ -95,7 +95,7 @@ resources:
   properties:
     region: us-central1
     maxNumReplicas: 5
-    image: https://www.googleapis.com/compute/v1/projects/my-project-id/global/images/my-image-name
+    image: https://www.googleapis.com/compute/v1/projects/your-project-id/global/images/your-image-name
     machineType: n1-standard-1  # <== change values to match your desired Instance tier
     value: gs://<YOUR_BUCKET>/<YOUR_FOLDER>/startup.sh
     targetSize: 2
@@ -223,7 +223,7 @@ The steps listed below creates a new Instance Template with an updated version o
      properties:
        targetSize: 2
        maxNumReplicas: 5
-       image: https://www.googleapis.com/compute/v1/projects/my-project-id/global/images/my-image-name
+       image: https://www.googleapis.com/compute/v1/projects/your-project-id/global/images/your-image-name
        machineType: n1-standard-1
        value: gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>/startup_new.sh # <== change values to match your startup script and it's location.
        externalIp: False

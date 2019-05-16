@@ -16,14 +16,14 @@
 {% set subscription = env['deployment'] + '-' + env['name'] + '-subscription' %}
 
 resources:
-- name: my-topic
+- name: your-topic
   type: gcp-types/pubsub-v1:projects.topics
   properties:
     topic: {{ topic }}
-- name: my-subscription
+- name: your-subscription
   type: gcp-types/pubsub-v1:projects.subscriptions
   properties:
     subscription: {{ subscription }}
-    topic: $(ref.my-topic.name)
+    topic: $(ref.your-topic.name)
     retainAckedMessages: {{ properties["retainAckedMessages"] }}
     ackDeadlineSeconds: {{ properties["ackDeadlineSeconds"] }}
