@@ -74,6 +74,7 @@ public Boolean deleteAllJobsByBucketName(String sourceBucket,String sourceProjec
     pooledStsJob.setSourceBucket(request.getSourceBucket());
     pooledStsJob.setSourceProject(request.getSourceProject());
     pooledStsJob.setStatus(request.getStatus());
+    pooledStsJob.setTargetBucket(request.getTargetBucket());
     return pooledStsJob;
   }
 

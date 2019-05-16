@@ -13,9 +13,7 @@
 
 # [START all]
 
-# TODO
-# 2) Wire in call to fire off to SDRS REST end point 
-# 3) make it work for many buckets (iterate over data set)
+# TODO - format to Google Code standards, and add logging
 #
 
 """Command-line sample that creates pooled STS jobs and syncs with SDRS.
@@ -56,7 +54,7 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
         job_name = 'Pooled STS Job ' + str(i) + ' for bucket ' + source_bucket
         print(job_name)
         #UTC Time (24hr) HH:MM:SS.
-        start_time_string = '{:02d}:00:01'.format(i)
+        start_time_string = '{:02d}:00:00'.format(i)
         start_time = datetime.datetime.strptime(start_time_string, '%H:%M:%S')
         
         transfer_job = {    
@@ -88,15 +86,15 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
         result = storagetransfer.transferJobs().create(body=transfer_job).execute()
         print('Returned transferJob: {}'.format(
         json.dumps(result, indent=4)))
-        
+        #sts_job_name = result.get("name")
         pooled_sts_job = {    
-        'name': job_name,
-        'status': 'DISABLED',
+        'name': result.get("name"),
+        'status': result.get("status"),
         'type': 'pooledDataset',
-        'projectId': project_id,
-        'sourceBucket': source_bucket,
+        'projectId': result.get("projectId"),
+        'sourceBucket': result.get("transferSpec").get("gcsDataSource").get("bucketName"),
         'sourceProject': project_id,
-        'targetBucket': sink_bucket,
+        'targetBucket': result.get("transferSpec").get("gcsDataSink").get("bucketName"),
         'schedule': start_time_string
         }
         sts_jobs.append(pooled_sts_job)
