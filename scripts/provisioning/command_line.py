@@ -38,27 +38,32 @@ SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 def main(project_id, start_date, source_bucket,
          sink_bucket):
     pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
-         sink_bucket)
+         sink_bucket, 'dataset')
     _sync_sdrs_sts_jobs(pooled_sts_jobs)
 
 # [END main]
 
 # [START _create_sts_jobs_for_bucket]
 def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
-         sink_bucket):
+         sink_bucket, job_type):
     storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
     sts_jobs = []
-    frequency = 24
+    number_of_jobs = 25
     i = 0
-    while i < frequency:
-        job_name = 'Pooled STS Job ' + str(i) + ' for bucket ' + source_bucket
-        print(job_name)
-        #UTC Time (24hr) HH:MM:SS.
-        start_time_string = '{:02d}:00:00'.format(i)
-        start_time = datetime.datetime.strptime(start_time_string, '%H:%M:%S')
+    while i < number_of_jobs:
+        description = 'Pooled STS Job ' + str(i) + ' for bucket ' + source_bucket
+        print(description)
+        if i == 24:
+            # create the default job - number 25
+            job_type = 'default'
+            start_time_string = '{:02d}:59:59'.format(23)
+        else:
+            start_time_string = '{:02d}:00:00'.format(i)
         
+        start_time = datetime.datetime.strptime(start_time_string, '%H:%M:%S')
+        #Transfer time is in UTC Time (24hr) HH:MM:SS.
         transfer_job = {    
-        'description': job_name,
+        'description': description,
         'status': 'DISABLED',
         'projectId': project_id,
         'schedule': {
@@ -90,7 +95,7 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
         pooled_sts_job = {    
         'name': result.get("name"),
         'status': result.get("status"),
-        'type': 'pooledDataset',
+        'type': job_type,
         'projectId': result.get("projectId"),
         'sourceBucket': result.get("transferSpec").get("gcsDataSource").get("bucketName"),
         'sourceProject': project_id,
