@@ -21,7 +21,7 @@ package com.google.gcs.sdrs.controller.mapper.exception;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import javax.ws.rs.core.Response;
-import org.eclipse.jetty.http.HttpStatus;
+import org.glassfish.grizzly.http.util.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +44,7 @@ public class JsonProcessingExceptionMapperTest {
 
     Response response = mapper.toResponse(exceptionMock);
 
-    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("Unable"));
     assertEquals(((ErrorResponse) response.getEntity()).getUuid().length(), 36);
   }

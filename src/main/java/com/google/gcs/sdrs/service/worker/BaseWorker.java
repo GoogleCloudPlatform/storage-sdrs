@@ -77,7 +77,7 @@ public abstract class BaseWorker implements Worker {
   public static String getCorrelationId() {
     String threadName = Thread.currentThread().getName();
     if (threadName != null && threadName.lastIndexOf(";") > 0) {
-      return threadName.substring(threadName.lastIndexOf(";"), threadName.length());
+      return threadName.substring(threadName.lastIndexOf(";") + 1, threadName.length());
     }
     return null;
   }

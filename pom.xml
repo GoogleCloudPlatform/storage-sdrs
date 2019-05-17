@@ -20,23 +20,8 @@
     </dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-grizzly2-http</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-jetty-servlet</artifactId>
-            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>
@@ -216,36 +201,9 @@
                     <mainClass>com.google.gcs.sdrs.SdrsApplication</mainClass>
                 </configuration>
             </plugin>
-            <!--
-            <plugin>
-                <groupId>org.apache.avro</groupId>
-                <artifactId>avro-maven-plugin</artifactId>
-                <version>${avro.version}</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>schema</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
-                            <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
-                            <includes>
-                                <include>**/*.avsc</include>
-                            </includes>
-                            <imports>
-                                <import>${project.basedir}/src/main/avro/EventContext.avsc</import>
-                                <import>${project.basedir}/src/main/avro/ExecutionStatusDetails.avsc</import>
-                            </imports>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-             -->
         </plugins>
     </build>
     <properties>
-        <jetty.version>9.4.7.v20170914</jetty.version>
         <jersey.version>2.26</jersey.version>
         <avro.version>1.8.2</avro.version>
         <joda.time>2.10.1</joda.time>
