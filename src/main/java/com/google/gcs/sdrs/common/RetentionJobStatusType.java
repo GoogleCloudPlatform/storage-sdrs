@@ -15,19 +15,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs.dao;
+package com.google.gcs.sdrs.common;
 
-import com.google.gcs.sdrs.dao.model.PooledStsJob;
-import java.util.List;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
+import java.io.Serializable;
 
-public interface PooledStsJobDao extends Dao<PooledStsJob, Integer> {
+/**
+ * Supported types for retention job statuses
+ *
+ * <p>Enum string values indicate how this is serialized to the database.
+ */
+public enum RetentionJobStatusType implements Serializable {
+  SUCCESS(DatabaseConstants.STS_JOB_STATUS_SUCCESS),
+  PENDING(DatabaseConstants.STS_JOB_STATUS_PENDING),
+  ERROR(DatabaseConstants.STS_JOB_STATUS_ERROR);
 
-  List<PooledStsJob> getAllPooledStsJobsByBucketName(String bucketName, String projectId);
+  private final String databaseValue;
 
-  Boolean deleteAllJobsByBucketName(String sourceBucket, String sourceProject);
+  RetentionJobStatusType(final String databaseValue) {
+    this.databaseValue = databaseValue;
+  }
 
-  PooledStsJob findPooledStsJobByNameAndProject(String name, String projectId);
-
-  PooledStsJob getJob(String bucketName, String projectId, String scheduleTimeOfDay, String type);
-
+  public String toDatabaseRepresentation() {
+    return databaseValue;
+  }
 }

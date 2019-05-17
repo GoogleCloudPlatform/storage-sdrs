@@ -1,0 +1,21 @@
+{
+  "database": {
+    "host": "your-host",
+    "schema": "your-db-schema",
+    "user": "your-db-user",
+    "password": "your-db-user-password"
+  },
+  "pool": [
+    {
+      "project_id": "your-project-id",
+      "buckets": [
+        "your-bucket-1",
+        "your-bucket-2"
+      ]
+    }
+  ],
+  "shadow_bucket_ext": {
+    "ext": "shadow",
+    "suffix": true
+  }
+}

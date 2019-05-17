@@ -18,7 +18,6 @@
 
 package com.google.gcs.sdrs.service.worker;
 
-import java.util.UUID;
 import org.joda.time.DateTime;
 
 /** WorkerResult class to standardize worker output */
@@ -37,11 +36,6 @@ public class WorkerResult {
     FAILED
   }
 
-  /** A constructor for the WorkerResult object */
-  public WorkerResult() {
-    id = UUID.randomUUID().toString();
-  }
-
   /**
    * toString method for the WorkerResult.
    *
@@ -56,6 +50,10 @@ public class WorkerResult {
 
   public String getId() {
     return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 
   public String getType() {

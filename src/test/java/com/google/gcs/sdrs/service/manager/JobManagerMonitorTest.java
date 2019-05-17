@@ -18,16 +18,14 @@
 
 package com.google.gcs.sdrs.service.manager;
 
-import com.google.gcs.sdrs.service.manager.JobManager;
-import com.google.gcs.sdrs.service.manager.JobManagerMonitor;
+import static org.junit.Assert.assertEquals;
+
 import com.google.gcs.sdrs.service.worker.BaseWorker;
 import com.google.gcs.sdrs.service.worker.WorkerResult;
-
+import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /** Test class for JobManagerMonitor */
 public class JobManagerMonitorTest {
@@ -56,7 +54,7 @@ public class JobManagerMonitorTest {
   public void getWorkerResultTest() throws InterruptedException {
     int activeWorkers = instance.activeWorkerCount.get();
     BaseWorker worker =
-        new BaseWorker() {
+        new BaseWorker(UUID.randomUUID().toString()) {
           @Override
           public void doWork() {
             workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);

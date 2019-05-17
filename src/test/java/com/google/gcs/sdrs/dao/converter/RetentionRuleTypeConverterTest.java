@@ -17,12 +17,11 @@
 
 package com.google.gcs.sdrs.dao.converter;
 
+import static org.junit.Assert.assertEquals;
+
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.gcs.sdrs.RetentionRuleType;
-
-import static org.junit.Assert.assertEquals;
 
 public class RetentionRuleTypeConverterTest {
 

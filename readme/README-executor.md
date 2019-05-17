@@ -105,9 +105,10 @@ SDRS contains a mechanism for executing certain functionality, including rule ex
 * timeUnit: the time unit for the initialDelay and frequency config values
 #### Storage Transfer Service
 * maxPrefixCount: the maximum number of path prefixes to include in a single STS job. A max of 1000 is specified by GCP.
-* shadowBucketName: the configurable shadow bucket name that is used to determine the destination bucket of STS jobs.
-* shadowBucketNamePrefix: whether or not the shdow bucket name is prefix or suffix. True for prefix and false for suffix. 
+* shadowBucketExtension: the configurable shadow bucket name extension that is used to determine the destination bucket of STS jobs.
+* shadowBucketExtensionPrefix: whether or not the shadow bucket extension is prefix or suffix. True for prefix and false for suffix. 
 * defaultRuleExlcudePrefixList: a list of pre-defined prefix exclude list for default retention rule. prefixes are separated by ";" i.e prefix1/;prefix2/
+* jobPoolOnly: Whether or not use pre-created STS jobs in the job pool only. True or false. 
 * defaultProjectId: the project id value that denotes the GLOBAL rule
 * defaultStorageName: the dataStorageName value that denotes the GLOBAL rule
 * maxLookBackInDays: how long back the global rule will operate. This value is used to tamp down the number of prefixes passed to STS

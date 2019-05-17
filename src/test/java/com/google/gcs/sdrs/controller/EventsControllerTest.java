@@ -17,24 +17,21 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.ExecutionEventType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import com.google.gcs.sdrs.common.ExecutionEventType;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.EventResponse;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
-
-import javax.ws.rs.core.Response;
-
 import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
+import javax.ws.rs.core.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 public class EventsControllerTest {
 

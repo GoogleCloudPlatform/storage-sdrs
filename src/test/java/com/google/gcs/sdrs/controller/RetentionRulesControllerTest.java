@@ -18,7 +18,15 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.RetentionRuleType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
@@ -27,20 +35,13 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
+import java.io.IOException;
 import java.sql.SQLException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RetentionRulesControllerTest {
 
@@ -63,7 +64,7 @@ public class RetentionRulesControllerTest {
   }
 
   @Test
-  public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException {
+  public void createRuleWhenSuccessfulIncludesResponseFields() throws SQLException, IOException {
     when(controller.service.createRetentionRule(
             any(RetentionRuleCreateRequest.class), any(UserInfo.class)))
         .thenReturn(543);

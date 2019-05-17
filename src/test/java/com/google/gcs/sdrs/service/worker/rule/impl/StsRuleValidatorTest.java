@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
 import com.google.api.services.storagetransfer.v1.model.Operation;
 import com.google.api.services.storagetransfer.v1.model.Status;
-import com.google.gcs.sdrs.RetentionJobStatusType;
+import com.google.gcs.sdrs.common.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
 import com.google.gcs.sdrs.util.CredentialsUtil;
 import java.io.IOException;

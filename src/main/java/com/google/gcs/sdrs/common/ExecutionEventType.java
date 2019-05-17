@@ -15,28 +15,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs;
+package com.google.gcs.sdrs.common;
 
-import com.google.gcs.sdrs.dao.util.DatabaseConstants;
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 
 /**
- * Supported types for retention job statuses
+ * Supported type for events sent to the execution endpoint
  *
- * <p>Enum string values indicate how this is serialized to the database.
+ * <p>JsonProperty values indicate the supported JSON input string.
  */
-public enum RetentionJobStatusType implements Serializable {
-  SUCCESS(DatabaseConstants.STS_JOB_STATUS_SUCCESS),
-  PENDING(DatabaseConstants.STS_JOB_STATUS_PENDING),
-  ERROR(DatabaseConstants.STS_JOB_STATUS_ERROR);
+public enum ExecutionEventType {
+  @JsonProperty(ValidationConstants.POLICY_JSON_VALUE)
+  POLICY(ValidationConstants.POLICY_JSON_VALUE),
 
-  private final String databaseValue;
+  @JsonProperty(ValidationConstants.USER_JSON_VALUE)
+  USER_COMMANDED(ValidationConstants.USER_JSON_VALUE);
 
-  RetentionJobStatusType(final String databaseValue) {
-    this.databaseValue = databaseValue;
+  private final String jsonValue;
+
+  ExecutionEventType(String jsonValue) {
+    this.jsonValue = jsonValue;
   }
 
-  public String toDatabaseRepresentation() {
-    return databaseValue;
+  /** This will return the JSON representation */
+  @Override
+  public String toString() {
+    return jsonValue;
   }
 }

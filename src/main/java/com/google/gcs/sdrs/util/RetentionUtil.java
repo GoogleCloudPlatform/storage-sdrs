@@ -17,29 +17,32 @@
 
 package com.google.gcs.sdrs.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * A class of helper methods for retention rules, job, and validations.
- */
+/** A class of helper methods for retention rules, job, and validations. */
 public class RetentionUtil {
+  private static final Logger logger = LoggerFactory.getLogger(RetentionUtil.class);
+
   /**
    * Extracts the bucket name from the data storage name string
+   *
    * @param dataStorageName the full data storage name path
    * @return the bucket name only
    */
   public static String getBucketName(String dataStorageName) {
-    if (dataStorageName == null){
+    if (dataStorageName == null) {
       return "";
     }
 
-    String bucketName = dataStorageName.replaceFirst(ValidationConstants.STORAGE_PREFIX,"");
+    String bucketName = dataStorageName.replaceFirst(ValidationConstants.STORAGE_PREFIX, "");
 
     int separatorIndex = bucketName.indexOf(ValidationConstants.STORAGE_SEPARATOR);
 
@@ -52,6 +55,7 @@ public class RetentionUtil {
 
   /**
    * Extracts the bucket name from the data storage name string and appends the suffix
+   *
    * @param dataStorageName the full data storage name path
    * @param suffix the string to append to the bucket name
    * @return the bucket name with the suffix appended
@@ -62,11 +66,12 @@ public class RetentionUtil {
 
   /**
    * Extracts the dataset path from the data storage name string
+   *
    * @param dataStorageName the full data storage name path
    * @return the dataset path without the root bucket
    */
   public static String getDatasetPath(String dataStorageName) {
-    if (dataStorageName == null){
+    if (dataStorageName == null) {
       return "";
     }
 
@@ -79,5 +84,26 @@ public class RetentionUtil {
     }
 
     return datasetPath;
+  }
+
+  /**
+   * Convert exception stack trace to a string
+   *
+   * @param e Exception to be converted
+   * @return
+   */
+  public static String convertStackTrace(Exception e) {
+    StringWriter sw = new StringWriter();
+    e.printStackTrace(new PrintWriter(sw));
+    String result = sw.toString();
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode rootNode = mapper.createObjectNode();
+    ((ObjectNode) rootNode).put("stackTrace", result);
+    try {
+      result = mapper.writeValueAsString(rootNode);
+    } catch (JsonProcessingException ex) {
+      logger.warn("Failed to convert stack trace to string");
+    }
+    return result;
   }
 }

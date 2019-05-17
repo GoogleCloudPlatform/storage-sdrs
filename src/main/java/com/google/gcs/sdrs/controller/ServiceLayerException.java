@@ -15,32 +15,36 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
  */
 
-package com.google.gcs.sdrs;
+package com.google.gcs.sdrs.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+import javax.ws.rs.core.Response;
 
-/**
- * Supported type for events sent to the execution endpoint
- *
- * <p>JsonProperty values indicate the supported JSON input string.
- */
-public enum ExecutionEventType {
-  @JsonProperty(ValidationConstants.POLICY_JSON_VALUE)
-  POLICY(ValidationConstants.POLICY_JSON_VALUE),
+public class ServiceLayerException extends HttpException {
 
-  @JsonProperty(ValidationConstants.USER_JSON_VALUE)
-  USER_COMMANDED(ValidationConstants.USER_JSON_VALUE);
+  private String message;
 
-  private final String jsonValue;
-
-  ExecutionEventType(String jsonValue) {
-    this.jsonValue = jsonValue;
+  /**
+   * An exception type for any service layer errors
+   *
+   * @param ex The root exception to surface
+   */
+  public ServiceLayerException(Exception ex) {
+    message = String.format("Service layer error occurred: %s", ex.getMessage());
   }
 
-  /** This will return the JSON representation */
+  /**
+   * Gets the message to return
+   *
+   * @return the exception message
+   */
   @Override
-  public String toString() {
-    return jsonValue;
+  public String getMessage() {
+    return message;
+  }
+
+  /** Gets the validation error HTTP status code */
+  @Override
+  public int getStatusCode() {
+    return Response.Status.BAD_REQUEST.getStatusCode();
   }
 }

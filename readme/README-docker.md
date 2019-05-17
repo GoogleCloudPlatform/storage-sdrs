@@ -9,6 +9,7 @@ Download and install [Docker](https://www.docker.com/get-started) on your local 
 ## Build & Publish
 The docker build process will copy source code, install dependencies, and run the maven package target all into an image.   
 The docker image exposes port 8080 for the service.
+The docker image optionally exposes port 8086 if it gets the environment variable ENABLE_JMX=true
 
 Once you have Docker installed, from the home project directory /storage-sdrs, build and tag it as so:  
 

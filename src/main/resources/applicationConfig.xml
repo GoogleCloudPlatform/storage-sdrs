@@ -42,11 +42,12 @@
   </scheduler>
   <sts>
     <maxPrefixCount>1000</maxPrefixCount>
-    <shadowBucketName>shadow</shadowBucketName>
-    <shadowBucketNamePrefix>true</shadowBucketNamePrefix>
+    <shadowBucketExtension>scratch-</shadowBucketExtension>
+    <shadowBucketExtensionPrefix>true</shadowBucketExtensionPrefix>
     <defaultRuleExlcudePrefixList>_lock/</defaultRuleExlcudePrefixList>
+    <jobPoolOnly>true</jobPoolOnly>
     <defaultProjectId>global-default</defaultProjectId>
-    <defaultStorageName>global</defaultStorageName>
+    <defaultStorageName>gs://global</defaultStorageName>
     <maxLookBackInDays>365</maxLookBackInDays>
   </sts>
   <pubsub>

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.gcs.sdrs.ExecutionEventType;
+import com.google.gcs.sdrs.common.ExecutionEventType;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.RetentionRuleDao;
@@ -35,6 +35,7 @@ import com.google.gcs.sdrs.service.worker.WorkerResult.WorkerResultStatus;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +50,7 @@ public class ExecuteRetentionWorkerTest {
   private StsRuleExecutor ruleExecutorMock;
   private RetentionRuleDao retentionRuleDaoMock;
   private RetentionJobDao retentionJobDaoMock;
+  private String uuid;
 
   @Before
   public void setup() {
@@ -58,11 +60,12 @@ public class ExecuteRetentionWorkerTest {
     when(ruleExecutorMock.executeDatasetRule(any(), any())).thenReturn(null);
     PowerMockito.mockStatic(StsRuleExecutor.class);
     when(StsRuleExecutor.getInstance()).thenReturn(null);
+    uuid = UUID.randomUUID().toString();
   }
 
   @Test
   public void doWorkSuccessfullyHandlesUserRequests() {
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(createBasicRequest());
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(createBasicRequest(), uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
@@ -78,7 +81,7 @@ public class ExecuteRetentionWorkerTest {
     request.setExecutionEventType(ExecutionEventType.POLICY);
     request.setProjectId(null);
     request.setTarget(null);
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request, uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
@@ -118,7 +121,7 @@ public class ExecuteRetentionWorkerTest {
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
     request.setTarget(null);
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request, uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
@@ -156,7 +159,7 @@ public class ExecuteRetentionWorkerTest {
   public void doWorkRunsRuleWhenProjectAndTargetSpecified() {
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request, uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
@@ -174,7 +177,7 @@ public class ExecuteRetentionWorkerTest {
   public void doWorkErrorsWhenRuleNotFound() {
     ExecutionEventRequest request = createBasicRequest();
     request.setExecutionEventType(ExecutionEventType.POLICY);
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request, uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
@@ -188,7 +191,7 @@ public class ExecuteRetentionWorkerTest {
   @Test
   public void doWorkSavesJobs() {
     ExecutionEventRequest request = createBasicRequest();
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request, uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;
@@ -207,7 +210,7 @@ public class ExecuteRetentionWorkerTest {
   @Test
   public void callSetsEndTimeAndReturnsResult() {
     ExecutionEventRequest request = createBasicRequest();
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request, uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;

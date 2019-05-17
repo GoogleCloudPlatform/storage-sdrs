@@ -20,8 +20,8 @@ package com.google.gcs.sdrs.scheduler.runners;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gcs.sdrs.ExecutionEventType;
 import com.google.gcs.sdrs.SdrsApplication;
+import com.google.gcs.sdrs.common.ExecutionEventType;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.util.SdrsRequestClientUtil;
 import javax.ws.rs.client.Client;
@@ -51,13 +51,14 @@ public class RuleExecutionRunner implements Runnable {
           SdrsApplication.getAppConfigProperty("scheduler.task.ruleExecution.endpoint");
 
       Client client = ClientBuilder.newClient();
-      Response response = SdrsRequestClientUtil.request(client, endpoint)
-          .post(Entity.entity(requestObjectJson, MediaType.APPLICATION_JSON));
+      Response response =
+          SdrsRequestClientUtil.request(client, endpoint)
+              .post(Entity.entity(requestObjectJson, MediaType.APPLICATION_JSON));
       logger.info(response.toString());
     } catch (JsonProcessingException ex) {
       logger.error("Execution request could not be sent: ", ex.getMessage());
     } catch (Exception e) {
-      logger.error("Failed to request Execution endpoint: " , e.getMessage());
+      logger.error("Failed to request Execution endpoint: ", e.getMessage());
     }
   }
 }

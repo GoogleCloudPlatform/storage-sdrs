@@ -17,24 +17,30 @@
 
 package com.google.gcs.sdrs.dao;
 
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /** Defines available persistence operations for RetentionRule entities */
 public interface RetentionRuleDao extends Dao<RetentionRule, Integer> {
-
-  RetentionRule findByBusinessKey(String projectId, String dataStorageName);
 
   RetentionRule findDatasetRuleByBusinessKey(String projectId, String dataStorage);
 
   List<RetentionRule> findDatasetRulesByProjectId(String projectId);
 
+  List<RetentionRule> findRulesByDataStorageRoot(
+      String projectId,
+      String dataStorageRoot,
+      RetentionRuleType retentionRuleType,
+      Boolean includeDeactivated);
+
   List<String> getAllDatasetRuleProjectIds();
 
   RetentionRule findByBusinessKey(
-      String projectId, String dataStorageName, Boolean includeDeactivated);
+      String projectId,
+      String dataStorageName,
+      Boolean includeDeactivated,
+      RetentionRuleType retentionRuleType);
 
   Integer softDelete(RetentionRule rule);
 

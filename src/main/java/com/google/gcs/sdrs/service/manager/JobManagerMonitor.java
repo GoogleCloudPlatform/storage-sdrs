@@ -71,7 +71,7 @@ class JobManagerMonitor implements Runnable {
       try {
         result = callResult.get();
         if(result.getStatus().equals(WorkerResult.WorkerResultStatus.FAILED)){
-          logger.error("Worker failed: ", result);
+          logger.error(String.format("Worker %s failed: ", result.getId()), result);
         } else {
           logger.info("Worker " + result.getStatus().name() + ": " + result.toString());
         }

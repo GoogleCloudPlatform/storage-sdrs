@@ -26,12 +26,10 @@ import java.time.Instant;
 
 public class DeleteNotificationWorker extends BaseWorker {
   private NotificationEventRequest request;
-  private String correlationId;
 
   public DeleteNotificationWorker(NotificationEventRequest request, String correlationId) {
-    super();
+    super(correlationId);
     this.request = request;
-    this.correlationId = correlationId;
   }
 
 
@@ -45,7 +43,7 @@ public class DeleteNotificationWorker extends BaseWorker {
     message.setTrigger(deletedObject.substring(lastForwardSlash + 1));
     message.setDeletedDirectoryUri(deletedObject.substring(0, lastForwardSlash));
     message.setDeletedAt(Instant.parse(request.getDeletedAt()));
-    message.setCorrelationId(correlationId);
+    message.setCorrelationId(getUuid());
 
     MessageQueueManager manager = PubSubMessageQueueManagerImpl.getInstance();
     manager.sendSuccessDeleteMessage(message);

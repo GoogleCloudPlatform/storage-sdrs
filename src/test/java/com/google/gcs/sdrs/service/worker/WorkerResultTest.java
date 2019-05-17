@@ -18,58 +18,32 @@
 
 package com.google.gcs.sdrs.service.worker;
 
-import java.util.UUID;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gcs.sdrs.service.worker.WorkerResult;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-/**
- * Test class for WorkerResult
- */
+/** Test class for WorkerResult */
 public class WorkerResultTest {
   private WorkerResult objectUnderTest;
 
-  /**
-   * Set up steps before each test
-   */
+  /** Set up steps before each test */
   @Before
   public void setUp() {
     objectUnderTest = new WorkerResult();
   }
 
-  /**
-   * Tear down steps after each test
-   */
+  /** Tear down steps after each test */
   @After
   public void tearDown() {
     objectUnderTest = null;
   }
 
-  /**
-   * Tests that the constructor sets the ID as a UUID
-   */
-  @Test
-  public void workerResultConstructorTest() {
-    try{
-      UUID workerResultId = UUID.fromString(objectUnderTest.getId());
-      assertNotNull(workerResultId);
-    } catch (IllegalArgumentException ex) {
-      fail("The generated WorkerResult ID is not a UUID.");
-    }
-  }
-
-  /**
-   * Tests that properties read back correctly after being set
-   */
+  /** Tests that properties read back correctly after being set */
   @Test
   public void workerResultPropertiesTest() {
     WorkerResult.WorkerResultStatus testStatus = WorkerResult.WorkerResultStatus.RUNNING;
@@ -88,9 +62,7 @@ public class WorkerResultTest {
     assertEquals(testEndTime, objectUnderTest.getEndTime());
   }
 
-  /**
-   * Tests the toString method to ensure null values display properly
-   */
+  /** Tests the toString method to ensure null values display properly */
   @Test
   public void workerResultToStringTest() {
     assertNotNull(objectUnderTest.toString());

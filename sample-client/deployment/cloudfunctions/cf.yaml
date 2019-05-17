@@ -29,6 +29,6 @@ resources:
     successMarkerPattern: \.SUCCESS
     endpoint: [HTTP://YOUR-API.ENDPOINTS.YOUR-SERVER.CLOUD.GOOG]
     logLevel: DEBUG
-    createFunctionZipPath: [GS://MY-BUCKET/MY-CODE-CREATE.ZIP]
-    deleteFunctionZipPath: [GS://MY-BUCKET/MY-CODE-DELETE.ZIP]
-    schedulerFunctionZipPath: [GS://MY-BUCKET/MY-CODE-SCHEDULER.ZIP]
+    createFunctionZipPath: [GS://YOUR-BUCKET/YOUR-CODE-CREATE.ZIP]
+    deleteFunctionZipPath: [GS://YOUR-BUCKET/YOUR-CODE-DELETE.ZIP]
+    schedulerFunctionZipPath: [GS://YOUR-BUCKET/YOUR-CODE-SCHEDULER.ZIP]
