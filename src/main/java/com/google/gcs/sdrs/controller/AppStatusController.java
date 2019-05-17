@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 /** Controller for providing app status. */
 @Path("/status")
-public class AppStatusController {
+public class AppStatusController extends BaseController{
 
   private static final Logger logger = LoggerFactory.getLogger(AppStatusController.class);
 
@@ -46,12 +46,14 @@ public class AppStatusController {
       builder.append("Database is UP\n");
     } else {
       builder.append("Database is DOWN\n");
+      logger.error("Database is down ...");
     }
 
     if (isPubSubLive()) {
       builder.append("PubSub is UP\n");
     } else {
-      builder.append("PUbSub is DOWN\n");
+      builder.append("PubSub is DOWN\n");
+      logger.error("PubSub topic unreachable ...");
     }
     return builder.toString();
   }

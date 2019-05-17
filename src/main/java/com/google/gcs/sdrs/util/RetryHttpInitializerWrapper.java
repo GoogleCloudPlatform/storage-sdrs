@@ -29,7 +29,6 @@ import com.google.api.client.http.HttpUnsuccessfulResponseHandler;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.client.util.Sleeper;
 import com.google.common.base.Preconditions;
-import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +43,7 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
   private final Sleeper sleeper;
   private boolean backOffRequiredRateLimit;
   private static final int MILLIS_PER_MINUTE = 60 * 1000;
+  public static final int TOO_MANY_REQUESTS_429 = 429;
 
   /**
    * A constructor using the default Sleeper.
@@ -121,6 +121,6 @@ public class RetryHttpInitializerWrapper implements HttpRequestInitializer {
     HttpBackOffUnsuccessfulResponseHandler.BackOffRequired ON_SERVER_ERROR_RATE_LIMIT =
         response ->
             response.getStatusCode() / 100 == 5
-                || response.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS_429;
+                || response.getStatusCode() == TOO_MANY_REQUESTS_429;
   }
 }

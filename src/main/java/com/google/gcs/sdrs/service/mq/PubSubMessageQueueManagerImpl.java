@@ -92,7 +92,7 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
    *     DeleteNotificationMessage}
    */
   @Override
-  public void sendSuccessDeleteMessage(DeleteNotificationMessage msg) {
+  public void sendSuccessDeleteMessage(DeleteNotificationMessage msg) throws IOException {
     if (msg == null) {
       logger.warn("Message is null");
       return;
@@ -119,8 +119,9 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
             @Override
             public void onFailure(Throwable throwable) {
               logger.error(
-                  String.format("Error publishing message: %s", new String(data.toByteArray())));
-              logger.debug(throwable.getMessage());
+                  String.format(
+                      "Error publishing message: %s %s",
+                      new String(data.toByteArray()), throwable.getMessage()));
             }
 
             @Override
@@ -133,7 +134,11 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
           },
           MoreExecutors.directExecutor());
     } catch (IOException | NullPointerException e) {
-      logger.error(String.format("Failed to send message %s,  %s", msg.toString(), e.getMessage()));
+      logger.error(
+          String.format(
+              "Failed to send message %s,  %s",
+              msg.toString(), RetentionUtil.convertStackTrace(e)));
+      throw new IOException(String.format("Failed to send message %s", msg.toString()));
     }
   }
 
