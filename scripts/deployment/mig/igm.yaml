@@ -20,10 +20,11 @@ resources:
   properties:
     region: us-central1
     maxNumReplicas: 5
+    image: https://www.googleapis.com/compute/v1/projects/your-project-id/global/images/your-image-name
     machineType: n1-standard-1
-    value: gs://sdrs-server/versions/demo/startup.sh
+    value: gs://your-bucket-name/versions/demo/startup.sh
     targetSize: 2
     externalIp: False
     email: default
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc
-    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b
+    network: https://www.googleapis.com/compute/v1/projects/your-project-id/global/networks/your-project-id-dev-vpc
+    subnetwork: https://www.googleapis.com/compute/v1/projects/your-project-id/regions/us-central1/subnetworks/subnet-b

@@ -17,10 +17,10 @@ info:
   title: Storage SDRS API Definition
   version: '1.0.0'
 # The API hostname
-host: your-api.endpoints.your-project.cloud.goog
+host: your-api.endpoints.your-project-id.cloud.goog
 x-google-endpoints:
   - # The endpoints name matches the 'host' value above
-    name: your-api.endpoints.your-project.cloud.goog
+    name: your-api.endpoints.your-project-id.cloud.goog
     # Your target IP Address; Must be quoted
     target: 'your_target_ip'
 security:

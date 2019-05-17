@@ -34,5 +34,9 @@ COPY --from=sdrs-build ./target/storage-sdrs-jar-with-dependencies.jar ./app.jar
 # Server runs on port 8080
 EXPOSE 8080
 
-# Start server on 0.0.0.0
-CMD ["java", "-jar", "./app.jar", "0.0.0.0", "-Xms256m", "-Xmx512m"]
+# CMD ["java", "-jar", "./app.jar", "-Xms256m", "-Xmx512m"]
+# Conditional enable of JMX Remote based on environment variable ENABLE_JMX
+CMD if [ "$ENABLE_JMX" = true ]; \
+    then java -Xms256m -Xmx512m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=8086 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -jar ./app.jar; \
+    else java -Xms256m -Xmx512m -jar ./app.jar; \
+    fi
