@@ -29,6 +29,7 @@ import requests
 import googleapiclient.discovery
 
 LOGGER = logging.getLogger('sdrs_provisioning_cli')
+# Edit the RESTful endpoint to your desired deployment environment
 SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 
 # [START main]
@@ -87,7 +88,6 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
         result = storagetransfer.transferJobs().create(body=transfer_job).execute()
         print('Returned transferJob: {}'.format(
         json.dumps(result, indent=4)))
-        #sts_job_name = result.get("name")
         pooled_sts_job = {    
         'name': result.get("name"),
         'status': result.get("status"),
@@ -111,6 +111,14 @@ def _sync_sdrs_sts_jobs(pooled_sts_jobs):
   LOGGER.debug('Body: %s', pooled_sts_jobs)
   response = requests.post(SDRS_POOL_ENDPOINT, json=pooled_sts_jobs)
   LOGGER.debug('Response: %s', response.text)
+  if response.status_code == requests.codes.ok:
+    print('Successful provisioning of jobs with SDRS: {}'.format(
+        response.text))
+  else:
+    print('Error - unable to provision jobs with SDRS: error code {} returned {}'.format(
+        response.status_code, response.text))
+    LOGGER.error('Unexpected response code %s returned: %s',
+                 response.status_code, response.text)
 # [END _sync_sdrs_sts_jobs]
 
 if __name__ == '__main__':
