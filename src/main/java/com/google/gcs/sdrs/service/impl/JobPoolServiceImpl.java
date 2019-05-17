@@ -17,19 +17,55 @@
 
 package com.google.gcs.sdrs.service.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.services.storagetransfer.v1.Storagetransfer;
+import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateRequest;
 import com.google.gcs.sdrs.controller.pojo.PooledJobResponse;
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import com.google.gcs.sdrs.service.JobPoolService;
+import com.google.gcs.sdrs.util.CredentialsUtil;
+import com.google.gcs.sdrs.util.StsUtil;
 
 public class JobPoolServiceImpl implements JobPoolService {
 
+  private static final Logger logger = LoggerFactory.getLogger(JobPoolServiceImpl.class);
+  private static JobPoolServiceImpl instance;
+  private static CredentialsUtil credentialsUtil = CredentialsUtil.getInstance();
+  
+  private Storagetransfer client;
+  private GoogleCredential credentials;
   private PooledStsJobDao pooledStsJobDao = SingletonDao.getPooledStsJobDao();
+
+  private JobPoolServiceImpl() throws IOException {
+    credentials = credentialsUtil.getCredentials();
+    client = StsUtil.createStsClient(credentials);
+  }
+
+  public static JobPoolServiceImpl getInstance() {
+    if (instance == null) {
+      synchronized (JobPoolServiceImpl.class) {
+        if (instance == null) {
+          try {
+            instance = new JobPoolServiceImpl();
+          } catch (Exception e) {
+            // TODO push to logger
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    return instance;
+  }
 
   @Override
   public Integer createJob(PooledJobCreateRequest request) {
@@ -40,11 +76,63 @@ public class JobPoolServiceImpl implements JobPoolService {
 
   @Override
   public Boolean createJobs(Collection<PooledJobCreateRequest> pooledJobCreateRequests) {
-    for (PooledJobCreateRequest pooledJobCreateRequest : pooledJobCreateRequests) {
-      pooledStsJobDao.save(convertToEntity(pooledJobCreateRequest));
+    if (areAllStsJobsValid(pooledJobCreateRequests)) {
+      for (PooledJobCreateRequest pooledJobCreateRequest : pooledJobCreateRequests) {
+        pooledStsJobDao.save(convertToEntity(pooledJobCreateRequest));
+      }
+      return true;
+    } else {
+      return false;
     }
-    return true;
   }
+
+  /**
+   * Method that verifies that for all of the incoming requests 1) the STS Job exists in the cloud and 2) that the job is not already
+   * registerd with SDRS. 
+   * 
+   * If any of the incoming requests fails validation, then the entire batch/transaction of jobs is rejected
+   * 
+   * @param pooledJobCreateRequests
+   * @return
+   */
+  protected boolean areAllStsJobsValid(Collection<PooledJobCreateRequest> pooledJobCreateRequests) {
+	  for (PooledJobCreateRequest pooledJobCreateRequest : pooledJobCreateRequests) {
+	      if(!doesJobExist(pooledJobCreateRequest) || isJobAlreadyRegistered(pooledJobCreateRequest)) {
+	    	  return false;
+	      }
+	    }
+	  return true;
+  }
+
+  protected boolean doesJobExist(PooledJobCreateRequest pooledJobCreateRequest) {
+    try {
+      TransferJob transferJob =
+          StsUtil.getExistingJob(
+              client, pooledJobCreateRequest.getProjectId(), pooledJobCreateRequest.getName());
+      if(transferJob==null || transferJob.isEmpty()) {
+    	  return false;
+      }
+      return true;
+    } catch (IOException e) { 
+      e.printStackTrace();
+      logger.error(
+              String.format(
+                  "Unable to communicate with Google STS API for job %s in GCP project %s ",
+                  pooledJobCreateRequest.getName(),
+                  pooledJobCreateRequest.getProjectId(),
+                  e.getMessage()));
+      return false;
+    }
+  }
+
+  protected boolean isJobAlreadyRegistered(PooledJobCreateRequest pooledJobCreateRequest) {
+	  PooledStsJob pooledStsJob = pooledStsJobDao.findPooledStsJobByNameAndProject(pooledJobCreateRequest.getName(),pooledJobCreateRequest.getProjectId());
+	  if (pooledStsJob != null) {
+		  return true;
+	  }
+	  return false;
+  }
+
   
   @Override
   public Collection<PooledJobResponse> getAllPooledStsJobsByBucketName(

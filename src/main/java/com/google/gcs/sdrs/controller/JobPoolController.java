@@ -40,8 +40,7 @@ import javax.ws.rs.core.Response;
 @Path("/stsjobpool")
 public class JobPoolController extends BaseController {
 
-  JobPoolService jobPoolService =
-      new JobPoolServiceImpl(); // TODO need to wire up the instantiation via a factory
+  private JobPoolService jobPoolService = JobPoolServiceImpl.getInstance(); // TODO need to wire up the instantiation via a factory
 
  /* *//** CRUD create endpoint *//*
   @POST
@@ -93,7 +92,6 @@ public class JobPoolController extends BaseController {
       @QueryParam("sourceBucket") String sourceBucket,
       @QueryParam("sourceProject") String sourceProject) {
     try {
-      validateDelete(sourceBucket, sourceProject);
 
       Boolean success = jobPoolService.deleteAllJobsByBucketName(sourceBucket, sourceProject);
       PooledJobDeleteResponse response = new PooledJobDeleteResponse();
@@ -102,22 +100,5 @@ public class JobPoolController extends BaseController {
     } catch (Exception exception) {
       return errorResponse(exception);
     }
-  }
-
-  /**
-   * @param request
-   * @throws ValidationException
-   */
-  private void validateCreate(PooledJobCreateRequest request) throws ValidationException {
-	
-  }
-
-  /**
-   * @param request
-   * @throws ValidationException
-   */
-  private void validateDelete(String sourceBucket, String sourceProject)
-      throws ValidationException {
-    // TODO
   }
 }

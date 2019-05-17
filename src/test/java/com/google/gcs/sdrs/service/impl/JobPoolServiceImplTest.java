@@ -41,7 +41,7 @@ public class JobPoolServiceImplTest {
   }
 
   private JobPoolService createService() {
-    JobPoolServiceImpl jobPoolServiceImpl = new JobPoolServiceImpl();
+    JobPoolServiceImpl jobPoolServiceImpl = JobPoolServiceImpl.getInstance();
     pooledStsJobDao = mock(PooledStsJobDaoImpl.class);
     jobPoolServiceImpl.setPooledStsJobDao(pooledStsJobDao);
     return jobPoolServiceImpl;

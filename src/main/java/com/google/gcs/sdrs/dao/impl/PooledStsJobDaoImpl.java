@@ -17,18 +17,21 @@
 
 package com.google.gcs.sdrs.dao.impl;
 
-import com.google.gcs.sdrs.dao.PooledStsJobDao;
-import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import java.util.List;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gcs.sdrs.dao.PooledStsJobDao;
+import com.google.gcs.sdrs.dao.model.PooledStsJob;
 
 
 
@@ -78,5 +81,18 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
     session.createQuery(delete).executeUpdate();
     closeSessionWithTransaction(session, transaction);
     return true;
+  }
+
+  @Override
+  public PooledStsJob findPooledStsJobByNameAndProject(String name, String projectId) {
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<PooledStsJob> query = builder.createQuery(PooledStsJob.class);
+    Root<PooledStsJob> root = query.from(PooledStsJob.class);
+    query
+        .select(root)
+        .where(
+            builder.equal(root.get("name"), name), builder.equal(root.get("projectId"), projectId));
+    return getSingleRecordWithCriteriaQuery(query, session);
   }
 }
