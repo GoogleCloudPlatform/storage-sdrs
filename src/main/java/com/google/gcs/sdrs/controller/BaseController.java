@@ -28,7 +28,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import org.eclipse.jetty.http.HttpStatus;
+import org.glassfish.grizzly.http.util.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +63,7 @@ public abstract class BaseController {
   }
 
   protected Response successResponse(BaseHttpResponse responseBody) {
-    return Response.status(HttpStatus.OK_200).entity(responseBody).build();
+    return Response.status(HttpStatus.OK_200.getStatusCode()).entity(responseBody).build();
   }
 
   /**

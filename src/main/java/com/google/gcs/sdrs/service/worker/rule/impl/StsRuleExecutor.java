@@ -758,7 +758,11 @@ public class StsRuleExecutor implements RuleExecutor {
               + bucket
               + ValidationConstants.STORAGE_SEPARATOR
               + prefix);
-      PubSubMessageQueueManagerImpl.getInstance().sendSuccessDeleteMessage(msg);
+      try {
+        PubSubMessageQueueManagerImpl.getInstance().sendSuccessDeleteMessage(msg);
+      } catch (IOException e) {
+        logger.error(String.format("Error sending delete notification. %s", RetentionUtil.convertStackTrace(e)));
+      }
     }
   }
 

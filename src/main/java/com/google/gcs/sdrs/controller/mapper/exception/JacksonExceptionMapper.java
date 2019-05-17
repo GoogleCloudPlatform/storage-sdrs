@@ -19,10 +19,9 @@
 package com.google.gcs.sdrs.controller.mapper.exception;
 
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
-import java.util.UUID;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
-import org.eclipse.jetty.http.HttpStatus;
+import org.glassfish.grizzly.http.util.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,9 @@ public abstract class JacksonExceptionMapper<T extends Throwable> implements Exc
     ErrorResponse errorResponse = new ErrorResponse();
     errorResponse.setMessage(createExceptionResponseMessage(exception));
 
-    return Response.status(HttpStatus.BAD_REQUEST_400).entity(errorResponse).build();
+    return Response.status(HttpStatus.BAD_REQUEST_400.getStatusCode())
+        .entity(errorResponse)
+        .build();
   }
 
   /**

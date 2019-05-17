@@ -21,11 +21,17 @@ import com.google.gcs.sdrs.service.mq.MessageQueueManager;
 import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
 import com.google.gcs.sdrs.service.mq.pojo.DeleteNotificationMessage;
 import com.google.gcs.sdrs.service.worker.BaseWorker;
-
+import com.google.gcs.sdrs.service.worker.WorkerResult;
+import com.google.gcs.sdrs.service.worker.WorkerResult.WorkerResultStatus;
+import com.google.gcs.sdrs.util.RetentionUtil;
+import java.io.IOException;
 import java.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DeleteNotificationWorker extends BaseWorker {
   private NotificationEventRequest request;
+  private final Logger logger = LoggerFactory.getLogger(DeleteNotificationWorker.class);
 
   public DeleteNotificationWorker(NotificationEventRequest request, String correlationId) {
     super(correlationId);
@@ -46,6 +52,12 @@ public class DeleteNotificationWorker extends BaseWorker {
     message.setCorrelationId(getUuid());
 
     MessageQueueManager manager = PubSubMessageQueueManagerImpl.getInstance();
-    manager.sendSuccessDeleteMessage(message);
-  }
+    try {
+      manager.sendSuccessDeleteMessage(message);
+      workerResult.setStatus(WorkerResultStatus.SUCCESS);
+    } catch (IOException e) {
+      logger.error(String.format("Error sending delete notification: %s", RetentionUtil.convertStackTrace(e)));
+      workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
+    }
+   }
 }
