@@ -10,16 +10,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# [START all]
-
-# TODO - format to Google Code standards, and add logging
 #
 
 """Command-line sample that creates pooled STS jobs and syncs with SDRS.
 
 Note the start times are in UTC (GMT-7 for PDT months)
-
+Example command line arguments from the prompt:
+'python command_line.py sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev'
 For more information, see the README.md.
 """
 
@@ -40,7 +37,6 @@ def main(project_id, start_date, source_bucket,
     pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
          sink_bucket, 'dataset')
     _sync_sdrs_sts_jobs(pooled_sts_jobs)
-
 # [END main]
 
 # [START _create_sts_jobs_for_bucket]
@@ -107,6 +103,7 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
     return sts_jobs
 # [END _create_sts_jobs_for_bucket]
 
+# [START _sync_sdrs_sts_jobs]
 def _sync_sdrs_sts_jobs(pooled_sts_jobs):
   """Makes a request to register the STS job with SDRS so it can be utilized."""
   
@@ -114,7 +111,7 @@ def _sync_sdrs_sts_jobs(pooled_sts_jobs):
   LOGGER.debug('Body: %s', pooled_sts_jobs)
   response = requests.post(SDRS_POOL_ENDPOINT, json=pooled_sts_jobs)
   LOGGER.debug('Response: %s', response.text)
-
+# [END _sync_sdrs_sts_jobs]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
