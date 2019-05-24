@@ -107,7 +107,6 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
 
 def _delete_sts_jobs_for_bucket(project_id, source_bucket):
     storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
-    #job_names = []
     # For the bucket, get the list of sts jobs to delete from SDRS
     sts_jobs = _get_pooled_sts_jobs(project_id, source_bucket)
     # Use the name of the jobs to delete them from the cloud
@@ -117,17 +116,19 @@ def _delete_sts_jobs_for_bucket(project_id, source_bucket):
         #job_names.append(sts_job.name)
         job_name = sts_job.get("name")  
         update_transfer_job_request_body = {
+        'project_id': project_id,
+        'update_transfer_job_field_mask': 'status',
+        'transfer_job': {    
         'status': 'DELETED'
+        }
         }
         request = storagetransfer.transferJobs().patch(jobName=job_name, body=update_transfer_job_request_body)
         response = request.execute()
-
-        # TODO: Change code below to process the `response` dict:
-        pprint(response)
-    # Finally, delete the records from SDRS
+        # TODO: Change code below to process error codes
+        print(response)
+    # todo Finally, delete the records from SDRS
     
     # The name of job to update.
-    #job_name = 'transferJobs/my-transfer-job'  
  
 # [END _delete_sts_jobs_for_bucket]
 
