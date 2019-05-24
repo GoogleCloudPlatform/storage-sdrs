@@ -202,7 +202,7 @@ public class StsRuleExecutor implements RuleExecutor {
         logger.error(
             String.format(
                 "Failed to create user commanded STS job for project %s bucket %s. %s",
-                projectId, sourceBucket, RetentionUtil.convertStackTrace(e)));
+                projectId, sourceBucket, e.getMessage()), e);
       }
 
       String jobName = null;
@@ -307,7 +307,7 @@ public class StsRuleExecutor implements RuleExecutor {
         logger.error(
             String.format(
                 "Failed to schedule dataset STS job for %s/%s. %s",
-                projectId, sourceBucket, RetentionUtil.convertStackTrace(e)));
+                projectId, sourceBucket, e.getMessage()), e);
       }
 
       String jobName = null;
@@ -540,7 +540,7 @@ public class StsRuleExecutor implements RuleExecutor {
       logger.error(
           String.format(
               "Failed to schedule default STS job for %s/%s. %s",
-              projectId, sourceBucket, RetentionUtil.convertStackTrace(e)));
+              projectId, sourceBucket, e.getMessage()), e);
       return null;
     }
 
@@ -761,7 +761,7 @@ public class StsRuleExecutor implements RuleExecutor {
       try {
         PubSubMessageQueueManagerImpl.getInstance().sendSuccessDeleteMessage(msg);
       } catch (IOException e) {
-        logger.error(String.format("Error sending delete notification. %s", RetentionUtil.convertStackTrace(e)));
+        logger.error(String.format("Error sending delete notification. %s", e.getMessage()), e);
       }
     }
   }

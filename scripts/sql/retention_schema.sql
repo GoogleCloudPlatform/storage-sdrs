@@ -99,7 +99,7 @@ CREATE TABLE `pooled_sts_job` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_sts_job_name` (`project_id`,`name`),
   KEY `query_project_bucket` (`source_bucket`,`source_project`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- TRIGGER SCRIPTS
 -- ------------------------------------------------------

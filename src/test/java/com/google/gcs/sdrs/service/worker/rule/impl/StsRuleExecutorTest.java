@@ -36,7 +36,9 @@ import java.util.HashSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 
+@PowerMockIgnore("javax.management.*")
 public class StsRuleExecutorTest {
 
   private StsRuleExecutor objectUnderTest;
