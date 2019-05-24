@@ -23,7 +23,7 @@ CRUD operations are supported on Retention Rules.
 ##### Fields and Validation
 JSON Body Params:
 
-`type`: A string matching either `GLOBAL` or `DATASET`. `DATASET` rules require a `projectId` and `dataStorageName`. 
+`type`: A string matching `GLOBAL`, `DATASET` or `DEFAULT`. `DATASET` and `DEFAULT` rules require a `projectId` and `dataStorageName`. 
 
 `dataStorageName`: A string indicating where this rule will take effect. It must begin with the storage prefix `gs://` and containing at least one segment indicating the bucket name. Segments are separated using `/`.
 
@@ -31,7 +31,9 @@ JSON Body Params:
 
 `retentionPeriod`: A number indicating the number of days to retain objects. Must be between 0 and 1095. 
 
-`dataSetName`: A name for the dataset covered by this rule.
+`retentionPeriodUnit`: Optional. A string indicating retention period unit. `DAY` or `MONTH`.
+
+`dataSetName`: Optional. A name for the dataset covered by this rule.
 
 ##### Errors
 `400`: 

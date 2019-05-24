@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+  <Appenders>
+    <Console name="consoleJSONAppender" target="SYSTEM_OUT" >
+      <JsonLayout complete="false" compact="true" eventEol="true" stacktraceAsString="true">
+      </JsonLayout>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <Root level="info" additivity="false">
+      <appender-ref ref="consoleJSONAppender" />
+    </Root>
+  </Loggers>
+</Configuration>
