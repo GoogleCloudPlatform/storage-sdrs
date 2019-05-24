@@ -115,10 +115,10 @@ Follow the steps section II (subsection 1 through 4) to update the version of ne
 > 3. You can not stop or restart VM instances in a MIG.
 
 ### SDRS JVM Monitoring
-The following are instructions to enable monitoring of SDRS JVM environment:
+The following are instructions to enable Stackdriver monitoring of SDRS JVM environment:
 1. Use [startup_with_monitoring.sh](./mig/scripts/startup_with_monitoring.sh) instead of [startup.sh](./mig/scripts/startup.sh) when creating the MIG using the Deployment Manager template.
-2. Set ENABLE_JMX=true (set to false by default) inside [env.txt](./mig/scripts/env.txt)
-3. If using Stackdriver Monitoring, follow instructions to install stackdriver agent and configure JVM plugin with monitoring port (port 8086 used by default in SDRS setup) and ensure the GCE Instances service account has permissions to access Stackdriver Monitoring
+2. Set ENABLE_JMX=true (set to false by default) inside [env.txt](./mig/scripts/env.txt).
+3. If using Stackdriver Monitoring, follow instructions to install stackdriver agent and configure JVM plugin with monitoring port (port 8086 used by default in SDRS setup) and ensure the GCE Instances service account has permissions to access Stackdriver Monitoring.
 
     > [Stackdriver Monitoring Agent Installation](https://cloud.google.com/monitoring/agent/install-agent)
 
@@ -126,6 +126,14 @@ The following are instructions to enable monitoring of SDRS JVM environment:
     
     > [Stackdriver Monitoring Access Control](https://cloud.google.com/monitoring/access-control)
 
+### SDRS Logging
+The following are instructions to enable Stackdriver logging on SDRS environment:
+1. Install [Stackdriver Logging Agent](https://cloud.google.com/logging/docs/agent/installation)
+2. Copy [docker.conf](./mig/stackdriver-logging/docker.conf) to path `/etc/google-fluentd/config.d/` on each instance where SDRS app is running and ensure the GCE Instances service account has permissions to access Stackdriver Logging
+3. Make sure the docker command to run SDRS container has `fluentd` set as the log driver.
+4. Restart the Stackdriver logging agent so that it picks up the new docker.conf logging configuration.
+
+  > [Stackdriver Logging Access Control](https://cloud.google.com/logging/docs/access-control)
 
 ## Appendix
 ### Cloud Endpoints
