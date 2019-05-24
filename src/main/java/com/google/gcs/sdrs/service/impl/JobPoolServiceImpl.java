@@ -27,6 +27,7 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import com.google.gcs.sdrs.service.JobPoolService;
 import com.google.gcs.sdrs.util.CredentialsUtil;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -112,13 +113,12 @@ public class JobPoolServiceImpl implements JobPoolService {
       }
       return true;
     } catch (IOException e) {
-      e.printStackTrace();
       logger.error(
           String.format(
               "Unable to communicate with Google STS API for job %s in GCP project %s ",
               pooledJobCreateRequest.getName(),
               pooledJobCreateRequest.getProjectId(),
-              e.getMessage()));
+              RetentionUtil.convertStackTrace(e)));
       return false;
     }
   }
