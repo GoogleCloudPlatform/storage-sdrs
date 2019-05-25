@@ -168,9 +168,9 @@ A custom CentOS-7 image is created to be used by MIG as the startup script needs
 3.  Setup the Docker repository
     
 
-	a).  Install required packages using the following command `#sudo yum install -y yum-utils device-mapper-persistent-data lvm2`
+	a.  Install required packages using the following command `#sudo yum install -y yum-utils device-mapper-persistent-data lvm2`
 	    
-	b).  Use the following command to setup repository `#sudo yum-config-manager --add-repo` 
+	b.  Use the following command to setup repository `#sudo yum-config-manager --add-repo` 
     
 
 4.  Install latest version of docker using the following command `#sudo yum install docker-ce`
@@ -181,21 +181,25 @@ A custom CentOS-7 image is created to be used by MIG as the startup script needs
     
 7.  Google Cloud SDK is installed on the CentOS 7 image by default.
     
-8.  (Optional) If using Stackdriver Monitoring to monitor JVM then follow instructions to install stackdriver agent and configure JVM plugin with monitoring port (port 8086 used by default in SDRS setup)
+8.  (Optional) If using Stackdriver Monitoring to monitor JVM then follow instructions to install Stackdriver agent and configure JVM plugin with monitoring port (port 8086 used by default in SDRS setup)
     > [Stackdriver Monitoring Agent Installation](https://cloud.google.com/monitoring/agent/install-agent)
 
     > [Stackdriver JVM Plugin Setup](https://cloud.google.com/monitoring/agent/plugins/jvm#enabling_the_jvm_monitoring_plugin)
 
-9.  Via the GCP Cloud Console, shut down the VM
+9.  (Optional) If using Stackdriver Logging to send SDRS logs to Stackdriver then
+        a.  Install [Stackdriver Logging agent](https://cloud.google.com/logging/docs/agent/installation#joint-install)
+        b.  Copy [docker.conf](./stackdriver-logging/docker.conf) file to the path `/etc/google-fluentd/config.d/`
+
+10.  Via the GCP Cloud Console, shut down the VM
     
-10.  Create an image
+11.  Create an image
 
        > Compute Engine → Images → Create Image → Source (Disk) → Source Disk (VM name you just created) → Create
     
 
-11.  It would typically take 10 minutes to get the image created.
+12.  It would typically take 10 minutes to get the image created.
 
-12. Once the image is created you can fetch the image selfLink that will need to be supplied to instance template Deployment Manager config file.
+13. Once the image is created you can fetch the image selfLink that will need to be supplied to instance template Deployment Manager config file.
 
         gcloud compute images describe <INSTANCE_IMAGE_NAME> --project <YOUR_PROJECT_NAME> | grep selfLink
 
