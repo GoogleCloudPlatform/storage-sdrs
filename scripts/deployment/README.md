@@ -160,7 +160,9 @@ OpenAPI configuration file, openapi.yaml is based on OpenAPI Specification v2.0.
  - You may need to enable an SSL port for your deployed Endpoints service so that it can serve HTTPS requests. Refer to [Enabling   SSL](https://cloud.google.com/endpoints/docs/openapi/enabling-ssl)   for Cloud Endpoints for details
 
 ### Custom Image
-A custom CentOS-7 image needs to be created as it will be used by MIG. This image will have docker pre-installed and the startup script will configure and run SDRS on a docker Container. Follow the instructions to create a custom GCE image:
+A custom CentOS-7 image needs to be created as it will be used by MIG. This image will have docker pre-installed and the startup script will configure and run SDRS on a docker container.
+
+Follow the instructions to create a custom GCE image:
 1.  Create a GCE Instance using CentOS 7 base image. SSH into the instance to run the rest of the commands.
     
 2.  Google Cloud SDK is installed by default on the CentOS 7 image available on GCP. Install it if your image does not have it installed already.
