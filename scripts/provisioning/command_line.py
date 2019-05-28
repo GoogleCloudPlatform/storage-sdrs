@@ -38,7 +38,7 @@ def main(project_id, start_date, source_bucket,
     #_delete_sts_jobs_for_bucket(project_id, source_bucket)
     pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
          sink_bucket, 'dataset')
-    _sync_sdrs_sts_jobs(pooled_sts_jobs)
+    _register_sdrs_sts_jobs(pooled_sts_jobs)
 # [END main]
 
 # [START _create_sts_jobs_for_bucket]
@@ -104,7 +104,7 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
     return sts_jobs
 # [END _create_sts_jobs_for_bucket]
 
-
+# [START _delete_sts_jobs_for_bucket]
 def _delete_sts_jobs_for_bucket(project_id, source_bucket):
     storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
     # For the bucket, get the list of sts jobs to delete from SDRS
@@ -126,13 +126,11 @@ def _delete_sts_jobs_for_bucket(project_id, source_bucket):
         response = request.execute()
         # TODO: Change code below to process error codes
         print(response)
-    # todo Finally, delete the records from SDRS
-    
-    # The name of job to update.
- 
+    #Finally, delete the STS job records from SDRS
+    _unregister_sdrs_sts_jobs(project_id, source_bucket)
 # [END _delete_sts_jobs_for_bucket]
 
-# [START _sync_sdrs_sts_jobs]
+# [START _get_pooled_sts_jobs]
 def _get_pooled_sts_jobs(project_id, source_bucket):
   """Makes a request to get the pooled STS jobs from SDRS."""
   url = '{}?sourceBucket={}&sourceProject={}'.format(
@@ -152,10 +150,9 @@ def _get_pooled_sts_jobs(project_id, source_bucket):
                  response.status_code, response.text)
 # [END _get_pooled_sts_jobs]
 
-# [START _sync_sdrs_sts_jobs]
-def _sync_sdrs_sts_jobs(pooled_sts_jobs):
+# [START _register_sdrs_sts_jobs]
+def _register_sdrs_sts_jobs(pooled_sts_jobs):
   """Makes a request to register the STS job with SDRS so it can be utilized."""
-  
   LOGGER.debug('POST: %s', SDRS_POOL_ENDPOINT)
   LOGGER.debug('Body: %s', pooled_sts_jobs)
   response = requests.post(SDRS_POOL_ENDPOINT, json=pooled_sts_jobs)
@@ -168,7 +165,25 @@ def _sync_sdrs_sts_jobs(pooled_sts_jobs):
         response.status_code, response.text))
     LOGGER.error('Unexpected response code %s returned: %s',
                  response.status_code, response.text)
-# [END _sync_sdrs_sts_jobs]
+# [END _register_sdrs_sts_jobs]
+
+# [START _unregister_sdrs_sts_jobs]
+def _unregister_sdrs_sts_jobs(project_id, source_bucket):
+  """Makes a request to unregister the STS job pool from SDRS."""
+  url = '{}?sourceBucket={}&sourceProject={}'.format(
+      SDRS_POOL_ENDPOINT, source_bucket, project_id)
+  LOGGER.debug('DELETE: %s', url)
+  response = requests.delete(url)
+  LOGGER.debug('Response: %s', response.text)
+  if response.status_code == requests.codes.ok:
+    print('Successful unregistering of sts jobs with SDRS: {}'.format(
+        response.text))
+  else:
+    print('Error - unable to unregister jobs with SDRS: error code {} returned {}'.format(
+        response.status_code, response.text))
+    LOGGER.error('Unexpected response code %s returned: %s',
+                 response.status_code, response.text)
+# [END _unregister_sdrs_sts_jobs]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
