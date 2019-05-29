@@ -294,11 +294,15 @@ public class RetentionRulesController extends BaseController {
 
   private ValidationResult validateRetentionUnit(String retentionUnit) {
     Collection<String> messages = new HashSet<>();
-    if (retentionUnit != null && RetentionUnitType.getType(retentionUnit) == null) {
-      messages.add(
-          String.format(
-              "retentionPeriodUnit has to be one of [%s, %s]",
-              RetentionUnitType.DAY.toString(), RetentionUnitType.MONTH.toString()));
+    if (retentionUnit != null) {
+      RetentionUnitType type = RetentionUnitType.getType(retentionUnit);
+      // no support for version right now
+      if (type == null || type == RetentionUnitType.VERSION) {
+        messages.add(
+            String.format(
+                "retentionPeriodUnit has to be one of [%s, %s]",
+                RetentionUnitType.DAY.toString(), RetentionUnitType.MONTH.toString()));
+      }
     }
 
     return new ValidationResult(messages);

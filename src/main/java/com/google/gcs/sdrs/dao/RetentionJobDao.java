@@ -9,5 +9,5 @@ public interface RetentionJobDao extends Dao<RetentionJob, Integer> {
 
   List<RetentionJob> findJobsByRuleIdAndProjectId(int ruleId, String projectId);
 
-  RetentionJob findLatestDefaultJob(String dataStroageName);
+  RetentionJob findLatestDefaultJob(String dataStorageName);
 }

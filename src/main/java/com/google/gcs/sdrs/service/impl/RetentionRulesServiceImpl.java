@@ -125,8 +125,9 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
           }
         }
 
-        if (dataStorageName.contains(rule.getDataStorageName())
-            || rule.getDataStorageName().contains(dataStorageName)) {
+        if (rule.getIsActive()
+            && (dataStorageName.contains(rule.getDataStorageName())
+                || rule.getDataStorageName().contains(dataStorageName))) {
           throw new SQLException(
               String.format(
                   "A %s rule for %s already exists with project id: %s. The request for %s is not allowed for violating non-nesting rule",

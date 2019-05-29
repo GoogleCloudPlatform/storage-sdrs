@@ -69,7 +69,7 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
   }
 
   @Override
-  public RetentionJob findLatestDefaultJob(String dataStroageName) {
+  public RetentionJob findLatestDefaultJob(String dataStorageName) {
     RetentionJob retentionJob = null;
     Session session = openSession();
     CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -78,7 +78,7 @@ public class RetentionJobDaoImpl extends GenericDao<RetentionJob, Integer>
     criteria
         .select(root)
         .where(
-            builder.equal(root.get("retentionRuleDataStorageName"), dataStroageName),
+            builder.equal(root.get("retentionRuleDataStorageName"), dataStorageName),
             builder.or(
                 builder.equal(root.get("retentionRuleType"), RetentionRuleType.DEFAULT),
                 builder.equal(root.get("retentionRuleType"), RetentionRuleType.GLOBAL)))

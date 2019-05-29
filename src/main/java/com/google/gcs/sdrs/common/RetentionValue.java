@@ -72,9 +72,12 @@ public class RetentionValue {
       try {
         number = Integer.parseInt(numberStr);
       } catch (NumberFormatException e) {
-        // no-op
+        return null;
       }
       RetentionUnitType unitType = RetentionUnitType.getType(unitTypeStr);
+      if (unitType == null) {
+        return null;
+      }
       return new RetentionValue(number, unitType);
     } else {
       return null;
