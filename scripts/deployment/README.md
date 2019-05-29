@@ -160,49 +160,47 @@ OpenAPI configuration file, openapi.yaml is based on OpenAPI Specification v2.0.
  - You may need to enable an SSL port for your deployed Endpoints service so that it can serve HTTPS requests. Refer to [Enabling   SSL](https://cloud.google.com/endpoints/docs/openapi/enabling-ssl)   for Cloud Endpoints for details
 
 ### Custom Image
-A custom CentOS-7 image is created to be used by MIG as the startup script needs to access GCS bucket and run Docker.  The following is the instruction:
-1.  CentOS 7 base image used to create a VM
-    
-2.  `#sudo yum remove docker` (Remove any prior installations of docker from the VM)
-    
-3.  Setup the Docker repository
-    
+A custom CentOS-7 image needs to be created as it will be used by MIG. This image will have docker pre-installed and the startup script will configure and run SDRS on a docker container.
 
-	a.  Install required packages using the following command `#sudo yum install -y yum-utils device-mapper-persistent-data lvm2`
-	    
-	b.  Use the following command to setup repository `#sudo yum-config-manager --add-repo` 
+Follow the instructions to create a custom GCE image:
+1.  Create a GCE Instance using CentOS 7 base image. SSH into the instance to run the rest of the commands.
     
+2.  Google Cloud SDK is installed by default on the CentOS 7 image available on GCP. Install it if your image does not have it installed already.
 
-4.  Install latest version of docker using the following command `#sudo yum install docker-ce`
+3. Install the latest version of docker.
+    > [Docker for CentOS Install Guide](https://docs.docker.com/install/linux/docker-ce/centos/#install-docker-ce)
     
-5.  Start the docker service `#sudo systemctl start docker`
+4.  Start the docker service.
+    ```
+    sudo systemctl start docker
+    ```    
+
+5.  Start the chkconfig service using below command to make sure the service comes up in case the VM restarts.
+    ```
+    sudo chkconfig docker on
+    ```
     
-6.  Start the chkconfig service using below command to make sure the service comes up in case the VM restarts `#chkconfig docker on`
+6.  (Optional) If using Stackdriver Monitoring to monitor JVM then follow the below steps:
+
+    a. Install [Stackdriver Monitoring Agent](https://cloud.google.com/monitoring/agent/install-agent).
     
-7.  Google Cloud SDK is installed on the CentOS 7 image by default.
+    b. Configure [Stackdriver JVM Plugin](https://cloud.google.com/monitoring/agent/plugins/jvm#enabling_the_jvm_monitoring_plugin) with monitoring port 8086 (port 8086 used by default in SDRS setup).
+
+7.  (Optional) If using Stackdriver Logging to send SDRS logs to Stackdriver then follow the below steps:
+
+    a.  Install [Stackdriver Logging agent](https://cloud.google.com/logging/docs/agent/installation#joint-install).
     
-8.  (Optional) If using Stackdriver Monitoring to monitor JVM then follow instructions to install Stackdriver agent and configure JVM plugin with monitoring port (port 8086 used by default in SDRS setup)
-    > [Stackdriver Monitoring Agent Installation](https://cloud.google.com/monitoring/agent/install-agent)
+    b.  Copy [docker.conf](./mig/stackdriver-logging/docker.conf) file to the path `/etc/google-fluentd/config.d/`.
 
-    > [Stackdriver JVM Plugin Setup](https://cloud.google.com/monitoring/agent/plugins/jvm#enabling_the_jvm_monitoring_plugin)
-
-9.  (Optional) If using Stackdriver Logging to send SDRS logs to Stackdriver then
-        a.  Install [Stackdriver Logging agent](https://cloud.google.com/logging/docs/agent/installation#joint-install)
-        b.  Copy [docker.conf](./stackdriver-logging/docker.conf) file to the path `/etc/google-fluentd/config.d/`
-
-10.  Via the GCP Cloud Console, shut down the VM
+8.  Shut down the instance via GCP Console.
     
-11.  Create an image
+9.  Create the image. It typically takes 5-10 minutes for the image creation to complete.
+    > Compute Engine → Images → Create Image → Source (Disk) → Source Disk (VM name you just created) → Create
 
-       > Compute Engine → Images → Create Image → Source (Disk) → Source Disk (VM name you just created) → Create
-    
-
-12.  It would typically take 10 minutes to get the image created.
-
-13. Once the image is created you can fetch the image selfLink that will need to be supplied to instance template Deployment Manager config file.
-
-        gcloud compute images describe <INSTANCE_IMAGE_NAME> --project <YOUR_PROJECT_NAME> | grep selfLink
-
+10. Once the image is created you can fetch the image selfLink that will need to be supplied to instance template Deployment Manager config file.
+    ```
+     gcloud compute images describe <INSTANCE_IMAGE_NAME> --project <YOUR_PROJECT_NAME> | grep selfLink
+    ```
 
 ### Docker Container Image
 The docker container image will contain the SDRS application build and it will be used to deploy SDRS on the MIG cluster. The following steps will let you build the docker image and upload it to GCR repository.
@@ -222,13 +220,13 @@ The docker container image will contain the SDRS application build and it will b
         docker build --tag gcr.io/your-project-id/your-sdrs-build:0.1.0 .
 
 6. Push docker image to GCR. Refer to [GCR Documentation for Image management](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
-
-        docker push gcr.io/your-project-id/your-sdrs-build:0.1.0
-
+   ```
+    docker push gcr.io/your-project-id/your-sdrs-build:0.1.0
+   ```
 7. Verify the image is uploaded to GCR
-
-        docker container images list-tags gcr.io/your-project-id/your-sdrs-build
-
+   ```
+    docker container images list-tags gcr.io/your-project-id/your-sdrs-build
+   ```
 
 ### Google Project
 
