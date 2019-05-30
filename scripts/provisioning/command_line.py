@@ -25,6 +25,7 @@ import datetime
 import json
 import logging
 import requests
+import sys
 
 import googleapiclient.discovery
 
@@ -85,24 +86,53 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
             }
         }
         }
-
-        result = storagetransfer.transferJobs().create(body=transfer_job).execute()
-        print('Returned transferJob: {}'.format(
-        json.dumps(result, indent=4)))
-        pooled_sts_job = {    
-        'name': result.get("name"),
-        'status': result.get("status"),
-        'type': job_type,
-        'projectId': result.get("projectId"),
-        'sourceBucket': result.get("transferSpec").get("gcsDataSource").get("bucketName"),
-        'sourceProject': project_id,
-        'targetBucket': result.get("transferSpec").get("gcsDataSink").get("bucketName"),
-        'schedule': start_time_string
-        }
-        sts_jobs.append(pooled_sts_job)
-        i += 1
+        try:
+            result = storagetransfer.transferJobs().create(body=transfer_job).execute()
+            print('Returned transferJob: {}'.format(
+            json.dumps(result, indent=4)))
+            pooled_sts_job = {    
+            'name': result.get("name"),
+            'status': result.get("status"),
+            'type': job_type,
+            'projectId': result.get("projectId"),
+            'sourceBucket': result.get("transferSpec").get("gcsDataSource").get("bucketName"),
+            'sourceProject': project_id,
+            'targetBucket': result.get("transferSpec").get("gcsDataSink").get("bucketName"),
+            'schedule': start_time_string
+            }
+            sts_jobs.append(pooled_sts_job)
+            #if i == 12:
+            #    raise Exception ('Forced error on API execution')
+            i += 1
+        except Exception:
+            # If an exception is encountered during any API iteration, roll back the transaction and error out
+            LOGGER.error("Exception found during API creation call ")
+            print("Exception found ", Exception) 
+            print("Rolling back and exiting program"
+            _exit_creation_with_cleanup(sts_jobs) 
     return sts_jobs
 # [END _create_sts_jobs_for_bucket]
+
+# [START _exit_creation_with_cleanup]
+def _exit_creation_with_cleanup(sts_jobs):
+    storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
+    for sts_job in sts_jobs:
+        print('STS Job to delete: {}'.format(
+        json.dumps(sts_job, indent=4)))
+        #job_names.append(sts_job.name)
+        job_name = sts_job.get("name")  
+        update_transfer_job_request_body = {
+        'project_id': sts_job.get("projectId"),
+        'update_transfer_job_field_mask': 'status',
+        'transfer_job': {    
+        'status': 'DELETED'
+        }
+        }
+        request = storagetransfer.transferJobs().patch(jobName=job_name, body=update_transfer_job_request_body)
+        response = request.execute()
+        print(response)
+    sys.exit()
+# [END _exit_creation_with_cleanup]
 
 # [START _delete_sts_jobs_for_bucket]
 def _delete_sts_jobs_for_bucket(project_id, source_bucket):
