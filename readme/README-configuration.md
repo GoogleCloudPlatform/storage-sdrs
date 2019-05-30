@@ -1,8 +1,8 @@
 # Configuration Service
 
 ## REST API
-The API is fully documented in openapi 2.0 (Swagger) format within `/scripts/deployment/openapi/openapi.yaml`
-It can be visually inspected with the Swagger editor available at `https://editor.swagger.io/` 
+The API is fully documented in openapi 2.0 (Swagger) format within [openapi.yaml](../scripts/deployment/openapi/openapi.yaml).
+It can be visually inspected with the [Swagger editor](https://editor.swagger.io/) 
 
 All responses will include a JSON payload including at least UUID corresponding to that specific request.
 All error responses will include an error message indicating the reason for the error.
