@@ -73,8 +73,11 @@ public class JobPoolServiceImpl implements JobPoolService {
   }
 
   @Override
-  public Boolean createJobs(Collection<PooledJobCreateRequest> pooledJobCreateRequests) {
-    if (areAllStsJobsValid(pooledJobCreateRequests)) {
+  public Boolean createJobs(
+      String sourceBucket,
+      String sourceProject,
+      Collection<PooledJobCreateRequest> pooledJobCreateRequests) {
+    if (isValidCreatePoolRequest(sourceBucket, sourceProject, pooledJobCreateRequests)) {
       for (PooledJobCreateRequest pooledJobCreateRequest : pooledJobCreateRequests) {
         pooledStsJobDao.save(convertToEntity(pooledJobCreateRequest));
       }
@@ -94,13 +97,37 @@ public class JobPoolServiceImpl implements JobPoolService {
    * @param pooledJobCreateRequests
    * @return
    */
-  protected boolean areAllStsJobsValid(Collection<PooledJobCreateRequest> pooledJobCreateRequests) {
-    for (PooledJobCreateRequest pooledJobCreateRequest : pooledJobCreateRequests) {
-      if (!doesJobExist(pooledJobCreateRequest) || isJobAlreadyRegistered(pooledJobCreateRequest)) {
-        return false;
+  protected boolean isValidCreatePoolRequest(
+      String sourceBucket,
+      String sourceProject,
+      Collection<PooledJobCreateRequest> pooledJobCreateRequests) {
+    if (doesJobPoolAlreadyExist(sourceBucket, sourceProject)) {
+      return false;
+    } else {
+      for (PooledJobCreateRequest pooledJobCreateRequest : pooledJobCreateRequests) {
+        if (!doesJobExist(pooledJobCreateRequest)
+            || isJobAlreadyRegistered(pooledJobCreateRequest)) {
+          return false;
+        }
       }
+      return true;
     }
-    return true;
+  }
+
+  /**
+   * Convenience business logic method to check if a job pool already exists for a given source
+   * bucket/project
+   *
+   * @return
+   */
+  protected boolean doesJobPoolAlreadyExist(String bucketName, String sourceProject) {
+    Collection<PooledStsJob> pooledStsJob =
+        pooledStsJobDao.getAllPooledStsJobsByBucketName(bucketName, sourceProject);
+    if (pooledStsJob == null || pooledStsJob.isEmpty()) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   protected boolean doesJobExist(PooledJobCreateRequest pooledJobCreateRequest) {

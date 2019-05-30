@@ -26,7 +26,7 @@ public interface JobPoolService {
 	
 	  Integer createJob(PooledJobCreateRequest request);
 	  
-	  Boolean createJobs(Collection<PooledJobCreateRequest> pooledStsJobs);
+	  Boolean createJobs(String sourceBucket, String sourceProject, Collection<PooledJobCreateRequest> pooledStsJobs);
 	  
 	  Collection<PooledJobResponse> getAllPooledStsJobsByBucketName(String sourceBucket, String sourceProject);
 	  

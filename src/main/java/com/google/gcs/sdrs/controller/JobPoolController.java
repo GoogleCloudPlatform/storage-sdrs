@@ -64,12 +64,13 @@ public class JobPoolController extends BaseController {
   //@Path("/batch")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response createByBatch(List<PooledJobCreateRequest> requests) {
+  public Response createByBatch(@QueryParam("sourceBucket") String sourceBucket,
+	      @QueryParam("sourceProject") String sourceProject, List<PooledJobCreateRequest> requests) {
     try {
-      Boolean success = jobPoolService.createJobs(requests);
+      Boolean success = jobPoolService.createJobs(sourceBucket, sourceProject, requests);
       PooledJobCreateResponse response = new PooledJobCreateResponse();
       response.setSuccess(success);
-      return successResponse(response);
+      return successResponse(response);       
     } catch (Exception exception) {
       return errorResponse(exception);
     }
