@@ -35,14 +35,15 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 /** Controller for handling /jobpool endpoints to manage STS job pooling. */
 @Path("/stsjobpool")
 public class JobPoolController extends BaseController {
 
   private JobPoolService jobPoolService = JobPoolServiceImpl.getInstance(); // TODO need to wire up the instantiation via a factory
 
- /* *//** CRUD create endpoint *//*
+  /* */
+  /** CRUD create endpoint */
+  /*
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
@@ -61,16 +62,22 @@ public class JobPoolController extends BaseController {
 
   /** CRUD create batch endpoint */
   @POST
-  //@Path("/batch")
+  // @Path("/batch")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response createByBatch(@QueryParam("sourceBucket") String sourceBucket,
-	      @QueryParam("sourceProject") String sourceProject, List<PooledJobCreateRequest> requests) {
+  public Response createByBatch(
+      @QueryParam("sourceBucket") String sourceBucket,
+      @QueryParam("sourceProject") String sourceProject,
+      List<PooledJobCreateRequest> requests) {
     try {
       Boolean success = jobPoolService.createJobs(sourceBucket, sourceProject, requests);
       PooledJobCreateResponse response = new PooledJobCreateResponse();
       response.setSuccess(success);
-      return successResponse(response);       
+      if (success) {
+        return successResponse(response);
+      } else {
+        throw new ServiceLayerException(new Exception("Job pool already exists or jobs in use"));
+      }
     } catch (Exception exception) {
       return errorResponse(exception);
     }

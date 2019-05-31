@@ -36,10 +36,10 @@ SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 # [START main]
 def main(project_id, start_date, source_bucket,
          sink_bucket):
-    _delete_sts_jobs_for_bucket(project_id, source_bucket)
-    #pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
-    #    sink_bucket, 'dataset')
-    #_register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
+    #_delete_sts_jobs_for_bucket(project_id, source_bucket)
+    pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
+        sink_bucket, 'dataset')
+    _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
 # [END main]
 
 # [START _create_sts_jobs_for_bucket]
@@ -197,6 +197,8 @@ def _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs):
         response.status_code, response.text))
     LOGGER.error('Unexpected response code %s returned: %s',
                  response.status_code, response.text)
+    print("Rolling back and exiting program")
+    _exit_creation_with_cleanup(pooled_sts_jobs) 
 # [END _register_sdrs_sts_jobs]
 
 # [START _unregister_sdrs_sts_jobs]
