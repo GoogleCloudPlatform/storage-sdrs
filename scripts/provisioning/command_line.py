@@ -32,7 +32,9 @@ import googleapiclient.discovery
 from google.cloud import storage
 
 logging.basicConfig()
+logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 LOGGER = logging.getLogger('sdrs_provisioning_cli')
+
 # Edit the RESTful endpoint to your desired deployment environment
 SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 
@@ -42,11 +44,12 @@ def main(project_id, start_date, source_bucket,
     storage_client = storage.Client()
     try:
         bucket = storage_client.get_bucket(source_bucket)
+        print("Bucket exists, proceeding")
     except Exception as e:
         LOGGER.error("Exception, exiting program " + str(e))
-        #print("Exception found ", str(e))
         sys.exit() 
-    #_delete_sts_jobs_for_bucket(project_id, source_bucket)
+        
+    _delete_sts_jobs_for_bucket(project_id, source_bucket)
     #pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
     #    sink_bucket, 'dataset')
     #_register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
@@ -56,13 +59,12 @@ def main(project_id, start_date, source_bucket,
 # [START _create_sts_jobs_for_bucket]
 def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
          sink_bucket, job_type):
-    storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
+    storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1', cache_discovery=False)
     sts_jobs = []
     number_of_jobs = 25
     i = 0
     while i < number_of_jobs:
         description = 'Pooled STS Job ' + str(i) + ' for bucket ' + source_bucket
-        print(description)
         if i == 24:
             # create the default job - number 25
             job_type = 'default'
@@ -99,8 +101,8 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
         }
         try:
             result = storagetransfer.transferJobs().create(body=transfer_job).execute()
-            print('Returned transferJob: {}'.format(
-            json.dumps(result, indent=4)))
+            #print('Returned transferJob: {}'.format(
+            #json.dumps(result, indent=4)))
             pooled_sts_job = {    
             'name': result.get("name"),
             'status': result.get("status"),
@@ -118,19 +120,17 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
         except Exception as e:
             # If an exception is encountered during any API iteration, roll back the transaction and error out
             LOGGER.error("Exception, rolling back and exiting program " + str(e))
-            #print("Exception found ", Exception) 
-            #print("Rolling back and exiting program")
             _exit_creation_with_cleanup(sts_jobs) 
+    print("Successfully created STS job pool in the cloud, standby")
     return sts_jobs
 # [END _create_sts_jobs_for_bucket]
 
 # [START _exit_creation_with_cleanup]
 def _exit_creation_with_cleanup(sts_jobs):
-    storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
+    storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1', cache_discovery=False)
     for sts_job in sts_jobs:
-        print('STS Job to delete: {}'.format(
-        json.dumps(sts_job, indent=4)))
-        #job_names.append(sts_job.name)
+        #print('STS Job to delete: {}'.format(
+        #json.dumps(sts_job, indent=4)))
         job_name = sts_job.get("name")  
         update_transfer_job_request_body = {
         'project_id': sts_job.get("projectId"),
@@ -141,20 +141,19 @@ def _exit_creation_with_cleanup(sts_jobs):
         }
         request = storagetransfer.transferJobs().patch(jobName=job_name, body=update_transfer_job_request_body)
         response = request.execute()
-        print(response)
+        #print(response)
     sys.exit()
 # [END _exit_creation_with_cleanup]
 
 # [START _delete_sts_jobs_for_bucket]
 def _delete_sts_jobs_for_bucket(project_id, source_bucket):
-    storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1')
+    storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1', cache_discovery=False)
     # For the bucket, get the list of sts jobs to delete from SDRS
     sts_jobs = _get_pooled_sts_jobs(project_id, source_bucket)
     # Use the name of the jobs to delete them from the cloud
     for sts_job in sts_jobs:
-        print('Returned Pooled STS Job: {}'.format(
-        json.dumps(sts_job, indent=4)))
-        #job_names.append(sts_job.name)
+        #print('Returned Pooled STS Job: {}'.format(
+        #json.dumps(sts_job, indent=4)))
         job_name = sts_job.get("name")  
         update_transfer_job_request_body = {
         'project_id': project_id,
@@ -165,9 +164,9 @@ def _delete_sts_jobs_for_bucket(project_id, source_bucket):
         }
         request = storagetransfer.transferJobs().patch(jobName=job_name, body=update_transfer_job_request_body)
         response = request.execute()
-        # TODO: Change code below to process error codes
-        print(response)
+        #print(response)
     #Finally, delete the STS job records from SDRS
+    print("Deleted STS Jobs from the cloud, now deleting from SDRS metadata, standby")
     _unregister_sdrs_sts_jobs(project_id, source_bucket)
 # [END _delete_sts_jobs_for_bucket]
 
@@ -181,12 +180,12 @@ def _get_pooled_sts_jobs(project_id, source_bucket):
   #response = requests.get(url, headers=utils.get_auth_header())
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
-    print('Successful get request of STS jobs from SDRS: {}'.format(
-        response.text))
+    #print('Successful get request of STS jobs from SDRS: {}'.format(
+    #    response.text))
     return response.json()
   else:
-    print('Error - : error code {} returned {}'.format(
-        response.status_code, response.text))
+    #print('Error - : error code {} returned {}'.format(
+    #    response.status_code, response.text))
     LOGGER.error('Unexpected response code %s returned: %s',
                  response.status_code, response.text)
 # [END _get_pooled_sts_jobs]
@@ -196,6 +195,7 @@ def _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs):
   """Makes a request to register the STS job with SDRS so it can be utilized."""
   url = '{}?sourceBucket={}&sourceProject={}'.format(
       SDRS_POOL_ENDPOINT, source_bucket, project_id)
+  print("Registering STS job pool with SDRS, standby")
   LOGGER.debug('POST: %s', url)
   LOGGER.debug('Body: %s', pooled_sts_jobs)
   response = requests.post(url, json=pooled_sts_jobs)
@@ -204,11 +204,11 @@ def _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs):
     print('Successful provisioning of jobs with SDRS: {}'.format(
         response.text))
   else:
-    print('Error - unable to provision jobs with SDRS: error code {} returned {}'.format(
-        response.status_code, response.text))
+    #print('Error - unable to provision jobs with SDRS: error code {} returned {}'.format(
+    #    response.status_code, response.text))
     LOGGER.error('Unexpected response code %s returned: %s',
                  response.status_code, response.text)
-    print("Rolling back and exiting program")
+    LOGGER.error("Rolling back and exiting program")
     _exit_creation_with_cleanup(pooled_sts_jobs) 
 # [END _register_sdrs_sts_jobs]
 
@@ -221,11 +221,11 @@ def _unregister_sdrs_sts_jobs(project_id, source_bucket):
   response = requests.delete(url)
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
-    print('Successful unregistering of sts jobs with SDRS: {}'.format(
+    print('Successful unregistering of STS jobs with SDRS: {}'.format(
         response.text))
   else:
-    print('Error - unable to unregister jobs with SDRS: error code {} returned {}'.format(
-        response.status_code, response.text))
+    #print('Error - unable to unregister jobs with SDRS: error code {} returned {}'.format(
+    #    response.status_code, response.text))
     LOGGER.error('Unexpected response code %s returned: %s',
                  response.status_code, response.text)
 # [END _unregister_sdrs_sts_jobs]
