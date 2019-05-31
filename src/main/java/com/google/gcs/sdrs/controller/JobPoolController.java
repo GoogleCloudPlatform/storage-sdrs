@@ -39,7 +39,7 @@ import javax.ws.rs.core.Response;
 @Path("/stsjobpool")
 public class JobPoolController extends BaseController {
 
-  private JobPoolService jobPoolService = JobPoolServiceImpl.getInstance(); // TODO need to wire up the instantiation via a factory
+  private JobPoolService jobPoolService = JobPoolServiceImpl.getInstance(); 
 
   /* */
   /** CRUD create endpoint */
@@ -62,7 +62,6 @@ public class JobPoolController extends BaseController {
 
   /** CRUD create batch endpoint */
   @POST
-  // @Path("/batch")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response createByBatch(

@@ -17,8 +17,6 @@
 
 package com.google.gcs.sdrs.dao.impl;
 
-import java.util.List;
-
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
 import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import java.util.ArrayList;
