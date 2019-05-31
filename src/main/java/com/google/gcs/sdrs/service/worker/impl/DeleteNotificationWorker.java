@@ -56,7 +56,7 @@ public class DeleteNotificationWorker extends BaseWorker {
       manager.sendSuccessDeleteMessage(message);
       workerResult.setStatus(WorkerResultStatus.SUCCESS);
     } catch (IOException e) {
-      logger.error(String.format("Error sending delete notification: %s", RetentionUtil.convertStackTrace(e)));
+      logger.error(String.format("Error sending delete notification: %s", e.getMessage()), e);
       workerResult.setStatus(WorkerResult.WorkerResultStatus.FAILED);
     }
    }

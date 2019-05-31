@@ -37,23 +37,6 @@ The following payload will execute all retention rules within SDRS.
 }
 ```
 
-To narrow the scope of the rule execution to a single GCP project, the project ID can be added to the request.
-```json
-{
-  "projectId": "<GCP_PROJECT_ID>",
-  "type": "POLICY"
-}
-```
-
-Finally, a target location (in the format `gs://bucket/path`) can be provided to narrow the scope of rules even further.
-```json
-{
-  "target": "<BUCKET_PATH>",
-  "projectId": "<GCP_PROJECT_ID>",
-  "type": "POLICY"
-}
-```
-
 ### User Requests
 Additionally, a user can initiate an object deletion without a corresponding rule. In this case, the user must specify the target location and the project id of the object to be deleted. Only the objects at or below the target path will be deleted.
 ```json
@@ -70,8 +53,8 @@ SDRS is currently built to operate against Google Cloud's Storage Transfer Servi
 For example, if objects are being moved from `gs://mybucket/dataset/2018` and the configured suffix is "shadow" there **MUST** be a bucket called `gs://mybucketshadow` for SDRS to operate successfully.
 
 NOTE: STS has a limit on the number of requests that can be sent in a given time period. SDRS uses exponential backoff retry to handle the rate limit. 
-## Scheduled Tasks
-SDRS contains a mechanism for executing certain functionality, including rule execution, validation, and notification, by periodically calling the relevant endpoints. If needed, this built in scheduler can be disabled and the endpoints can be hit directly by an external scheduler.
+## Build-in Scheduler
+SDRS contains a mechanism for executing certain functionality, including rule execution and validation, by periodically calling the relevant endpoints. The built-in scheduler is disabled by default and the preference is to schedule the services through more robust dedicated job scheduling service. Please also note that the build-in scheduler only works for single SDRS instance deployment if enabled.  
 
 ## Additional Information
 ### Configurable Values

@@ -26,6 +26,7 @@ import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.LogManager;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -34,6 +35,7 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /** The main startup class for the SDRS service. */
 public class SdrsApplication {
@@ -42,6 +44,11 @@ public class SdrsApplication {
 
   private static HttpServer server;
   private static Configuration xmlConfig;
+
+  static {
+    LogManager.getLogManager().reset();
+    SLF4JBridgeHandler.install();
+  }
 
   /**
    * Starts the SDRS service

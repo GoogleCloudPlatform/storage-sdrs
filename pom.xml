@@ -47,10 +47,24 @@
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>runtime</scope>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>${jul.slf4j.bridge}</version>
         </dependency>
         <dependency>
             <groupId>com.google.cloud</groupId>
@@ -81,22 +95,22 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>6.0.5</version>
+            <version>${mysql.connector.java}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-configuration2</artifactId>
-            <version>2.0</version>
+            <version>${commons.configuration2}</version>
         </dependency>
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.3</version>
+            <version>${commons.beanutils}</version>
         </dependency>
         <dependency>
             <groupId>com.google.auth</groupId>
             <artifactId>google-auth-library-oauth2-http</artifactId>
-            <version>0.11.0</version>
+            <version>${google.auth.library.oauth2.http}</version>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
@@ -116,7 +130,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.9</version>
+            <version>${junit}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -146,7 +160,7 @@
         <dependency>
             <groupId>com.mchange</groupId>
             <artifactId>c3p0</artifactId>
-            <version>0.9.5.2</version>
+            <version>${c3p0}</version>
         </dependency>
     </dependencies>
 
@@ -208,13 +222,21 @@
         <avro.version>1.8.2</avro.version>
         <joda.time>2.10.1</joda.time>
         <slf4j.version>1.7.25</slf4j.version>
+        <log4j.version>2.11.1</log4j.version>
+        <jul.slf4j.bridge>1.7.25</jul.slf4j.bridge>
         <gson.version>2.8.5</gson.version>
         <mockito.version>1.7.4</mockito.version>
+        <junit>4.9</junit>
         <hibernate.version>5.3.7.Final</hibernate.version>
         <java-jwt.version>3.4.1</java-jwt.version>
         <cgoogle.cloud>1.59.0</cgoogle.cloud>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mysql.connector.java>6.0.5</mysql.connector.java>
+        <commons.configuration2>2.0</commons.configuration2>
+        <commons.beanutils>1.9.3</commons.beanutils>
+        <google.auth.library.oauth2.http>0.11.0</google.auth.library.oauth2.http>
+        <c3p0>0.9.5.2</c3p0>
     </properties>
 </project>

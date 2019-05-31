@@ -137,7 +137,7 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
       logger.error(
           String.format(
               "Failed to send message %s,  %s",
-              msg.toString(), RetentionUtil.convertStackTrace(e)));
+              msg.toString(), e.getMessage()), e);
       throw new IOException(String.format("Failed to send message %s", msg.toString()));
     }
   }
