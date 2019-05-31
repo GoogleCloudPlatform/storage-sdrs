@@ -29,6 +29,9 @@ import sys
 
 import googleapiclient.discovery
 
+from google.cloud import storage
+
+logging.basicConfig()
 LOGGER = logging.getLogger('sdrs_provisioning_cli')
 # Edit the RESTful endpoint to your desired deployment environment
 SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
@@ -36,11 +39,19 @@ SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 # [START main]
 def main(project_id, start_date, source_bucket,
          sink_bucket):
+    storage_client = storage.Client()
+    try:
+        bucket = storage_client.get_bucket(source_bucket)
+    except Exception as e:
+        LOGGER.error("Exception, exiting program " + str(e))
+        #print("Exception found ", str(e))
+        sys.exit() 
     #_delete_sts_jobs_for_bucket(project_id, source_bucket)
-    pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
-        sink_bucket, 'dataset')
-    _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
+    #pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
+    #    sink_bucket, 'dataset')
+    #_register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
 # [END main]
+
 
 # [START _create_sts_jobs_for_bucket]
 def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
@@ -104,11 +115,11 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
             #if i == 12:
             #    raise Exception ('Forced error on API execution')
             i += 1
-        except Exception:
+        except Exception as e:
             # If an exception is encountered during any API iteration, roll back the transaction and error out
-            LOGGER.error("Exception found during API creation call ")
-            print("Exception found ", Exception) 
-            print("Rolling back and exiting program")
+            LOGGER.error("Exception, rolling back and exiting program " + str(e))
+            #print("Exception found ", Exception) 
+            #print("Rolling back and exiting program")
             _exit_creation_with_cleanup(sts_jobs) 
     return sts_jobs
 # [END _create_sts_jobs_for_bucket]
