@@ -16,7 +16,7 @@
 
 Note the start times are in UTC (GMT-7 for PDT months)
 Example command line arguments from the prompt:
-'python command_line.py sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev'
+'python command_line.py create sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev'
 For more information, see the README.md.
 """
 
