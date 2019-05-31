@@ -19,7 +19,9 @@ It allows you to either create or destroy an STS Job Pool of 25 jobs per bucket
 Example command line arguments from the prompt:
 
 ```
-    python command_line.py sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev
+    python command_line.py create sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev
+    
+    python command_line.py delete sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev
 ```
 
 

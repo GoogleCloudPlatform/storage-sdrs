@@ -39,7 +39,7 @@ LOGGER = logging.getLogger('sdrs_provisioning_cli')
 SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 
 # [START main]
-def main(project_id, start_date, source_bucket,
+def main(command, project_id, start_date, source_bucket,
          sink_bucket):
     storage_client = storage.Client()
     try:
@@ -48,8 +48,15 @@ def main(project_id, start_date, source_bucket,
     except Exception as e:
         LOGGER.error("Exception, exiting program " + str(e))
         sys.exit() 
-        
-    _delete_sts_jobs_for_bucket(project_id, source_bucket)
+    if command == 'create':
+        pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
+            sink_bucket, 'dataset')
+        _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
+    elif command == 'delete':
+        _delete_sts_jobs_for_bucket(project_id, source_bucket)
+    else:
+         print("Unknown command " + str(command))   
+         sys.exit() 
     #pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
     #    sink_bucket, 'dataset')
     #_register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
@@ -218,6 +225,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('command', help='create or delete.')
     parser.add_argument('project_id', help='Your Google Cloud project ID.')
     parser.add_argument('start_date', help='Date YYYY/MM/DD.')
     parser.add_argument('source_bucket', help='Source GCS bucket name.')
@@ -227,6 +235,7 @@ if __name__ == '__main__':
     start_date = datetime.datetime.strptime(args.start_date, '%Y/%m/%d')
 
     main(
+        args.command,
         args.project_id,
         start_date,
         args.source_bucket,
