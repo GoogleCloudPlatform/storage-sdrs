@@ -26,6 +26,7 @@ import json
 import logging
 import requests
 import sys
+import utils
 
 import googleapiclient.discovery
 
@@ -57,12 +58,8 @@ def main(command, project_id, start_date, source_bucket,
     else:
          print("Unknown command " + str(command))   
          sys.exit() 
-    #pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
-    #    sink_bucket, 'dataset')
-    #_register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
 # [END main]
-
-
+    
 # [START _create_sts_jobs_for_bucket]
 def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
          sink_bucket, job_type):
@@ -175,8 +172,7 @@ def _get_pooled_sts_jobs(project_id, source_bucket):
   url = '{}?sourceBucket={}&sourceProject={}'.format(
       SDRS_POOL_ENDPOINT, source_bucket, project_id)
   LOGGER.debug('GET: %s', url)
-  response = requests.get(url)
-  #response = requests.get(url, headers=utils.get_auth_header())
+  response = requests.get(url, headers=utils.get_auth_header())
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
     return response.json()
@@ -193,7 +189,7 @@ def _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs):
   print("Registering STS job pool with SDRS, standby")
   LOGGER.debug('POST: %s', url)
   LOGGER.debug('Body: %s', pooled_sts_jobs)
-  response = requests.post(url, json=pooled_sts_jobs)
+  response = requests.post(url, json=pooled_sts_jobs, headers=utils.get_auth_header())
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
     print('Successful provisioning of jobs with SDRS: {}'.format(
@@ -211,7 +207,7 @@ def _unregister_sdrs_sts_jobs(project_id, source_bucket):
   url = '{}?sourceBucket={}&sourceProject={}'.format(
       SDRS_POOL_ENDPOINT, source_bucket, project_id)
   LOGGER.debug('DELETE: %s', url)
-  response = requests.delete(url)
+  response = requests.delete(url, headers=utils.get_auth_header())
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
     print('Successful unregistering of STS jobs with SDRS: {}'.format(
