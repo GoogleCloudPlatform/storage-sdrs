@@ -34,9 +34,21 @@ Prior to running this command line interface, it is advisable to run the followi
  gcloud auth list
 
 ```
-Note, in order to run this CLI, whatever account is active will need the [Service Account Token Creator Role](https://cloud.google.com/iam/docs/service-accounts#the_service_account_token_creator_role) in order to sign JWTs.  
-Please [see](https://cloud.google.com/iam/docs/understanding-service-accounts) for more details on Service Accounts.   
 
+## Service Account Permissions
+
+
+Note, in order to run this CLI, whatever account is active will need several service account permissions.  
+
+1) Cloud Storage access: You must be the Owner or Editor of the project that manages the data transfer.  
+This project does not have to be associated with either the source or sink.    
+
+2) Source and sink access: In order for Storage Transfer Service to access the data source and the data sink,  
+the service account (SA) must have source permissions and sink permissions.  
+
+3) The SA needs the [Service Account Token Creator Role](https://cloud.google.com/iam/docs/service-accounts#the_service_account_token_creator_role) in order to sign JWTs.  
+
+Please [see](https://cloud.google.com/iam/docs/understanding-service-accounts) for more details on Service Accounts.   
 
 
 ## Setting up a Python development environment

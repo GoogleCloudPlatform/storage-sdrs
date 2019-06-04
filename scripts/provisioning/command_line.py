@@ -43,6 +43,8 @@ SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 def main(command, project_id, start_date, source_bucket,
          sink_bucket):
     storage_client = storage.Client()
+    #utils.generate_jwt()
+    #print(storage_client)
     try:
         bucket = storage_client.get_bucket(source_bucket)
         print("Bucket exists, proceeding")

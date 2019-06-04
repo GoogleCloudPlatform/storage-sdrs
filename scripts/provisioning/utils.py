@@ -17,16 +17,21 @@
 
 import json
 import time
+from oauth2client.client import GoogleCredentials
 
 from google.auth import jwt
 import googleapiclient.discovery
+from google.cloud import storage
+import google.auth.crypt
+import google.auth.jwt
 
-_ENDPOINT = 'todo_take_as_argument'
+_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 _SERVICE_ACCOUNT_EMAIL = 'salguerod@sdrs-server.iam.gserviceaccount.com'
 # note this SA needs this role: roles/iam.serviceAccountTokenCreator
 # see https://cloud.google.com/iam/docs/understanding-service-accounts
 
-
+credentials = GoogleCredentials.get_application_default()
+print(credentials)
 JWT = None
 
 
@@ -57,7 +62,7 @@ def _get_jwt():
 def _generate_jwt():
   """Generates a signed JWT using the currently running service account."""
   service = googleapiclient.discovery.build(serviceName='iam', version='v1',
-                                            cache_discovery=False)
+                                            cache_discovery=False, credentials=credentials)
   now = int(time.time())
   payload_json = json.dumps({
     'iat': now,
@@ -77,4 +82,33 @@ def _generate_jwt():
       body={'payload': payload_json})
   resp = slist.execute()
   return resp['signedJwt']
+
+# [START endpoints_generate_jwt_sa]
+def generate_jwt():
+
+    """Generates a signed JSON Web Token using a Google API Service Account."""
+    now = int(time.time())
+
+    # build payload
+    payload = {
+        'iat': now,
+        # expires after 'expirary_length' seconds.
+        "exp": now + 3600,
+        # iss must match 'issuer' in the security configuration in your
+        # swagger spec (e.g. service account email). It can be any string.
+       'iss': _SERVICE_ACCOUNT_EMAIL,
+        # aud must be either your Endpoints service name, or match the value
+        # specified as the 'x-google-audience' in the OpenAPI document.
+        'aud': _ENDPOINT,
+        # sub and email should match the service account's email address
+        'sub': _SERVICE_ACCOUNT_EMAIL,
+        'email': _SERVICE_ACCOUNT_EMAIL
+    }
+
+    # sign with keyfile
+    signer = google.auth.crypt.RSASigner.from_service_account_info(credentials)
+    jwt = google.auth.jwt.encode(signer, payload)
+
+    return jwt
+# [END endpoints_generate_jwt_sa]
 
