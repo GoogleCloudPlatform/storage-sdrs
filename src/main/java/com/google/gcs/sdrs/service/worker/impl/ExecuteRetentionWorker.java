@@ -128,8 +128,32 @@ public class ExecuteRetentionWorker extends BaseWorker {
     List<RetentionRule> datasetRules = retentionRuleDao.findDatasetRulesByProjectId(projectId);
     List<RetentionRule> defaultRules = retentionRuleDao.findDefaultRulesByProjectId(projectId);
     RetentionRule globalDefaultRule = retentionRuleDao.findGlobalRuleByProjectId(projectId);
-    if (datasetRules == null || defaultRules == null || globalDefaultRule == null) {
-      throw new SQLException("Failed to get rules");
+    boolean noDatasetRules = false;
+    boolean noDefaultRules = false;
+    boolean noGlobalRule = false;
+
+    if (datasetRules == null || datasetRules.isEmpty()) {
+      logger.info(
+          String.format("No dataset rules configured within SDRS for project %s.", projectId));
+      noDatasetRules = true;
+    }
+
+    if (defaultRules == null || defaultRules.isEmpty()) {
+      logger.info(
+          String.format(
+              "No default rule configured for any buckets in project %s. Global default rule will apply for all buckets managed by SDRS.",
+              projectId));
+      noDefaultRules = true;
+    }
+
+    if (globalDefaultRule == null) {
+      logger.warn("No global default rule.");
+      noGlobalRule = true;
+    }
+
+    if (noDatasetRules && noDefaultRules && noGlobalRule) {
+      logger.info(String.format("No rules configured within SDRS for project %s.", projectId));
+      return;
     }
 
     List<RetentionJob> errorJobs = new ArrayList<>();
