@@ -1,17 +1,52 @@
-# Python Commmand Line Tool for the SDRS Job Pool
+# Commmand Line Interface (CLI) for SDRS Job Pool Management
 
-This command line tool is designed to help you create and provision an STS  
-Job Pool for each bucket that SDRS will manage for retention. 
+This command line interface is designed to help you manage SDRS.  
+It is intended to be used during the provisioning phase - post bucket creation, 
+but before SDRS executes retention.
 
-It allows you to either create or destroy an STS Job Pool of 25 jobs per bucket 
+It allows you to either create or destroy an STS "Job Pool" of 25 jobs per bucket that will be  
+reutilized over the lifetime of the bucket by SDRS to enforce retention.   
+
+The 'create' command must be run one time only, once per bucket to create an STS Job Pool for that bucket.  
+The 'delete' command should be run one time upon retiring a bucket from the purview of SDRS for retention enforcement.   
+
+
+## Prerequisite - Setting up your Google Credential Environment
+
+1) Install the Google Cloud [SDK](https://cloud.google.com/sdk/install)  
+2) Setup your default application credentials by running the following command below. [See](https://cloud.google.com/sdk/gcloud/reference/beta/auth/application-default/login) for details.  
+
+```
+gcloud beta auth application-default login
+```
+
+Note this command line tool relies on using your Application Default Credentials (ADC) to implicitly  
+find your active credentials from your environment as long as the GOOGLE\_APPLICATION\_CREDENTIALS variable is set.  
+  
+This implicit strategy may or may not be suitable for your production environment.  
+Please [see](https://cloud.google.com/docs/authentication/) for more details on authentication strategies.  
+Please also [see](https://cloud.google.com/docs/authentication/getting-started) and [also](https://cloud.google.com/docs/authentication/production#obtaining_and_providing_service_account_credentials_manually) for more credential related information.  
+
+While the ADC strategy utilized here has the advantage of allowing authentication to “just work” it has the disadvantage of masking the particular account that is active.  
+Prior to running this command line interface, it is advisable to run the following command to explicitly verify what credentialed account is currently active. 
+
+```
+ gcloud auth list
+
+```
+Note, in order to run this CLI, whatever account is active will need the [Service Account Token Creator Role](https://cloud.google.com/iam/docs/service-accounts#the_service_account_token_creator_role) in order to sign JWTs.  
+Please [see](https://cloud.google.com/iam/docs/understanding-service-accounts) for more details on Service Accounts.   
+
+
 
 ## Setting up a Python development environment
 
-1) Follow these Google [instructions](https://cloud.google.com/python/setup) to setup your environment.  
-2) Run the following command on your prompt  
+1) Follow these Google [instructions](https://cloud.google.com/python/setup) to setup your Python development environment.  
+2) Then, run the following command on your prompt to install the needed libraries.   
 
 ```
     pip install --upgrade google-cloud-storage   
+    pip install --upgrade google-api-python-client oauth2client
 ```
 
 ## Running the Program
