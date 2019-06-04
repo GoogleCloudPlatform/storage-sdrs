@@ -172,7 +172,7 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
         .distinct(true)
         .where(
             builder.equal(root.get("isActive"), true),
-            builder.equal(root.get("type"), RetentionRuleType.DATASET));
+            builder.notEqual(root.get("type"), RetentionRuleType.GLOBAL));
 
     Query<String> query = session.createQuery(criteria);
     List<String> result = query.getResultList();
