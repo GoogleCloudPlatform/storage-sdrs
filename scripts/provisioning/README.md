@@ -66,9 +66,9 @@ Please [see](https://cloud.google.com/iam/docs/understanding-service-accounts) f
 Example command line arguments from the prompt:
 
 ```
-    python command_line.py create sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev
+    python command_line.py create sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev http://localhost:8080/stsjobpool/
     
-    python command_line.py delete sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev
+    python command_line.py delete sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev http://localhost:8080/stsjobpool/
 ```
 
 

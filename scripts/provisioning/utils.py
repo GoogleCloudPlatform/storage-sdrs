@@ -28,13 +28,12 @@ from oauth2client.client import GoogleCredentials
 
 
 
-# note this SA needs this role: roles/iam.serviceAccountTokenCreator
-# see https://cloud.google.com/iam/docs/understanding-service-accounts
+# Note the SA needs the Service Account Token Creator Role
+# See https://cloud.google.com/iam/docs/understanding-service-accounts
+logging.basicConfig()
 LOGGER = logging.getLogger('sdrs_provisioning_cli')
 credentials = GoogleCredentials.get_application_default()
-#print(dir(credentials))
 sa_email = credentials.service_account_email
-#print('email '+sa_email)
 JWT = None
 
 
@@ -84,6 +83,7 @@ def _generate_jwt(endpoint):
       name='projects/-/serviceAccounts/{}'.format(sa_email),
       body={'payload': payload_json})
   resp = slist.execute()
+  LOGGER.debug('Signed JWT: %s', resp['signedJwt'])
   return resp['signedJwt']
 
 

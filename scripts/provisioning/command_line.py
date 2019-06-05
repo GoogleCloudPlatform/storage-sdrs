@@ -16,7 +16,7 @@
 
 Note the start times are in UTC (GMT-7 for PDT months)
 Example command line arguments from the prompt:
-'python command_line.py create sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev'
+'python command_line.py create sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev http://localhost:8080/stsjobpool/'
 For more information, see the README.md.
 """
 
@@ -37,18 +37,13 @@ logging.basicConfig()
 logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 LOGGER = logging.getLogger('sdrs_provisioning_cli')
 
-# Edit the RESTful endpoint to your desired deployment environment
-SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 
 # [START main]
 def main(command, project_id, start_date, source_bucket,
-         sink_bucket):
+         sink_bucket, endpoint):
     storage_client = storage.Client()
-    endpoint = 'http://localhost:8080/stsjobpool/'
+    endpoint = endpoint
     
-    jwt = utils.get_auth_header(endpoint)
-    print(jwt)
-   
     try:
         bucket = storage_client.get_bucket(source_bucket)
         print("Bucket exists, proceeding")
@@ -58,9 +53,9 @@ def main(command, project_id, start_date, source_bucket,
     if command == 'create':
         pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
             sink_bucket, 'dataset')
-        _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs)
+        _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs, endpoint)
     elif command == 'delete':
-        _delete_sts_jobs_for_bucket(project_id, source_bucket)
+        _delete_sts_jobs_for_bucket(project_id, source_bucket, endpoint)
     else:
          print("Unknown command " + str(command))   
          sys.exit() 
@@ -122,8 +117,6 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
             'schedule': start_time_string
             }
             sts_jobs.append(pooled_sts_job)
-            #if i == 12:
-            #    raise Exception ('Forced error on API execution')
             i += 1
         except Exception as e:
             # If an exception is encountered during any API iteration, roll back the transaction and error out
@@ -151,10 +144,10 @@ def _exit_creation_with_cleanup(sts_jobs):
 # [END _exit_creation_with_cleanup]
 
 # [START _delete_sts_jobs_for_bucket]
-def _delete_sts_jobs_for_bucket(project_id, source_bucket):
+def _delete_sts_jobs_for_bucket(project_id, source_bucket, endpoint):
     storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1', cache_discovery=False)
     # For the bucket, get the list of sts jobs to delete from SDRS
-    sts_jobs = _get_pooled_sts_jobs(project_id, source_bucket)
+    sts_jobs = _get_pooled_sts_jobs(project_id, source_bucket, endpoint)
     # Use the name of the jobs to delete them from the cloud
     for sts_job in sts_jobs:
         job_name = sts_job.get("name")  
@@ -169,16 +162,16 @@ def _delete_sts_jobs_for_bucket(project_id, source_bucket):
         response = request.execute()
     #Finally, delete the STS job records from SDRS
     print("Deleted STS Jobs from the cloud, now deleting from SDRS metadata, standby")
-    _unregister_sdrs_sts_jobs(project_id, source_bucket)
+    _unregister_sdrs_sts_jobs(project_id, source_bucket, endpoint)
 # [END _delete_sts_jobs_for_bucket]
 
 # [START _get_pooled_sts_jobs]
-def _get_pooled_sts_jobs(project_id, source_bucket):
+def _get_pooled_sts_jobs(project_id, source_bucket, endpoint):
   """Makes a request to get the pooled STS jobs from SDRS."""
   url = '{}?sourceBucket={}&sourceProject={}'.format(
-      SDRS_POOL_ENDPOINT, source_bucket, project_id)
+      endpoint, source_bucket, project_id)
   LOGGER.debug('GET: %s', url)
-  response = requests.get(url, headers=utils.get_auth_header())
+  response = requests.get(url, headers=utils.get_auth_header(endpoint))
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
     return response.json()
@@ -188,14 +181,14 @@ def _get_pooled_sts_jobs(project_id, source_bucket):
 # [END _get_pooled_sts_jobs]
 
 # [START _register_sdrs_sts_jobs]
-def _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs):
+def _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs, endpoint):
   """Makes a request to register the STS job with SDRS so it can be utilized."""
   url = '{}?sourceBucket={}&sourceProject={}'.format(
-      SDRS_POOL_ENDPOINT, source_bucket, project_id)
+      endpoint, source_bucket, project_id)
   print("Registering STS job pool with SDRS, standby")
   LOGGER.debug('POST: %s', url)
   LOGGER.debug('Body: %s', pooled_sts_jobs)
-  response = requests.post(url, json=pooled_sts_jobs, headers=utils.get_auth_header())
+  response = requests.post(url, json=pooled_sts_jobs, headers=utils.get_auth_header(endpoint))
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
     print('Successful provisioning of jobs with SDRS: {}'.format(
@@ -208,12 +201,12 @@ def _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs):
 # [END _register_sdrs_sts_jobs]
 
 # [START _unregister_sdrs_sts_jobs]
-def _unregister_sdrs_sts_jobs(project_id, source_bucket):
+def _unregister_sdrs_sts_jobs(project_id, source_bucket, endpoint):
   """Makes a request to unregister the STS job pool from SDRS."""
   url = '{}?sourceBucket={}&sourceProject={}'.format(
-      SDRS_POOL_ENDPOINT, source_bucket, project_id)
+      endpoint, source_bucket, project_id)
   LOGGER.debug('DELETE: %s', url)
-  response = requests.delete(url, headers=utils.get_auth_header())
+  response = requests.delete(url, headers=utils.get_auth_header(endpoint))
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
     print('Successful unregistering of STS jobs with SDRS: {}'.format(
@@ -232,7 +225,7 @@ if __name__ == '__main__':
     parser.add_argument('start_date', help='Date YYYY/MM/DD.')
     parser.add_argument('source_bucket', help='Source GCS bucket name.')
     parser.add_argument('sink_bucket', help='Target GCS bucket name.')
-
+    parser.add_argument('endpoint', help='The SDRS Job Pool endpoint.')
     args = parser.parse_args()
     start_date = datetime.datetime.strptime(args.start_date, '%Y/%m/%d')
 
@@ -241,5 +234,6 @@ if __name__ == '__main__':
         args.project_id,
         start_date,
         args.source_bucket,
-        args.sink_bucket)
+        args.sink_bucket,
+        args.endpoint)
 # [END all]
