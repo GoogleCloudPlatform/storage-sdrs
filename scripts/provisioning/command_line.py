@@ -45,12 +45,10 @@ def main(command, project_id, start_date, source_bucket,
          sink_bucket):
     storage_client = storage.Client()
     endpoint = 'http://localhost:8080/stsjobpool/'
-    #sa_email =  'salguerod@sdrs-server.iam.gserviceaccount.com'
-    #sa_email =  utils.get_user_email()
-    utils.get_auth_header(endpoint)
-    #jwt = utils.generate_jwt()
-    #print("JWT "+jwt)
-    #print(storage_client)
+    
+    jwt = utils.get_auth_header(endpoint)
+    print(jwt)
+   
     try:
         bucket = storage_client.get_bucket(source_bucket)
         print("Bucket exists, proceeding")

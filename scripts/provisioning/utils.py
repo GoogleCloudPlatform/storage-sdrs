@@ -18,16 +18,14 @@
 import json
 import logging
 import time
-from oauth2client.client import GoogleCredentials
-from googleapiclient import errors
 
-from google.auth import jwt
 import googleapiclient.discovery
-from google.cloud import storage
-import google.auth.crypt
 import google.auth.jwt
+
 from apiclient.discovery import build
-import httplib2
+from google.auth import jwt
+from oauth2client.client import GoogleCredentials
+
 
 
 # note this SA needs this role: roles/iam.serviceAccountTokenCreator
@@ -36,7 +34,7 @@ LOGGER = logging.getLogger('sdrs_provisioning_cli')
 credentials = GoogleCredentials.get_application_default()
 #print(dir(credentials))
 sa_email = credentials.service_account_email
-print('email '+sa_email)
+#print('email '+sa_email)
 JWT = None
 
 
@@ -64,35 +62,6 @@ def _get_jwt(endpoint):
   return JWT
 
 
-# def get_user_info():
-#   """Send a request to the UserInfo API to retrieve the user's information.
-# 
-#   Args:
-#     credentials: oauth2client.client.OAuth2Credentials instance to authorize the
-#                  request.
-#   Returns:
-#     User information as a dict.
-#   """
-#   user_info_service = build(
-#       serviceName='oauth2', version='v2',
-#       http=credentials.authorize(httplib2.Http()))
-#   user_info = None
-#   try:
-#     user_info = user_info_service.userinfo().get().execute()
-#   except errors.HttpError, e:
-#     LOGGER.error('An error occurred: %s', e)
-#   if user_info and user_info.get('id'):
-#     return user_info
-#   else:
-#     raise Exception('no user found')
-
-# def get_user_email():
-#     user_info = get_user_info()
-#     print(user_info)
-#     email_address = user_info.get('email')
-#     print(email_address)
-#     return email_address
-
 def _generate_jwt(endpoint):
   """Generates a signed JWT using the currently running service account credential."""
   service = googleapiclient.discovery.build(serviceName='iam', version='v1',
@@ -115,35 +84,7 @@ def _generate_jwt(endpoint):
       name='projects/-/serviceAccounts/{}'.format(sa_email),
       body={'payload': payload_json})
   resp = slist.execute()
-  print(resp['signedJwt'])
   return resp['signedJwt']
 
-# # [START endpoints_generate_jwt_sa]
-# def generate_jwt():
-# 
-#     """Generates a signed JSON Web Token using a Google API Service Account."""
-#     now = int(time.time())
-# 
-#     # build payload
-#     payload = {
-#         'iat': now,
-#         # expires after 'expirary_length' seconds.
-#         "exp": now + 3600,
-#         # iss must match 'issuer' in the security configuration in your
-#         # swagger spec (e.g. service account email). It can be any string.
-#        'iss': _SERVICE_ACCOUNT_EMAIL,
-#         # aud must be either your Endpoints service name, or match the value
-#         # specified as the 'x-google-audience' in the OpenAPI document.
-#         'aud': _ENDPOINT,
-#         # sub and email should match the service account's email address
-#         'sub': _SERVICE_ACCOUNT_EMAIL,
-#         'email': _SERVICE_ACCOUNT_EMAIL
-#     }
-# 
-#     # sign with keyfile
-#     signer = google.auth.crypt.RSASigner.from_service_account_file(sa_keyfile)
-#     jwt = google.auth.jwt.encode(signer, payload)
-# 
-#     return jwt
-# # [END endpoints_generate_jwt_sa]
+
 
