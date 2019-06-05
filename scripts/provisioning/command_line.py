@@ -12,7 +12,7 @@
 # limitations under the License.
 #
 
-"""Command-line sample that creates pooled STS jobs and syncs with SDRS.
+"""Command-line sample that creates STS Job Pool and syncs with SDRS.
 
 Note the start times are in UTC (GMT-7 for PDT months)
 Example command line arguments from the prompt:
@@ -32,6 +32,7 @@ import googleapiclient.discovery
 
 from google.cloud import storage
 
+
 logging.basicConfig()
 logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 LOGGER = logging.getLogger('sdrs_provisioning_cli')
@@ -43,7 +44,12 @@ SDRS_POOL_ENDPOINT = 'http://localhost:8080/stsjobpool/'
 def main(command, project_id, start_date, source_bucket,
          sink_bucket):
     storage_client = storage.Client()
-    #utils.generate_jwt()
+    endpoint = 'http://localhost:8080/stsjobpool/'
+    #sa_email =  'salguerod@sdrs-server.iam.gserviceaccount.com'
+    #sa_email =  utils.get_user_email()
+    utils.get_auth_header(endpoint)
+    #jwt = utils.generate_jwt()
+    #print("JWT "+jwt)
     #print(storage_client)
     try:
         bucket = storage_client.get_bucket(source_bucket)
