@@ -37,17 +37,17 @@ sa_email = credentials.service_account_email
 JWT = None
 
 
-def get_auth_header(endpoint):
+def get_auth_header(service_name):
   """Returns an authorization header that can be attached to a request."""
-  return {'Authorization': 'Bearer {}'.format(_get_jwt(endpoint))}
+  return {'Authorization': 'Bearer {}'.format(_get_jwt(service_name))}
 
 
-def _get_jwt(endpoint):
+def _get_jwt(service_name):
   """Checks to see if the global JWT is still valid and either returns it or
   generates a new one."""
   global JWT
   if JWT is None:
-    JWT = _generate_jwt(endpoint)
+    JWT = _generate_jwt(service_name)
   else:
     try:
       # This will throw a ValueError if the JWT is expired by over 5 min
@@ -55,13 +55,13 @@ def _get_jwt(endpoint):
 
       # Err on the side of caution and just create a new JWT if we're at expiry
       if time.time() >= decoded['exp']:
-        JWT = _generate_jwt(endpoint)
+        JWT = _generate_jwt(service_name)
     except ValueError:
-      JWT = _generate_jwt(endpoint)
+      JWT = _generate_jwt(service_name)
   return JWT
 
 
-def _generate_jwt(endpoint):
+def _generate_jwt(service_name):
   """Generates a signed JWT using the currently running service account credential."""
   service = googleapiclient.discovery.build(serviceName='iam', version='v1',
                                             cache_discovery=False, credentials=credentials)
@@ -76,7 +76,7 @@ def _generate_jwt(endpoint):
     'sub': sa_email,
     'email': sa_email,
     # aud is the URL of the target service
-    'aud': endpoint
+    'aud': service_name
   })
 
   slist = service.projects().serviceAccounts().signJwt(

@@ -54,21 +54,16 @@ Please [see](https://cloud.google.com/iam/docs/understanding-service-accounts) f
 ## Setting up a Python development environment
 
 1) Follow these Google [instructions](https://cloud.google.com/python/setup) to setup your Python development environment.  
-2) Then, run the following command on your prompt to install the needed libraries.   
-
-```
-    pip install --upgrade google-cloud-storage   
-    pip install --upgrade google-api-python-client oauth2client
-```
+2) Then, see the included requirements.txt to install the needed libraries.   
 
 ## Running the Program
 
 Example command line arguments from the prompt:
 
 ```
-    python command_line.py create sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev http://localhost:8080/stsjobpool/
+    python command_line.py create sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev http://localhost:8080
     
-    python command_line.py delete sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev http://localhost:8080/stsjobpool/
+    python command_line.py delete sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev http://localhost:8080
 ```
 
 
