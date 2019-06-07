@@ -14,15 +14,15 @@
 
 swagger: '2.0'
 info:
-  title: Storage SDRS API Definition
+  title: David Dev SDRS API Definition
   version: '1.0.0'
 # The API hostname
-host: your-api.endpoints.your-project-id.cloud.goog
+host: david-sdrs-api.endpoints.sdrs-server.cloud.goog
 x-google-endpoints:
   - # The endpoints name matches the 'host' value above
-    name: your-api.endpoints.your-project-id.cloud.goog
+    name: david-sdrs-api.endpoints.sdrs-server.cloud.goog
     # Your target IP Address; Must be quoted
-    target: 'your_target_ip'
+    target: '35.184.192.183'
 security:
   - server_service_account: []
   - api_key: []
@@ -58,7 +58,9 @@ paths:
           required: true
           description: Collection of pooled jobs
           schema:
-            type: object
+            type: array
+            items:
+              $ref: '#/definitions/PooledJobCreateRequest'
       responses:
         '200':
           description: Create Job Pool response
@@ -530,8 +532,8 @@ securityDefinitions:
     flow: implicit
     type: oauth2
     # The service account associated with this application should be used here
-    x-google-issuer: your-service-account-email-address
-    x-google-jwks_uri: https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email-address
+    x-google-issuer: salguerod@sdrs-server.iam.gserviceaccount.com
+    x-google-jwks_uri: https://www.googleapis.com/robot/v1/metadata/x509/salguerod@sdrs-server.iam.gserviceaccount.com
   api_key:
     type: "apiKey"
     name: "key"
