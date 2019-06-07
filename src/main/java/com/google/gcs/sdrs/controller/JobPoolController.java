@@ -41,24 +41,6 @@ public class JobPoolController extends BaseController {
 
   private JobPoolService jobPoolService = JobPoolServiceImpl.getInstance(); 
 
-  /* */
-  /** CRUD create endpoint */
-  /*
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response create(PooledJobCreateRequest request) {
-    try {
-      validateCreate(request);
-      Integer id = jobPoolService.createJob(request);
-      PooledJobCreateResponse pooledJobCreateResponse = new PooledJobCreateResponse();
-      pooledJobCreateResponse.setId(id);
-      pooledJobCreateResponse.setSuccess(true);
-      return successResponse(pooledJobCreateResponse);
-    } catch (Exception exception) {
-      return errorResponse(exception);
-    }
-  }*/
 
   /** CRUD create batch endpoint */
   @POST
