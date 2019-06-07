@@ -24,7 +24,10 @@ public interface PooledStsJobDao extends Dao<PooledStsJob, Integer> {
 
   List<PooledStsJob> getAllPooledStsJobsByBucketName(String bucketName, String projectId);
 
+  Boolean deleteAllJobsByBucketName(String sourceBucket, String sourceProject);
+
+  PooledStsJob findPooledStsJobByNameAndProject(String name, String projectId);
+
   PooledStsJob getJob(String bucketName, String projectId, String scheduleTimeOfDay, String type);
 
-  Boolean deleteAllJobsByBucketName(String sourceBucket, String sourceProject);
 }

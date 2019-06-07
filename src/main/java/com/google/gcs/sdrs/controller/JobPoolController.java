@@ -35,42 +35,30 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 /** Controller for handling /jobpool endpoints to manage STS job pooling. */
 @Path("/stsjobpool")
 public class JobPoolController extends BaseController {
 
-  JobPoolService jobPoolService =
-      new JobPoolServiceImpl(); // TODO need to wire up the instantiation via a factory
+  private JobPoolService jobPoolService = JobPoolServiceImpl.getInstance(); 
 
- /* *//** CRUD create endpoint *//*
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response create(PooledJobCreateRequest request) {
-    try {
-      validateCreate(request);
-      Integer id = jobPoolService.createJob(request);
-      PooledJobCreateResponse pooledJobCreateResponse = new PooledJobCreateResponse();
-      pooledJobCreateResponse.setId(id);
-      pooledJobCreateResponse.setSuccess(true);
-      return successResponse(pooledJobCreateResponse);
-    } catch (Exception exception) {
-      return errorResponse(exception);
-    }
-  }*/
 
   /** CRUD create batch endpoint */
   @POST
-  //@Path("/batch")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response createByBatch(List<PooledJobCreateRequest> requests) {
+  public Response createByBatch(
+      @QueryParam("sourceBucket") String sourceBucket,
+      @QueryParam("sourceProject") String sourceProject,
+      List<PooledJobCreateRequest> requests) {
     try {
-      Boolean success = jobPoolService.createJobs(requests);
+      Boolean success = jobPoolService.createJobs(sourceBucket, sourceProject, requests);
       PooledJobCreateResponse response = new PooledJobCreateResponse();
       response.setSuccess(success);
-      return successResponse(response);
+      if (success) {
+        return successResponse(response);
+      } else {
+        throw new ServiceLayerException(new Exception("Job pool already exists or jobs in use"));
+      }
     } catch (Exception exception) {
       return errorResponse(exception);
     }
@@ -93,7 +81,6 @@ public class JobPoolController extends BaseController {
       @QueryParam("sourceBucket") String sourceBucket,
       @QueryParam("sourceProject") String sourceProject) {
     try {
-      validateDelete(sourceBucket, sourceProject);
 
       Boolean success = jobPoolService.deleteAllJobsByBucketName(sourceBucket, sourceProject);
       PooledJobDeleteResponse response = new PooledJobDeleteResponse();
@@ -102,22 +89,5 @@ public class JobPoolController extends BaseController {
     } catch (Exception exception) {
       return errorResponse(exception);
     }
-  }
-
-  /**
-   * @param request
-   * @throws ValidationException
-   */
-  private void validateCreate(PooledJobCreateRequest request) throws ValidationException {
-	
-  }
-
-  /**
-   * @param request
-   * @throws ValidationException
-   */
-  private void validateDelete(String sourceBucket, String sourceProject)
-      throws ValidationException {
-    // TODO
   }
 }

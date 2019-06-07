@@ -22,26 +22,42 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import com.google.gcs.sdrs.controller.pojo.PooledJobCreateRequest;
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
 import com.google.gcs.sdrs.dao.impl.PooledStsJobDaoImpl;
 import com.google.gcs.sdrs.service.JobPoolService;
+import com.google.gcs.sdrs.util.CredentialsUtil;
+import com.google.gcs.sdrs.util.StsUtil;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({CredentialsUtil.class, StsUtil.class})
+@PowerMockIgnore("javax.management.*")
 public class JobPoolServiceImplTest {
 
   private JobPoolService jobPoolService; // Component under test.
   private PooledStsJobDao pooledStsJobDao; // Data tier to mock out.
+  private CredentialsUtil mockCredentialsUtil;
 
   @Before
   public void setup() {
+    mockCredentialsUtil = mock(CredentialsUtil.class);
+    PowerMockito.mockStatic(CredentialsUtil.class);
+    when(CredentialsUtil.getInstance()).thenReturn(mockCredentialsUtil);
+    PowerMockito.mockStatic(StsUtil.class);
+    when(StsUtil.createStsClient(any())).thenReturn(null);
     jobPoolService = createService();
   }
 
   private JobPoolService createService() {
-    JobPoolServiceImpl jobPoolServiceImpl = new JobPoolServiceImpl();
+    JobPoolServiceImpl jobPoolServiceImpl = JobPoolServiceImpl.getInstance();
     pooledStsJobDao = mock(PooledStsJobDaoImpl.class);
     jobPoolServiceImpl.setPooledStsJobDao(pooledStsJobDao);
     return jobPoolServiceImpl;

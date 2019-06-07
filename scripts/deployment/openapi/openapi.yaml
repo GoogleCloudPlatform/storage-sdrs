@@ -36,6 +36,106 @@ paths:
           description: Application status
       description: Get application status
       operationId: getAppStatus
+  /stsjobpool:
+    post:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: The source projectId
+          in: query
+          name: sourceProject
+          required: true
+          type: string
+        - description: The source bucket
+          in: query
+          name: sourceBucket
+          required: true
+          type: string
+        - in: body
+          name: body
+          required: true
+          description: Collection of pooled jobs
+          schema:
+            type: object
+      responses:
+        '200':
+          description: Create Job Pool response
+          schema:
+            $ref: '#/definitions/PooledJobCreateResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      description: Create Job Pool
+      operationId: createByBatch
+    delete:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - description: The source projectId
+          in: query
+          name: sourceProject
+          required: true
+          type: string
+        - description: The source bucket
+          in: query
+          name: sourceBucket
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successful delete response
+          schema:
+            $ref: '#/definitions/BaseResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      description: Deletes all pooled jobs for the given bucket
+      operationId: delete
+    get:
+      produces:
+        - application/json
+      parameters:
+        - description: The sourceProject
+          in: query
+          name: sourceProject
+          required: true
+          type: string
+        - description: The sourceBucket
+          in: query
+          name: sourceBucket
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Job Pool Response
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PooledJobResponse'
+        '400':
+          description: Validation error response
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      description: Get job pool by source bucket and project
+      operationId: getPooledJobs
   /retentionrules:
     post:
       consumes:
@@ -313,6 +413,76 @@ definitions:
             type: integer
           type:
             $ref: '#/definitions/RetentionRuleType'
+        type: object
+  PooledJobCreateRequest:
+    properties:
+      name:
+        type: string
+      projectId:
+        type: string
+      schedule:
+        type: string
+      type:
+        type: string
+      sourceBucket:
+        type: string
+      sourceProject:
+        type: string
+      targetBucket:
+        type: string
+      targetProject:
+        type: string
+      status: 
+        type: string
+    required:
+        - name
+        - projectId
+        - schedule
+        - type
+        - sourceBucket
+        - sourceProject
+        - targetBucket
+        - targetProject
+        - status
+    type: object
+  PooledJobCreateResponse:
+    allOf:
+      - $ref: '#/definitions/BaseResponse'
+      - properties:
+          id:
+            type: integer
+          success:
+            type:  boolean  
+  PooledJobResponse:
+    allOf:
+      - $ref: '#/definitions/BaseResponse'
+      - properties:
+          id:
+            type: integer
+          name:
+            type: string
+          projectId:
+            type:  string
+          schedule:
+            type: string
+          type:
+            type: string
+          sourceBucket:
+            type: string
+          sourceProject:
+            type: string
+          targetProject:
+            type: string
+          targetBucket:
+            type: string
+          status:
+            type: string
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time
         type: object
   UpdateRetentionRuleRequest:
     properties:
