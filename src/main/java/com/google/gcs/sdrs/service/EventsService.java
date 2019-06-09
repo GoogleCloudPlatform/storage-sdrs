@@ -24,10 +24,10 @@ import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
 public interface EventsService {
 
   /** Process an execution service event asynchronously */
-  void processExecutionEvent(ExecutionEventRequest request);
+  void processExecutionEvent(ExecutionEventRequest request, String correlationId);
 
   /** Procees the validation service event asynchronously */
-  void processValidationEvent();
+  void processValidationEvent(String correlationId);
 
   /** Process the notification service event asynchronously */
   void processDeleteNotificationEvent(NotificationEventRequest request, String correlationId);

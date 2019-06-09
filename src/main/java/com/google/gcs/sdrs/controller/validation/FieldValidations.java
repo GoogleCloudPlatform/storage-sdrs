@@ -23,7 +23,6 @@ import java.util.HashSet;
 /** Exposes static methods for validation shared between controllers. */
 public class FieldValidations {
 
-  private FieldValidations() {}
 
   /**
    * Runs a validation check on an arbitrary field that conforms to bucket naming conventions

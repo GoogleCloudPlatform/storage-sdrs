@@ -17,29 +17,32 @@
 
 package com.google.gcs.sdrs.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * A class of helper methods for retention rules, job, and validations.
- */
+/** A class of helper methods for retention rules, job, and validations. */
 public class RetentionUtil {
+  private static final Logger logger = LoggerFactory.getLogger(RetentionUtil.class);
+
   /**
    * Extracts the bucket name from the data storage name string
+   *
    * @param dataStorageName the full data storage name path
    * @return the bucket name only
    */
   public static String getBucketName(String dataStorageName) {
-    if (dataStorageName == null){
+    if (dataStorageName == null) {
       return "";
     }
 
-    String bucketName = dataStorageName.replaceFirst(ValidationConstants.STORAGE_PREFIX,"");
+    String bucketName = dataStorageName.replaceFirst(ValidationConstants.STORAGE_PREFIX, "");
 
     int separatorIndex = bucketName.indexOf(ValidationConstants.STORAGE_SEPARATOR);
 
@@ -52,6 +55,7 @@ public class RetentionUtil {
 
   /**
    * Extracts the bucket name from the data storage name string and appends the suffix
+   *
    * @param dataStorageName the full data storage name path
    * @param suffix the string to append to the bucket name
    * @return the bucket name with the suffix appended
@@ -62,11 +66,12 @@ public class RetentionUtil {
 
   /**
    * Extracts the dataset path from the data storage name string
+   *
    * @param dataStorageName the full data storage name path
    * @return the dataset path without the root bucket
    */
   public static String getDatasetPath(String dataStorageName) {
-    if (dataStorageName == null){
+    if (dataStorageName == null) {
       return "";
     }
 
@@ -82,43 +87,23 @@ public class RetentionUtil {
   }
 
   /**
-   * Builds a map of buckets based on a list of Dataset rules
+   * Convert exception stack trace to a string
    *
-   * @param datasetRules the list of dataset rules to use as a source
-   * @return a {@link Map} containing a key of format "projectId;bucketName" and a set of the
-   * derived path prefixes
+   * @param e Exception to be converted
+   * @return
    */
-  public static Map<String, Set<String>> getPrefixMap(Collection<RetentionRule> datasetRules) {
-    Map<String, Set<String>> prefixMap = new HashMap<>();
-    for (RetentionRule datasetRule : datasetRules) {
-      String bucketName = RetentionUtil.getBucketName(datasetRule.getDataStorageName());
-      String projectId = datasetRule.getProjectId();
-      String mapKey = generatePrefixMapKey(projectId, bucketName);
-
-      String datasetPath = getDatasetPath(datasetRule.getDataStorageName());
-      if (prefixMap.containsKey(mapKey)) {
-        if (datasetPath != null && !datasetPath.isEmpty()) {
-          prefixMap.get(mapKey).add(datasetPath + "/");
-        }
-      } else {
-        Set<String> s = new HashSet<>();
-        if (datasetPath != null && !datasetPath.isEmpty()) {
-          s.add(datasetPath + "/");
-        }
-        prefixMap.put(mapKey, s);
-      }
+  public static String convertStackTrace(Exception e) {
+    StringWriter sw = new StringWriter();
+    e.printStackTrace(new PrintWriter(sw));
+    String result = sw.toString();
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode rootNode = mapper.createObjectNode();
+    ((ObjectNode) rootNode).put("stackTrace", result);
+    try {
+      result = mapper.writeValueAsString(rootNode);
+    } catch (JsonProcessingException ex) {
+      logger.warn("Failed to convert stack trace to string");
     }
-    return prefixMap;
-  }
-
-  /**
-   * Generates the key used in the retention rule map object
-   *
-   * @param projectId the project id of the rule
-   * @param bucketName the bucket name affected by the rule
-   * @return a single string of format "projectId;bucketName"
-   */
-  public static String generatePrefixMapKey(String projectId, String bucketName) {
-    return projectId + ";" + bucketName;
+    return result;
   }
 }

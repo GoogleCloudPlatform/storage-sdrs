@@ -122,7 +122,7 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
     closeSessionWithTransaction(session, transaction);
   }
 
-  T getSingleRecordWithCriteriaQuery(CriteriaQuery<T> query, Session session) {
+  public T getSingleRecordWithCriteriaQuery(CriteriaQuery<T> query, Session session) {
     Query<T> queryResults = session.createQuery(query);
     List<T> list = queryResults.getResultList();
     closeSession(session);

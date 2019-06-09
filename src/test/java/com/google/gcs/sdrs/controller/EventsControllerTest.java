@@ -17,25 +17,21 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.exception.HttpException;
-import com.google.gcs.sdrs.controller.exception.ValidationException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import com.google.gcs.sdrs.common.ExecutionEventType;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.EventResponse;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
-import com.google.gcs.sdrs.enums.ExecutionEventType;
-import javax.ws.rs.core.Response;
-
 import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
-import org.eclipse.jetty.http.HttpStatus;
+import javax.ws.rs.core.Response;
+import org.glassfish.grizzly.http.util.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 public class EventsControllerTest {
 
@@ -51,7 +47,7 @@ public class EventsControllerTest {
   public void generateExceptionResponseWithValidInputReturnsResponseWithFields() {
     HttpException testException = new ValidationException(ValidationResult.fromString("test"));
     Response response = controller.generateExceptionResponse(testException);
-    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
     assertEquals(((ErrorResponse) response.getEntity()).getMessage(), "Invalid input: test");
   }
 
@@ -62,7 +58,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), HttpStatus.OK_200);
+    assertEquals(response.getStatus(), HttpStatus.OK_200.getStatusCode());
     assertTrue(((EventResponse) response.getEntity()).getMessage().length() > 0);
     assertNotNull(((EventResponse) response.getEntity()).getUuid());
   }
@@ -73,7 +69,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("type"));
   }
 
@@ -84,7 +80,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), HttpStatus.OK_200);
+    assertEquals(response.getStatus(), HttpStatus.OK_200.getStatusCode());
   }
 
   @Test
@@ -96,7 +92,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), HttpStatus.OK_200);
+    assertEquals(response.getStatus(), HttpStatus.OK_200.getStatusCode());
   }
 
   @Test
@@ -108,7 +104,7 @@ public class EventsControllerTest {
 
     Response response = controller.executeEvent(request);
 
-    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("projectId"));
   }
 
@@ -116,6 +112,6 @@ public class EventsControllerTest {
   public void executeValidationSucceeds() {
     Response response = controller.executeValidation();
 
-    assertEquals(response.getStatus(), HttpStatus.OK_200);
+    assertEquals(response.getStatus(), HttpStatus.OK_200.getStatusCode());
   }
 }

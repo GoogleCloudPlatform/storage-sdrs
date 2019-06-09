@@ -17,14 +17,15 @@
 
 package com.google.gcs.sdrs.dao.converter;
 
+import static com.google.gcs.sdrs.common.RetentionRuleType.DATASET;
+import static com.google.gcs.sdrs.common.RetentionRuleType.DEFAULT;
+import static com.google.gcs.sdrs.common.RetentionRuleType.GLOBAL;
+import static com.google.gcs.sdrs.common.RetentionRuleType.USER;
+
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-
-import static com.google.gcs.sdrs.enums.RetentionRuleType.DATASET;
-import static com.google.gcs.sdrs.enums.RetentionRuleType.GLOBAL;
-import static com.google.gcs.sdrs.enums.RetentionRuleType.USER;
 
 /** Supports converting a RetentionRuleType between the database and application representations */
 @Converter
@@ -49,6 +50,8 @@ public class RetentionRuleTypeConverter implements AttributeConverter<RetentionR
         return DATASET;
       case DatabaseConstants.POLICY_TYPE_USER:
         return USER;
+      case DatabaseConstants.POLICY_TYPE_DEFAULT:
+        return DEFAULT;
       default:
         throw new IllegalArgumentException(
             String.format(

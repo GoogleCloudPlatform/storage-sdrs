@@ -18,15 +18,15 @@
 
 package com.google.gcs.sdrs;
 
-import com.google.gcs.sdrs.JobScheduler.JobScheduler;
-import com.google.gcs.sdrs.mq.PubSubMessageQueueManagerImpl;
-import com.google.gcs.sdrs.runners.RuleExecutionRunner;
-import com.google.gcs.sdrs.runners.ValidationRunner;
-import com.google.gcs.sdrs.server.ServerShutdownHook;
-import com.google.gcs.sdrs.util.StsQuotaManager;
+import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
+import com.google.gcs.sdrs.scheduler.JobScheduler;
+import com.google.gcs.sdrs.scheduler.runners.RuleExecutionRunner;
+import com.google.gcs.sdrs.scheduler.runners.ValidationRunner;
+import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.LogManager;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -35,6 +35,7 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /** The main startup class for the SDRS service. */
 public class SdrsApplication {
@@ -43,6 +44,11 @@ public class SdrsApplication {
 
   private static HttpServer server;
   private static Configuration xmlConfig;
+
+  static {
+    LogManager.getLogManager().reset();
+    SLF4JBridgeHandler.install();
+  }
 
   /**
    * Starts the SDRS service
@@ -57,11 +63,12 @@ public class SdrsApplication {
     // if web server fails to start, consider it a fatal error and exit the application with error
     startWebServer();
     registerPubSub();
+    connectDatabase();
+
     if (Boolean.valueOf(getAppConfigProperty("scheduler.enabled", "false"))) {
       scheduleExecutionServiceJob();
       scheduleValidationServiceJob();
     }
-    startStsQuotaManager();
   }
 
   /** Triggers the shutdown hook and gracefully shuts down the SDRS service */
@@ -99,7 +106,7 @@ public class SdrsApplication {
       logger.info("SDRS Web Server Started.");
     } catch (IOException ex) {
       logger.error("An error occurred during web server start up: " + ex.getCause());
-      if (server !=null && server.isStarted()) {
+      if (server != null && server.isStarted()) {
         server.shutdownNow();
       }
       System.exit(1);
@@ -170,13 +177,19 @@ public class SdrsApplication {
 
   private static void registerPubSub() {
     if (PubSubMessageQueueManagerImpl.getInstance().getPublisher() == null) {
-      logger.error("Failed to register pubsub publisher");
+      logger.error("Failed to register PubSub topic");
+    } else {
+      logger.info("PubSub topic registered");
     }
   }
 
-  private static void startStsQuotaManager() {
-    if (StsQuotaManager.getInstance() == null) {
-      logger.error("Failed to start STS quota manager");
+  private static void connectDatabase() {
+    RetentionRuleDaoImpl retentionRuleDao = new RetentionRuleDaoImpl();
+    retentionRuleDao.findGlobalRuleByProjectId("");
+    if (retentionRuleDao.isSessionFactoryAvailable()) {
+      logger.info("Database is connected");
+    } else {
+      logger.error("Failed to connect to database");
     }
   }
 }

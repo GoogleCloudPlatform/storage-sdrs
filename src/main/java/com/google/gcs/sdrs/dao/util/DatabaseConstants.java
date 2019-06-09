@@ -18,14 +18,17 @@
 package com.google.gcs.sdrs.dao.util;
 
 public class DatabaseConstants {
-  public static final String STORAGE_TYPE_GCS = "GCS";
-  public static final String STORAGE_TYPE_BIG_QUERY = "BQ";
+  public static final String STORAGE_TYPE_GCS = "gcs";
+  public static final String STORAGE_TYPE_BIG_QUERY = "bq";
 
-  // this will be changed to "default" in the future
   public static final String POLICY_TYPE_GLOBAL = "global";
   public static final String POLICY_TYPE_DATASET = "dataset";
   public static final String POLICY_TYPE_USER = "user";
+  public static final String POLICY_TYPE_DEFAULT = "default";
   public static final String STS_JOB_STATUS_SUCCESS = "success";
   public static final String STS_JOB_STATUS_PENDING = "pending";
   public static final String STS_JOB_STATUS_ERROR = "error";
+  public static final String RETENTION_PERIOD_UNIT_DAY = "day";
+  public static final String RETENTION_PERIOD_UNIT_MONTH = "month";
+  public static final String RETENTION_PERIOD_UNIT_VERSION = "version";
 }

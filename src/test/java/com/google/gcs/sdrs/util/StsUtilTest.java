@@ -17,32 +17,26 @@
 
 package com.google.gcs.sdrs.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import com.google.api.client.util.BackOff;
+import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.storagetransfer.v1.model.Date;
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
 import com.google.api.services.storagetransfer.v1.model.Schedule;
 import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class StsUtilTest {
-
-  @Before
-  public void setup() {
-    StsUtil.quotaManager = mock(StsQuotaManager.class);
-    when(StsUtil.quotaManager.submitStsJob(any(), any())).thenReturn("uuid");
-  }
 
   @Test
   public void intDaysToDurationStringTest() {
@@ -132,5 +126,61 @@ public class StsUtilTest {
     ObjectConditions conditions = StsUtil.buildObjectConditions(prefixes, false, null);
 
     assertNull(conditions.getMinTimeElapsedSinceLastModification());
+  }
+
+  @Test
+  public void backoffTest() {
+    try {
+      // Test Google  ExponentialBackOff class. It's used to handle STS QPS limit (100 create per
+      // 100s)
+      // 100s is too long for unit test. Mock it using milliseconds.
+      int mockStsQpsIntervalMillis = 100;
+      double multiplier = 1.5;
+      double randomizationFactor = 0.5;
+      int initialIntervalMillis = (int) (mockStsQpsIntervalMillis / (1 - randomizationFactor));
+      int maxIntervalMillis = initialIntervalMillis * 10;
+      int maxElapsedTimeMillis = initialIntervalMillis * 15;
+
+      System.out.println(
+          String.format(
+              "initialIntervalMillis=%d; maxIntervalMillis=%d; "
+                  + "maxElapsedTimeMillis=%d; multipler=%.1f; factor=%.1f",
+              initialIntervalMillis,
+              maxIntervalMillis,
+              maxElapsedTimeMillis,
+              multiplier,
+              randomizationFactor));
+
+      ExponentialBackOff backoff =
+          new ExponentialBackOff.Builder()
+              .setInitialIntervalMillis(initialIntervalMillis)
+              .setMaxElapsedTimeMillis(maxElapsedTimeMillis)
+              .setMaxIntervalMillis(maxIntervalMillis)
+              .setMultiplier(multiplier)
+              .setRandomizationFactor(randomizationFactor)
+              .build();
+
+      long backOffMillis = backoff.nextBackOffMillis();
+      long startTime = Instant.now().toEpochMilli();
+      long beginTime = startTime;
+      long firstRetryInterval = backOffMillis;
+      System.out.println(String.format("Start time: %d", startTime));
+      while (backOffMillis != BackOff.STOP) {
+        System.out.println(String.format("Sleeping %dms... ", backOffMillis));
+        Thread.sleep(backOffMillis);
+        long retryTime = Instant.now().toEpochMilli();
+        System.out.println(
+            String.format(
+                "Retrying time: %d;  Time elapsed: %dms", retryTime, retryTime - startTime));
+        startTime = retryTime;
+        backOffMillis = backoff.nextBackOffMillis();
+      }
+      long endTime = Instant.now().toEpochMilli();
+      System.out.println(String.format("Total elapsed time: %dms", endTime - beginTime));
+      assertTrue((endTime - beginTime) >= maxElapsedTimeMillis);
+      assertTrue(firstRetryInterval >= mockStsQpsIntervalMillis);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

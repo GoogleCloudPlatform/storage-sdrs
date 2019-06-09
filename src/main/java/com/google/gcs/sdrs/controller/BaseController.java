@@ -18,20 +18,17 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.exception.HttpException;
-import com.google.gcs.sdrs.controller.exception.InternalServerException;
-import com.google.gcs.sdrs.controller.exception.NotFoundException;
-import com.google.gcs.sdrs.controller.exception.PersistenceException;
 import com.google.gcs.sdrs.controller.filter.ContainerContextProperties;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.BaseHttpResponse;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
+import java.io.IOException;
 import java.sql.SQLException;
 import javax.persistence.EntityNotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import org.eclipse.jetty.http.HttpStatus;
+import org.glassfish.grizzly.http.util.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +50,20 @@ public abstract class BaseController {
     return (UserInfo) context.getProperty(ContainerContextProperties.USER_INFO.toString());
   }
 
+  protected String getCorrelationId() {
+    if (context == null) {
+      return null;
+    }
+    Object id = context.getProperty(ContainerContextProperties.CORRELATION_UUID.toString());
+    if (id != null) {
+      return id.toString();
+    } else {
+      return null;
+    }
+  }
+
   protected Response successResponse(BaseHttpResponse responseBody) {
-    return Response.status(HttpStatus.OK_200).entity(responseBody).build();
+    return Response.status(HttpStatus.OK_200.getStatusCode()).entity(responseBody).build();
   }
 
   /**
@@ -69,6 +78,8 @@ public abstract class BaseController {
     if (exception instanceof SQLException) {
       logger.error(exception.getMessage());
       outgoingException = new PersistenceException(exception);
+    } else if (exception instanceof IOException) {
+      outgoingException = new ServiceLayerException(exception);
     } else if (exception instanceof EntityNotFoundException) {
       outgoingException = new NotFoundException(exception.getMessage());
     } else if (exception instanceof HttpException) {

@@ -18,7 +18,7 @@
 package com.google.gcs.sdrs.dao.converter;
 
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
-import com.google.gcs.sdrs.enums.DataStorageType;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 

@@ -24,7 +24,7 @@ resources:
         boot: true
         autoDelete: true
         initializeParams:
-          sourceImage: {{ COMPUTE_URL_BASE }}projects/{{ env['project'] }}/global/images/centos-docker-sd
+          sourceImage: {{ properties["image"] }}
       machineType: {{ properties["machineType"] }}
       metadata:
         items:

@@ -17,14 +17,14 @@
 
 package com.google.gcs.sdrs.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class PrefixGeneratorUtilityTest {
 
@@ -62,7 +62,7 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01/01/00", result.get(0));
+    assertEquals("test/2019/01/01/00/", result.get(0));
   }
 
   @Test
@@ -74,7 +74,7 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01/01", result.get(0));
+    assertEquals("test/2019/01/01/", result.get(0));
   }
 
   @Test
@@ -86,7 +86,7 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01", result.get(0));
+    assertEquals("test/2019/01/", result.get(0));
   }
 
   @Test
@@ -98,7 +98,7 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019", result.get(0));
+    assertEquals("test/2019/", result.get(0));
   }
 
   @Test
@@ -109,7 +109,7 @@ public class PrefixGeneratorUtilityTest {
 
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
-    assertTrue(result.contains("test/2019/02"));
+    assertTrue(result.contains("test/2019/02/"));
   }
 
   @Test
@@ -120,8 +120,8 @@ public class PrefixGeneratorUtilityTest {
 
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
-    assertTrue(result.contains("test/2019/05"));
-    assertTrue(result.contains("test/2019/04"));
+    assertTrue(result.contains("test/2019/05/"));
+    assertTrue(result.contains("test/2019/04/"));
     assertEquals(2, result.size());
   }
 
@@ -133,7 +133,7 @@ public class PrefixGeneratorUtilityTest {
 
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
-    assertTrue(result.contains("test/2019/03/10"));
+    assertTrue(result.contains("test/2019/03/10/"));
   }
 
   @Test
@@ -144,8 +144,8 @@ public class PrefixGeneratorUtilityTest {
 
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
-    assertTrue(result.contains("test/2019/03/05"));
-    assertTrue(result.contains("test/2019/03/04"));
+    assertTrue(result.contains("test/2019/03/05/"));
+    assertTrue(result.contains("test/2019/03/04/"));
     assertEquals(2, result.size());
   }
 
@@ -157,7 +157,7 @@ public class PrefixGeneratorUtilityTest {
 
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
-    assertTrue(result.contains("test/2019/03/11/00"));
+    assertTrue(result.contains("test/2019/03/11/00/"));
   }
 
   @Test
@@ -168,8 +168,8 @@ public class PrefixGeneratorUtilityTest {
 
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
-    assertTrue(result.contains("test/2019/03/03/04"));
-    assertTrue(result.contains("test/2019/03/03/05"));
+    assertTrue(result.contains("test/2019/03/03/04/"));
+    assertTrue(result.contains("test/2019/03/03/05/"));
     assertEquals(2, result.size());
   }
 
@@ -182,10 +182,10 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(4, result.size());
-    assertTrue(result.contains("test/2019"));
-    assertTrue(result.contains("test/2020/01"));
-    assertTrue(result.contains("test/2020/02/01"));
-    assertTrue(result.contains("test/2020/02/02/00"));
+    assertTrue(result.contains("test/2019/"));
+    assertTrue(result.contains("test/2020/01/"));
+    assertTrue(result.contains("test/2020/02/01/"));
+    assertTrue(result.contains("test/2020/02/02/00/"));
   }
 
   @Test
@@ -197,14 +197,14 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(8, result.size());
-    assertTrue(result.contains("test/2018"));
-    assertTrue(result.contains("test/2019"));
-    assertTrue(result.contains("test/2020/01"));
-    assertTrue(result.contains("test/2020/02"));
-    assertTrue(result.contains("test/2020/03/01"));
-    assertTrue(result.contains("test/2020/03/02"));
-    assertTrue(result.contains("test/2020/03/03/00"));
-    assertTrue(result.contains("test/2020/03/03/01"));
+    assertTrue(result.contains("test/2018/"));
+    assertTrue(result.contains("test/2019/"));
+    assertTrue(result.contains("test/2020/01/"));
+    assertTrue(result.contains("test/2020/02/"));
+    assertTrue(result.contains("test/2020/03/01/"));
+    assertTrue(result.contains("test/2020/03/02/"));
+    assertTrue(result.contains("test/2020/03/03/00/"));
+    assertTrue(result.contains("test/2020/03/03/01/"));
   }
 
   @Test
@@ -217,7 +217,7 @@ public class PrefixGeneratorUtilityTest {
 
     // Not all of 2018 is between the two dates, but all of 2018 is to be deleted because there is
     // no requirement to preserve old values.
-    assertTrue(result.contains("test/2018"));
+    assertTrue(result.contains("test/2018/"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -238,7 +238,7 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01/01/12", result.get(0));
+    assertEquals("test/2019/01/01/12/", result.get(0));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -259,7 +259,7 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(1, result.size());
-    assertEquals("test/2019/01/01/00", result.get(0));
+    assertEquals("test/2019/01/01/00/", result.get(0));
   }
 
   @Test
@@ -271,6 +271,6 @@ public class PrefixGeneratorUtilityTest {
     List<String> result = PrefixGeneratorUtility.generateTimePrefixes(pattern, time1, time2);
 
     assertEquals(1, result.size());
-    assertEquals("2019", result.get(0));
+    assertEquals("2019/", result.get(0));
   }
 }

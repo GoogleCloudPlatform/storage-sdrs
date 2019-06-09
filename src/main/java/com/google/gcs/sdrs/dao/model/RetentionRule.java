@@ -17,8 +17,8 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.converter.RetentionRuleTypeConverter;
-import com.google.gcs.sdrs.enums.RetentionRuleType;
 import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -40,9 +40,6 @@ public class RetentionRule {
 
   @Column(name = "dataset_name")
   private String datasetName;
-
-  @Column(name = "retention_period_in_days")
-  private Integer retentionPeriodInDays;
 
   @Column(name = "data_storage_name")
   private String dataStorageName;
@@ -69,6 +66,18 @@ public class RetentionRule {
   @Column(name = "user")
   private String user;
 
+  @Column(name = "retention_value")
+  private String retentionValue;
+
+  @Column(name = "metadata")
+  private String metadata;
+
+  @Column(name = "data_storage_root")
+  private String dataStorageRoot;
+
+  @Column(name = "data_storage_type")
+  private String dataStorageType;
+
   public RetentionRule() {}
 
   public Integer getId() {
@@ -85,14 +94,6 @@ public class RetentionRule {
 
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
-  }
-
-  public Integer getRetentionPeriodInDays() {
-    return retentionPeriodInDays;
-  }
-
-  public void setRetentionPeriodInDays(Integer retentionPeriodInDays) {
-    this.retentionPeriodInDays = retentionPeriodInDays;
   }
 
   public String getDataStorageName() {
@@ -149,5 +150,37 @@ public class RetentionRule {
 
   public void setUser(String user) {
     this.user = user;
+  }
+
+  public String getRetentionValue() {
+    return retentionValue;
+  }
+
+  public void setRetentionValue(String retentionValue) {
+    this.retentionValue = retentionValue;
+  }
+
+  public String getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(String metadata) {
+    this.metadata = metadata;
+  }
+
+  public String getDataStorageRoot() {
+    return dataStorageRoot;
+  }
+
+  public void setDataStorageRoot(String dataStorageRoot) {
+    this.dataStorageRoot = dataStorageRoot;
+  }
+
+  public String getDataStorageType() {
+    return dataStorageType;
+  }
+
+  public void setDataStorageType(String dataStorageType) {
+    this.dataStorageType = dataStorageType;
   }
 }

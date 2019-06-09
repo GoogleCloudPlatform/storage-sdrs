@@ -18,10 +18,9 @@
 
 package com.google.gcs.sdrs.dao.model;
 
+import com.google.gcs.sdrs.common.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.converter.RetentionJobStatusTypeConverter;
-import com.google.gcs.sdrs.enums.RetentionJobStatusType;
 import java.sql.Timestamp;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -55,6 +54,18 @@ public class RetentionJobValidation {
 
   @Column(name = "updated_at", updatable = false)
   private Timestamp updatedAt;
+
+  @Column(name = "batch_id")
+  private String batchId;
+
+  @Column(name = "start_time")
+  private Timestamp startTime;
+
+  @Column(name = "end_time")
+  private Timestamp endTime;
+
+  @Column(name = "metadata")
+  private String metadata;
 
   public RetentionJobValidation() {}
 
@@ -96,5 +107,37 @@ public class RetentionJobValidation {
 
   public Timestamp getUpdatedAt() {
     return updatedAt;
+  }
+
+  public String getBatchId() {
+    return batchId;
+  }
+
+  public void setBatchId(String batchId) {
+    this.batchId = batchId;
+  }
+
+  public Timestamp getStartTime() {
+    return startTime;
+  }
+
+  public void setStartTime(Timestamp startTime) {
+    this.startTime = startTime;
+  }
+
+  public Timestamp getEndTime() {
+    return endTime;
+  }
+
+  public void setEndTime(Timestamp endTime) {
+    this.endTime = endTime;
+  }
+
+  public String getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(String metadata) {
+    this.metadata = metadata;
   }
 }

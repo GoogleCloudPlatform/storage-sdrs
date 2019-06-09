@@ -20,6 +20,7 @@ package com.google.gcs.sdrs.dao;
 import com.google.gcs.sdrs.dao.impl.RetentionJobDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionJobValidationDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
+import com.google.gcs.sdrs.dao.impl.PooledStsJobDaoImpl;
 
 /** Class to manage singleton DAO instances. */
 public class SingletonDao {
@@ -27,12 +28,20 @@ public class SingletonDao {
   private static RetentionRuleDao retentionRuleDao;
   private static RetentionJobDao retentionJobDao;
   private static RetentionJobValidationDao retentionJobValidationDao;
+  private static PooledStsJobDao pooledStsJobDao;
 
   public static synchronized RetentionRuleDao getRetentionRuleDao() {
     if (retentionRuleDao == null) {
       retentionRuleDao = new RetentionRuleDaoImpl();
     }
     return retentionRuleDao;
+  }
+
+  public static synchronized PooledStsJobDao getPooledStsJobDao() {
+    if (pooledStsJobDao == null) {
+      pooledStsJobDao = new PooledStsJobDaoImpl();
+    }
+    return pooledStsJobDao;
   }
 
   public static synchronized RetentionJobDao getRetentionJobDao() {

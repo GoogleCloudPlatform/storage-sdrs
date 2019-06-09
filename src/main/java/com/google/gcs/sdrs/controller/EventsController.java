@@ -17,7 +17,6 @@
 
 package com.google.gcs.sdrs.controller;
 
-import com.google.gcs.sdrs.controller.exception.ValidationException;
 import com.google.gcs.sdrs.controller.pojo.EventResponse;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
@@ -25,6 +24,7 @@ import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
@@ -52,7 +52,7 @@ public class EventsController extends BaseController {
       validateExecutionEvent(request);
       EventResponse eventResponse =
           generateResponse("Execution event received and being processed");
-      service.processExecutionEvent(request);
+      service.processExecutionEvent(request, getCorrelationId());
       return successResponse(eventResponse);
     } catch (Exception exception) {
       return errorResponse(exception);
@@ -67,7 +67,7 @@ public class EventsController extends BaseController {
     try {
       EventResponse eventResponse =
           generateResponse("Validation event received and being processed");
-      service.processValidationEvent();
+      service.processValidationEvent(getCorrelationId());
       return successResponse(eventResponse);
     } catch (Exception exception) {
       return errorResponse(exception);
@@ -83,7 +83,7 @@ public class EventsController extends BaseController {
       validateNotificationEvent(request);
       EventResponse eventResponse =
           generateResponse("Delete notification event received and being processed");
-      service.processDeleteNotificationEvent(request, eventResponse.getUuid());
+      service.processDeleteNotificationEvent(request, getCorrelationId());
       return successResponse(eventResponse);
     } catch (Exception exception) {
       return errorResponse(exception);
@@ -103,13 +103,8 @@ public class EventsController extends BaseController {
     } else {
       switch (request.getExecutionEventType()) {
         case USER_COMMANDED:
-          if (request.getProjectId() == null) {
-            partialValidations.add(
-                ValidationResult.fromString("projectId must be provided if type is USER"));
-          }
-          partialValidations.add(
-              FieldValidations.validateFieldFollowsBucketNamingStructure(
-                  "target", request.getTarget()));
+          partialValidations.addAll(
+              validateUserCommandedExecutionEvent(request.getTarget(), request.getProjectId()));
           break;
         case POLICY: // fall through
         default:
@@ -161,5 +156,30 @@ public class EventsController extends BaseController {
     EventResponse response = new EventResponse();
     response.setMessage(eventMessage);
     return response;
+  }
+
+  private Collection<ValidationResult> validateUserCommandedExecutionEvent(
+      String target, String projectId) {
+    Collection<ValidationResult> validations = new HashSet<>();
+
+    ValidationResult validateTargetNameResult =
+        FieldValidations.validateFieldFollowsBucketNamingStructure("target", target);
+    validations.add(validateTargetNameResult);
+
+    if (validateTargetNameResult.isValid) {
+      String datasetPath = RetentionUtil.getDatasetPath(target);
+      if (datasetPath.lastIndexOf("/") < 0) {
+        validations.add(
+            ValidationResult.fromString(
+                String.format(
+                    "The target %s is the root of a bucket. Can not delete a bucket", target)));
+      }
+    }
+
+    if (projectId == null) {
+      validations.add(ValidationResult.fromString("projectId must be provided if type is USER"));
+    }
+
+    return validations;
   }
 }

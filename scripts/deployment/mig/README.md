@@ -31,8 +31,7 @@ Release) on existing MIG. For any given environment that has an existing MIG, yo
 3. [compute.v1.regionBackendService](https://cloud.google.com/compute/docs/reference/rest/v1/regionBackendServices)
 4. [compute.v1.regionAutoscaler](https://cloud.google.com/compute/docs/reference/rest/v1/regionAutoscalers)
 5. [compute.v1.forwardingRule](https://cloud.google.com/compute/docs/reference/rest/v1/forwardingRules)
-6. [compute.v1.firewall](https://cloud.google.com/compute/docs/reference/rest/v1/firewalls)
-7. [compute.v1.healthCheck](https://cloud.google.com/compute/docs/reference/rest/v1/healthChecks)
+6. [compute.v1.healthCheck](https://cloud.google.com/compute/docs/reference/rest/v1/healthChecks)
 
 
 
@@ -46,13 +45,14 @@ For example in configuration file (igm.yaml), the following properties could be 
 
 1. targetSize - Specifies the intended number of instances to be created from the instanceTemplate.
 2. maxNumReplicas - The maximum number of instances that the autoscaler can scale up to.
-3. machineType - Predefined machine types have a fixed collection of resources.
-4. externalIp - VM gets only private IPs if value is set false
-5. region - GCP Region
-6. email - Service Account email.
-7. network - VPC network name in a GCP Project
-8. subnetwork - Subnetwork name within a VPC network
-9. value - Google Cloud Storage bucket path to startup Scripts
+3. image - The image selfLink of the Compute Instance Image to be used to create Instances.
+4. machineType - Predefined machine types have a fixed collection of resources.
+5. externalIp - VM gets only private IPs if value is set false
+6. region - GCP Region
+7. email - Service Account email.
+8. network - VPC network name in a GCP Project
+9. subnetwork - Subnetwork name within a VPC network
+10. value - Google Cloud Storage bucket path to startup Scripts
 
 
 
@@ -95,13 +95,14 @@ resources:
   properties:
     region: us-central1
     maxNumReplicas: 5
+    image: https://www.googleapis.com/compute/v1/projects/your-project-id/global/images/your-image-name
     machineType: n1-standard-1  # <== change values to match your desired Instance tier
     value: gs://<YOUR_BUCKET>/<YOUR_FOLDER>/startup.sh
     targetSize: 2
     externalIp: False
     email: default # <== Service Account email address
-    network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
-    subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
+    network: https://www.googleapis.com/compute/v1/projects/<YOUR_PROJECT_ID>/global/networks/<YOUR_PROJECT_ID>-dev-vpc # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
+    subnetwork: https://www.googleapis.com/compute/v1/projects/<YOUR_PROJECT_ID>/regions/us-central1/subnetworks/subnet-b # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
 ```
 
 5. Modify env.txt accordingly.
@@ -114,6 +115,7 @@ HIBERNATE_CONNECTION_USER=<your_db_user>
 HIBERNATE_CONNECTION_PASSWORD=<your_db_password>
 SDRS_PUBSUB_TOPIC_NAME=projects/<your_project_id>/topics/<your_topic>
 GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
+ENABLE_JMX=false # Set to true to enable JVM monitoring
 ```
 
 6. Upload the modified env.txt file to a pre-created GCS bucket.
@@ -122,11 +124,12 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
     gsutil cp ../scripts/env.txt gs://<YOUR_ENV_VAR_BUCKET>/<YOUR_ENV_VAR_FOLDER>
 ```
 
-7. Modify startup.sh accordingly.
+7. Modify startup.sh accordingly. NOTE: Use startup_with_monitoring.sh instead of startup.sh if you want to enable JVM monitoring on containers
 
    For specific instructions refer to inline comments in
 
-   [startup.sh](./scripts/startup.sh)   
+   [startup.sh](./scripts/startup.sh)
+   [startup_with_monitoring.sh](./scripts/startup_with_monitoring.sh)
 
 
 8. Upload the modified startup.sh file to a pre-created GCS bucket.
@@ -142,7 +145,29 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
     gcloud deployment-manager deployments create <YOUR_DEPLOYMENT_NAME> \
         --config=<YOUR_FILE_NAME>.yaml
 ```
-10. To list your deployment:
+
+10. (Optional) If not done so already, you may need to add the below firewall rules to open required traffic for internal Load Balancer
+-  Allow health checks from Google health check endpoints to all instances with network tag `allow-health-checks`
+```shell
+    gcloud compute firewall-rules create storage-sdrs-allow-health-checks \
+        --network <YOUR_VPC_NAME> \
+    	--action ALLOW \
+    	--direction INGRESS \
+    	--source-ranges 35.191.0.0/16,130.211.0.0/22 \
+    	--target-tags allow-health-checks \
+    	--rules tcp
+```
+- Allow local traffic between internal LB and the instances within the VPC Network
+```shell
+    gcloud compute firewall-rules create storage-sdrs-allow-internal-lb-traffic \
+        --network <YOUR_VPC_NAME> \
+    	--action ALLOW \
+    	--direction INGRESS \
+    	--source-ranges <YOUR_LB_SUBNET_CIDR> \
+    	--rules tcp:80,tcp:443
+```
+
+11. To list your deployment:
 
 ```shell
     gcloud deployment-manager deployments list
@@ -153,20 +178,20 @@ GOOGLE_APPLICATION_CREDENTIALS=<path_to_your_credentials_json>
 > openapi.yaml configuration to deploy
 > [Endpoints](https://cloud.google.com/endpoints/docs/openapi/)
 
-11. To see the details of your deployment:
+12. To see the details of your deployment:
 
 ```shell
     gcloud deployment-manager deployments describe <YOUR_DEPLOYMENT_NAME>
 ```
 
-12. In case you need to update your deployment:
+13. In case you need to update your deployment:
 
 ```shell
     gcloud deployment-manager deployments update <YOUR_DEPLOYMENT_NAME> \
       --config <YOUR_FILE_NAME>.yaml   # <== Examples would be update targetSize, machineType or service account email.
 ```
 
-13. In case you need to delete your deployment:
+14. In case you need to delete your deployment:
 
 ```shell
     gcloud deployment-manager deployments delete <YOUR_DEPLOYMENT_NAME>
@@ -198,13 +223,14 @@ The steps listed below creates a new Instance Template with an updated version o
      properties:
        targetSize: 2
        maxNumReplicas: 5
+       image: https://www.googleapis.com/compute/v1/projects/your-project-id/global/images/your-image-name
        machineType: n1-standard-1
        value: gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>/startup_new.sh # <== change values to match your startup script and it's location.
        externalIp: False
        region: us-central1
        email: default
-       network: https://www.googleapis.com/compute/v1/projects/sdrs-server/global/networks/sdrs-server-dev-vpc # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/global/networks/YOUR_VPC_NAME
-       subnetwork: https://www.googleapis.com/compute/v1/projects/sdrs-server/regions/us-central1/subnetworks/subnet-b # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_NAME, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_NAME/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
+       network: https://www.googleapis.com/compute/v1/projects/<YOUR_PROJECT_ID>/global/networks/<YOUR_VPC_NAME> # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_ID and YOUR_VPC_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_ID/global/networks/YOUR_VPC_NAME
+       subnetwork: https://www.googleapis.com/compute/v1/projects/<YOUR_PROJECT_ID>/regions/us-central1/subnetworks/<YOUR_SUBNET_NAME> # Edit it to run in a different GCP Project and VPC. Modify YOUR_PROJECT_ID, YOUR_REGION and YOUR_SUBNET_NAME to match yours. https://www.googleapis.com/compute/v1/projects/YOUR_PROJECT_ID/regions/YOUR_REGION/subnetworks/YOUR_SUBNET_NAME
     ```
 
   3. Create a new Instance Template as deployment as described below, replacing <YOUR_NEW_DEPLOYMENT_NAME>

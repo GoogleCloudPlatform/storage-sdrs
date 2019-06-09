@@ -18,6 +18,8 @@
 
 package com.google.gcs.sdrs.controller;
 
+import com.google.gcs.sdrs.dao.BaseDao;
+import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -27,13 +29,40 @@ import org.slf4j.LoggerFactory;
 
 /** Controller for providing app status. */
 @Path("/status")
-public class AppStatusController {
+public class AppStatusController extends BaseController{
 
-  static final private Logger logger = LoggerFactory.getLogger(AppStatusController.class);
+  private static final Logger logger = LoggerFactory.getLogger(AppStatusController.class);
 
   @GET
   @Produces(MediaType.TEXT_PLAIN)
   public String getAppStatus() {
-    return "SDRS is OK.";
+    return doGetAppStatus();
+  }
+
+  private String doGetAppStatus() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("Web server is UP\n");
+    if (isDatabaseLive()) {
+      builder.append("Database is UP\n");
+    } else {
+      builder.append("Database is DOWN\n");
+      logger.error("Database is down ...");
+    }
+
+    if (isPubSubLive()) {
+      builder.append("PubSub is UP\n");
+    } else {
+      builder.append("PubSub is DOWN\n");
+      logger.error("PubSub topic unreachable ...");
+    }
+    return builder.toString();
+  }
+
+  private boolean isPubSubLive() {
+    return PubSubMessageQueueManagerImpl.getInstance().getPublisher() != null;
+  }
+
+  private boolean isDatabaseLive() {
+    return BaseDao.isSessionFactoryAvailable();
   }
 }
