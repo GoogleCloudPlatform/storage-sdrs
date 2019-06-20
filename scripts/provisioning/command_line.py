@@ -40,12 +40,13 @@ LOGGER = logging.getLogger('sdrs_provisioning_cli')
 
 # [START main]
 def main(command, project_id, start_date, source_bucket,
-         sink_bucket, service_name):
+         sink_bucket, service_name, num_of_dataset_jobs):
     storage_client = storage.Client()
     #service_name = 'http://david-sdrs-api.endpoints.sdrs-server.cloud.goog'
     try:
         bucket = storage_client.get_bucket(source_bucket)
         print("Bucket exists, proceeding")
+        print("Num of jobs " + str(num_of_dataset_jobs))
     except Exception as e:
         LOGGER.error("Exception, exiting program " + str(e))
         sys.exit() 
@@ -225,6 +226,8 @@ if __name__ == '__main__':
     parser.add_argument('source_bucket', help='Source GCS bucket name.')
     parser.add_argument('sink_bucket', help='Target GCS bucket name.')
     parser.add_argument('service_name', help='The SDRS service name.')
+    parser.add_argument('num_of_dataset_jobs',type=int, choices=[1,2,4,6,24], help='1, 2, 4, 6, or 24 jobs')
+
     args = parser.parse_args()
     start_date = datetime.datetime.strptime(args.start_date, '%Y/%m/%d')
 
@@ -234,5 +237,7 @@ if __name__ == '__main__':
         start_date,
         args.source_bucket,
         args.sink_bucket,
-        args.service_name)
+        args.service_name,
+        args.num_of_dataset_jobs
+        )
 # [END all]
