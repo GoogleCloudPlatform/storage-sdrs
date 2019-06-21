@@ -37,7 +37,7 @@ sleep 5
 # Run docker image containing SDRS
 docker run --detach -v /root/cred:/var/sdrs \
            --name=sdrs --env-file=./env.txt \
-           --log-driver=fluentd \
+           --log-driver=json-file \
            --publish=8080:8080 \
            --publish=8086:8086 \
            --net=esp_network $CONTAINER_IMAGE_PATH
@@ -48,7 +48,7 @@ rm -rf ./env.txt
 sleep 30
 
 docker run --name=esp \
-           --log-driver=fluentd \
+           --log-driver=json-file \
            --detach --publish=80:8080 \
            --net=esp_network gcr.io/endpoints-release/endpoints-runtime:1 \
            --service=$ENDPOINT_SERVICE_URL \
