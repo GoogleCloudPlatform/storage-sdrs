@@ -130,7 +130,7 @@ The following are instructions to enable Stackdriver monitoring of SDRS JVM envi
 The following are instructions to enable Stackdriver logging on SDRS environment:
 1. Install [Stackdriver Logging Agent](https://cloud.google.com/logging/docs/agent/installation)
 2. Copy [docker.conf](./mig/stackdriver-logging/docker.conf) to path `/etc/google-fluentd/config.d/` on each instance where SDRS app is running and ensure the GCE Instances service account has permissions to access Stackdriver Logging
-3. Make sure the docker command to run SDRS container has `fluentd` set as the log driver.
+3. Make sure the docker command to run SDRS container has `json-file` set as the log driver.
 4. Restart the Stackdriver logging agent so that it picks up the new docker.conf logging configuration.
 
   > [Stackdriver Logging Access Control](https://cloud.google.com/logging/docs/access-control)
