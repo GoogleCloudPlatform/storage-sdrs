@@ -16,7 +16,7 @@
 
 Note the start times are in UTC (GMT-7 for PDT months)
 Example command line arguments from the prompt:
-'python command_line.py create sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev http://localhost:8080'
+'python command_line.py create sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev http://localhost:8080 4'
 For more information, see the README.md.
 """
 
@@ -46,13 +46,13 @@ def main(command, project_id, start_date, source_bucket,
     try:
         bucket = storage_client.get_bucket(source_bucket)
         print("Bucket exists, proceeding")
-        print("Num of jobs " + str(num_of_dataset_jobs))
+        print("Number of dataset jobs " + str(num_of_dataset_jobs))
     except Exception as e:
         LOGGER.error("Exception, exiting program " + str(e))
         sys.exit() 
     if command == 'create':
         pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
-            sink_bucket, 'dataset')
+            sink_bucket, 'dataset', num_of_dataset_jobs)
         _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs, service_name)
     elif command == 'delete':
         _delete_sts_jobs_for_bucket(project_id, source_bucket, service_name)
@@ -63,15 +63,18 @@ def main(command, project_id, start_date, source_bucket,
     
 # [START _create_sts_jobs_for_bucket]
 def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
-         sink_bucket, job_type):
+         sink_bucket, job_type, num_of_dataset_jobs):
     storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1', cache_discovery=False)
     sts_jobs = []
-    number_of_jobs = 25
+    end_loop = 25
+    # Evenly distribute the jobs across 24 hours starting at 00:00:00 UTC
+    interval =  24 / num_of_dataset_jobs
+    print("Interval is " + str(interval))
     i = 0
-    while i < number_of_jobs:
+    while i < end_loop:
         description = 'Pooled STS Job ' + str(i) + ' for bucket ' + source_bucket
         if i == 24:
-            # create the default job - number 25
+            # create the default job
             job_type = 'default'
             start_time_string = '{:02d}:59:59'.format(23)
         else:
@@ -117,7 +120,7 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
             'schedule': start_time_string
             }
             sts_jobs.append(pooled_sts_job)
-            i += 1
+            i += interval
         except Exception as e:
             # If an exception is encountered during any API iteration, roll back the transaction and error out
             LOGGER.error("Exception, rolling back and exiting program " + str(e))
