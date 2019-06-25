@@ -23,17 +23,14 @@ import com.google.api.core.ApiFutures;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gcs.sdrs.SdrsApplication;
+import com.google.gcs.sdrs.service.mq.events.InactiveDatasetNotificationEvent;
 import com.google.gcs.sdrs.service.mq.events.SuccessDeleteNotificationEvent;
-import com.google.gcs.sdrs.service.mq.events.context.EventContext;
 import com.google.gcs.sdrs.service.mq.pojo.DeleteNotificationMessage;
-import com.google.gcs.sdrs.util.RetentionUtil;
+import com.google.gcs.sdrs.service.mq.pojo.InactiveDatasetMessage;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
@@ -41,7 +38,6 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +52,6 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
   private PubSubMessageQueueManagerImpl() {}
 
   public static final String TOPIC_APP_CONFIG_KEY = "pubsub.topic";
-  public static final String DELETE_NOTIFICAITON_EVENT_NAME = "SuccessDeleteNotificationEvent";
-  public static final String AVRO_MESSAGE_VERSION = "1.0";
 
   public static PubSubMessageQueueManagerImpl getInstance() {
     if (instance == null) {
@@ -103,41 +97,48 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
     }
 
     try {
-      SuccessDeleteNotificationEvent avroMessage = convertToAvro(msg);
+      SuccessDeleteNotificationEvent avroMessage = msg.convertToAvro();
       if (avroMessage == null) {
         logger.error("Failed to create avro message ");
         return;
       }
       ByteString data = ByteString.copyFrom(convertToJson(avroMessage));
-      PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
-
-      ApiFuture<String> future = publisher.publish(pubsubMessage);
-      ApiFutures.addCallback(
-          future,
-          new ApiFutureCallback<String>() {
-
-            @Override
-            public void onFailure(Throwable throwable) {
-              logger.error(
-                  String.format(
-                      "Error publishing message: %s %s",
-                      new String(data.toByteArray()), throwable.getMessage()));
-            }
-
-            @Override
-            public void onSuccess(String messageId) {
-              logger.info(
-                  String.format(
-                      "Successfully sending message id: %s  message: %s",
-                      messageId, new String(data.toByteArray())));
-            }
-          },
-          MoreExecutors.directExecutor());
+      sendPubSubMessage(data);
     } catch (IOException | NullPointerException e) {
       logger.error(
-          String.format(
-              "Failed to send message %s,  %s",
-              msg.toString(), e.getMessage()), e);
+          String.format("Failed to send message %s,  %s", msg.toString(), e.getMessage()), e);
+      throw new IOException(String.format("Failed to send message %s", msg.toString()));
+    }
+  }
+
+  /**
+   * Send a successful inactive dataset notification message to pubsub topic.
+   *
+   * @param msg A {@link com.google.gcs.sdrs.service.mq.pojo.InactiveDatasetMessage
+   *     DeleteNotificationMessage}
+   */
+  @Override
+  public void sendInactiveDatasetMessage(InactiveDatasetMessage msg) throws IOException {
+    if (msg == null) {
+      logger.warn("Message is null");
+      return;
+    }
+    if (publisher == null) {
+      logger.error("Pubsub publisher is null");
+      return;
+    }
+
+    try {
+      InactiveDatasetNotificationEvent avroMessage = msg.convertToAvro();
+      if (avroMessage == null) {
+        logger.error("Failed to create avro message ");
+        return;
+      }
+      ByteString data = ByteString.copyFrom(convertToJson(avroMessage));
+      sendPubSubMessage(data);
+    } catch (IOException | NullPointerException e) {
+      logger.error(
+          String.format("Failed to send message %s,  %s", msg.toString(), e.getMessage()), e);
       throw new IOException(String.format("Failed to send message %s", msg.toString()));
     }
   }
@@ -162,39 +163,31 @@ public class PubSubMessageQueueManagerImpl implements MessageQueueManager {
     return outputStream.toByteArray();
   }
 
-  /**
-   * Convert a POJO to Avro message
-   *
-   * @param msg A {@link com.google.gcs.sdrs.service.mq.pojo.DeleteNotificationMessage
-   *     DeleteNotificationMessage}
-   * @return A {@link com.google.gcs.sdrs.service.mq.events.SuccessDeleteNotificationEvent
-   *     SuccessDeleteNotificationEvent} Avro message
-   */
-  private static SuccessDeleteNotificationEvent convertToAvro(DeleteNotificationMessage msg) {
-    if (msg == null) {
-      return null;
-    }
-    EventContext ctx =
-        EventContext.newBuilder()
-            .setName(DELETE_NOTIFICAITON_EVENT_NAME)
-            .setUuid(UUID.randomUUID().toString())
-            .setVersion(AVRO_MESSAGE_VERSION)
-            .setCorrelationID(msg.getCorrelationId())
-            .setTimestamp(new DateTime())
-            .build();
+  private void sendPubSubMessage(ByteString data) {
+    PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
 
-    SuccessDeleteNotificationEvent event =
-        SuccessDeleteNotificationEvent.newBuilder()
-            .setContext(ctx)
-            .setBucket(RetentionUtil.getBucketName(msg.getDeletedDirectoryUri()))
-            .setDeletedAt(msg.getDeletedAt().toString())
-            .setDirectory(msg.getDeletedDirectoryUri())
-            .setTrigger(msg.getTrigger())
-            .setProjectId(msg.getProjectId())
-            .setVersion(AVRO_MESSAGE_VERSION)
-            .build();
+    ApiFuture<String> future = publisher.publish(pubsubMessage);
+    ApiFutures.addCallback(
+        future,
+        new ApiFutureCallback<String>() {
 
-    return event;
+          @Override
+          public void onFailure(Throwable throwable) {
+            logger.error(
+                String.format(
+                    "Error publishing message: %s %s",
+                    new String(data.toByteArray()), throwable.getMessage()));
+          }
+
+          @Override
+          public void onSuccess(String messageId) {
+            logger.info(
+                String.format(
+                    "Successfully sending message id: %s  message: %s",
+                    messageId, new String(data.toByteArray())));
+          }
+        },
+        MoreExecutors.directExecutor());
   }
 
   public void shutdown() {

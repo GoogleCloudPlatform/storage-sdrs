@@ -1,8 +1,8 @@
 {
   "namespace": "com.google.gcs.sdrs.service.mq.events",
   "type": "record",
-  "name": "SuccessDeleteNotificationEvent",
-  "doc": "Event sent to interested parties on deleted dataset.",
+  "name": "InactiveDatasetNotificationEvent",
+  "doc": "Event sent to interested parties on inactive dataset.",
   "fields": [
     {
       "name": "context",
@@ -23,17 +23,17 @@
     },
     {
       "name": "directory",
-      "doc": "The directory containing success delete marker that has been deleted. ",
+      "doc": "The directory that has become inactive. ",
       "type": "string"
     },
     {
       "name": "trigger",
-      "doc": "The trigger that results in delete. ",
+      "doc": "The trigger that results in inactive dataset. ",
       "type": "string"
     },
     {
-      "name": "deletedAt",
-      "doc": "Timestamp at which the directory was deleted. ISO format in UTC. i.e. 2018-09-01T10:10:00z ",
+      "name": "inactiveAt",
+      "doc": "Timestamp at which the directory became inactive. ISO format in UTC. i.e. 2018-09-01T10:10:00z ",
       "type": "string"
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "namespace": "com.google.gcs.sdrs.mq.events.context",
+  "namespace": "com.google.gcs.sdrs.service.mq.events.context",
   "type": "record",
   "name": "EventContext",
   "doc": "The event context used for all events",

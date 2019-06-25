@@ -76,9 +76,9 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
     predicates.add(builder.equal(root.get("type"), type));
 
     if (scheduleTimeOfDay != null) {
-      predicates.add(builder.equal(root.get("schedule"), scheduleTimeOfDay));
+      predicates.add(builder.greaterThan(root.get("schedule"), scheduleTimeOfDay));
     }
-    query.select(root).where(predicates.toArray(new Predicate[predicates.size()]));
+    query.select(root).where(predicates.toArray(new Predicate[predicates.size()])).orderBy(builder.asc(root.get("schedule")));
 
     return getSingleRecordWithCriteriaQuery(query, session);
   }
