@@ -45,18 +45,18 @@ def main(command, project_id, start_date, source_bucket,
     #service_name = 'http://david-sdrs-api.endpoints.sdrs-server.cloud.goog'
     try:
         bucket = storage_client.get_bucket(source_bucket)
-        print("Bucket exists, proceeding")
+        LOGGER.info("Bucket exists, proceeding")
     except Exception as e:
-        LOGGER.error("Exception, exiting program " + str(e))
-        sys.exit() 
+        LOGGER.error("Exception, nonexistent or inaccessible bucket " + source_bucket)
+        sys.exit(1) 
     if command == 'create':
         _create(project_id, start_date, source_bucket,
             sink_bucket, 'dataset', num_of_dataset_jobs, service_name)
     elif command == 'delete':
         _delete_sts_jobs_for_bucket(project_id, source_bucket, service_name)
     else:
-         print("Unknown command " + str(command))   
-         sys.exit() 
+         LOGGER.error("Unknown command " + str(command))   
+         sys.exit(1) 
 # [END main]
 
 # [START _create]
@@ -65,12 +65,12 @@ def _create(project_id, start_date, source_bucket,
     # Make create routine idempotent
     sts_jobs = _get_pooled_sts_jobs(project_id, source_bucket, service_name)
     if len(sts_jobs) == 0:
-        print("STS Job Pool does not exist, proceeding with creation routine.")
+        LOGGER.info("STS Job Pool does not exist, proceeding with creation routine.")
         pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
             sink_bucket, 'dataset', num_of_dataset_jobs)
         _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs, service_name)
     else:
-        print("STS Job Pool already exists, exiting program.")
+        LOGGER.info("STS Job Pool already exists, exiting program.")
 # [END _create]
     
 # [START _create_sts_jobs_for_bucket]
@@ -136,7 +136,7 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
             # If an exception is encountered during any API iteration, roll back the transaction and error out
             LOGGER.error("Exception, rolling back and exiting program " + str(e))
             _exit_creation_with_cleanup(sts_jobs) 
-    print("Successfully created STS job pool in the cloud, standby.")
+    LOGGER.info("Successfully created STS job pool in the cloud, standby.")
     return sts_jobs
 # [END _create_sts_jobs_for_bucket]
 
@@ -154,7 +154,7 @@ def _exit_creation_with_cleanup(sts_jobs):
         }
         request = storagetransfer.transferJobs().patch(jobName=job_name, body=update_transfer_job_request_body)
         response = request.execute()
-    sys.exit()
+    sys.exit(1)
 # [END _exit_creation_with_cleanup]
 
 # [START _delete_sts_jobs_for_bucket]
@@ -175,7 +175,7 @@ def _delete_sts_jobs_for_bucket(project_id, source_bucket, service_name):
         request = storagetransfer.transferJobs().patch(jobName=job_name, body=update_transfer_job_request_body)
         response = request.execute()
     #Finally, delete the STS job records from SDRS
-    print("Deleted STS Jobs from the cloud, now deleting from SDRS metadata, standby")
+    LOGGER.info("Deleted STS Jobs from the cloud, now deleting from SDRS metadata, standby.")
     _unregister_sdrs_sts_jobs(project_id, source_bucket, service_name)
 # [END _delete_sts_jobs_for_bucket]
 
@@ -199,13 +199,13 @@ def _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs, service_
   """Makes a request to register the STS job with SDRS so it can be utilized."""
   url = '{}/stsjobpool?sourceBucket={}&sourceProject={}'.format(
       service_name, source_bucket, project_id)
-  print("Registering STS job pool with SDRS, standby")
+  LOGGER.info("Registering STS job pool with SDRS, standby.")
   LOGGER.debug('POST: %s', url)
   LOGGER.debug('Body: %s', pooled_sts_jobs)
   response = requests.post(url, json=pooled_sts_jobs, headers=utils.get_auth_header(service_name))
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
-    print('Successful provisioning of jobs with SDRS: {}'.format(
+    LOGGER.info('Successful provisioning of jobs with SDRS: {}'.format(
         response.text))
   else:
     LOGGER.error('Unexpected response code %s returned: %s',
@@ -223,7 +223,7 @@ def _unregister_sdrs_sts_jobs(project_id, source_bucket, service_name):
   response = requests.delete(url, headers=utils.get_auth_header(service_name))
   LOGGER.debug('Response: %s', response.text)
   if response.status_code == requests.codes.ok:
-    print('Successful unregistering of STS jobs with SDRS: {}'.format(
+    LOGGER.info('Successful unregistering of STS jobs with SDRS: {}'.format(
         response.text))
   else:
     LOGGER.error('Unexpected response code %s returned: %s',
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('command', help='create or delete.')
+    parser.add_argument('command', choices=["create", "delete"], help='create or delete.')
     parser.add_argument('project_id', help='Your Google Cloud project ID.')
     parser.add_argument('start_date', help='Date YYYY/MM/DD.')
     parser.add_argument('source_bucket', help='Source GCS bucket name.')
