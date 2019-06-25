@@ -16,7 +16,7 @@
 
 Note the start times are in UTC (GMT-7 for PDT months)
 Example command line arguments from the prompt:
-'python command_line.py create sdrs-server 2019/05/15 ds-dev-rpo ds-bucket-dev http://localhost:8080 4'
+'python command_line.py create sdrs-server ds-dev-rpo ds-bucket-dev http://localhost:8080 4'
 For more information, see the README.md.
 """
 
@@ -39,7 +39,7 @@ LOGGER = logging.getLogger('sdrs_provisioning_cli')
 
 
 # [START main]
-def main(command, project_id, start_date, source_bucket,
+def main(command, project_id, source_bucket,
          sink_bucket, service_name, num_of_dataset_jobs):
     storage_client = storage.Client()
     #service_name = 'http://david-sdrs-api.endpoints.sdrs-server.cloud.goog'
@@ -50,7 +50,7 @@ def main(command, project_id, start_date, source_bucket,
         LOGGER.error("Exception, nonexistent or inaccessible bucket " + source_bucket)
         sys.exit(1) 
     if command == 'create':
-        _create(project_id, start_date, source_bucket,
+        _create(project_id, source_bucket,
             sink_bucket, 'dataset', num_of_dataset_jobs, service_name)
     elif command == 'delete':
         _delete_sts_jobs_for_bucket(project_id, source_bucket, service_name)
@@ -60,13 +60,13 @@ def main(command, project_id, start_date, source_bucket,
 # [END main]
 
 # [START _create]
-def _create(project_id, start_date, source_bucket,
+def _create(project_id, source_bucket,
          sink_bucket, job_type, num_of_dataset_jobs, service_name):
     # Make create routine idempotent
     sts_jobs = _get_pooled_sts_jobs(project_id, source_bucket, service_name)
     if len(sts_jobs) == 0:
         LOGGER.info("STS Job Pool does not exist, proceeding with creation routine.")
-        pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
+        pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, source_bucket,
             sink_bucket, 'dataset', num_of_dataset_jobs)
         _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs, service_name)
     else:
@@ -74,13 +74,15 @@ def _create(project_id, start_date, source_bucket,
 # [END _create]
     
 # [START _create_sts_jobs_for_bucket]
-def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
+def _create_sts_jobs_for_bucket(project_id, source_bucket,
          sink_bucket, job_type, num_of_dataset_jobs):
     storagetransfer = googleapiclient.discovery.build('storagetransfer', 'v1', cache_discovery=False)
     sts_jobs = []
     end_loop = 25
     # Evenly distribute the jobs across 24 hours starting at 00:00:00 UTC
     interval =  24 / num_of_dataset_jobs
+    # Getting current date
+    today = datetime.datetime.today()
     i = 0
     while i < end_loop:
         description = 'Pooled STS Job ' + str(i) + ' for bucket ' + source_bucket
@@ -99,9 +101,9 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
         'projectId': project_id,
         'schedule': {
             'scheduleStartDate': {
-                'day': start_date.day,
-                'month': start_date.month,
-                'year': start_date.year
+                'day': today.day,
+                'month': today.month,
+                'year': today.year
             },
             'startTimeOfDay': {
                 'hours': start_time.hour,
@@ -236,19 +238,16 @@ if __name__ == '__main__':
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('command', choices=["create", "delete"], help='create or delete.')
     parser.add_argument('project_id', help='Your Google Cloud project ID.')
-    parser.add_argument('start_date', help='Date YYYY/MM/DD.')
     parser.add_argument('source_bucket', help='Source GCS bucket name.')
     parser.add_argument('sink_bucket', help='Target GCS bucket name.')
     parser.add_argument('service_name', help='The SDRS service name.')
     parser.add_argument('num_of_dataset_jobs',type=int, choices=[1,2,4,6,24], help='1, 2, 4, 6, or 24 jobs')
 
     args = parser.parse_args()
-    start_date = datetime.datetime.strptime(args.start_date, '%Y/%m/%d')
 
     main(
         args.command,
         args.project_id,
-        start_date,
         args.source_bucket,
         args.sink_bucket,
         args.service_name,

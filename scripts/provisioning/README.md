@@ -4,10 +4,10 @@ This command line interface is designed to help you manage SDRS.
 It is intended to be used during the provisioning phase - post bucket creation, 
 but before SDRS executes retention.
 
-It allows you to either create or destroy an STS "Job Pool" of 25 jobs per bucket that will be  
+It allows you to either create or destroy an STS "Job Pool" of 1, 2, 4, 6, or 24 jobs jobs per bucket that will be  
 reutilized over the lifetime of the bucket by SDRS to enforce retention.   
 
-The 'create' command must be run one time only, once per bucket to create an STS Job Pool for that bucket.  
+The 'create' command should be run one time only, once per bucket to create an STS Job Pool for that bucket.  
 The 'delete' command should be run one time upon retiring a bucket from the purview of SDRS for retention enforcement.   
 
 
@@ -61,9 +61,9 @@ Please [see](https://cloud.google.com/iam/docs/understanding-service-accounts) f
 Example command line arguments from the prompt:
 
 ```
-    python command_line.py create sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev http://localhost:8080
+    python command_line.py create sdrs-server ds-dev-rpo ds-bucket-dev http://localhost:8080 4
     
-    python command_line.py delete sdrs-server 2019/05/20 ds-dev-rpo ds-bucket-dev http://localhost:8080
+    python command_line.py delete sdrs-server ds-dev-rpo ds-bucket-dev http://localhost:8080  
 ```
 
 
