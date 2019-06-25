@@ -46,20 +46,32 @@ def main(command, project_id, start_date, source_bucket,
     try:
         bucket = storage_client.get_bucket(source_bucket)
         print("Bucket exists, proceeding")
-        print("Number of dataset jobs " + str(num_of_dataset_jobs))
     except Exception as e:
         LOGGER.error("Exception, exiting program " + str(e))
         sys.exit() 
     if command == 'create':
-        pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
-            sink_bucket, 'dataset', num_of_dataset_jobs)
-        _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs, service_name)
+        _create(project_id, start_date, source_bucket,
+            sink_bucket, 'dataset', num_of_dataset_jobs, service_name)
     elif command == 'delete':
         _delete_sts_jobs_for_bucket(project_id, source_bucket, service_name)
     else:
          print("Unknown command " + str(command))   
          sys.exit() 
 # [END main]
+
+# [START _create]
+def _create(project_id, start_date, source_bucket,
+         sink_bucket, job_type, num_of_dataset_jobs, service_name):
+    # Make create routine idempotent
+    sts_jobs = _get_pooled_sts_jobs(project_id, source_bucket, service_name)
+    if len(sts_jobs) == 0:
+        print("STS Job Pool does not exist, proceeding with creation routine.")
+        pooled_sts_jobs = _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
+            sink_bucket, 'dataset', num_of_dataset_jobs)
+        _register_sdrs_sts_jobs(source_bucket, project_id, pooled_sts_jobs, service_name)
+    else:
+        print("STS Job Pool already exists, exiting program.")
+# [END _create]
     
 # [START _create_sts_jobs_for_bucket]
 def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
@@ -69,7 +81,6 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
     end_loop = 25
     # Evenly distribute the jobs across 24 hours starting at 00:00:00 UTC
     interval =  24 / num_of_dataset_jobs
-    print("Interval is " + str(interval))
     i = 0
     while i < end_loop:
         description = 'Pooled STS Job ' + str(i) + ' for bucket ' + source_bucket
@@ -125,7 +136,7 @@ def _create_sts_jobs_for_bucket(project_id, start_date, source_bucket,
             # If an exception is encountered during any API iteration, roll back the transaction and error out
             LOGGER.error("Exception, rolling back and exiting program " + str(e))
             _exit_creation_with_cleanup(sts_jobs) 
-    print("Successfully created STS job pool in the cloud, standby")
+    print("Successfully created STS job pool in the cloud, standby.")
     return sts_jobs
 # [END _create_sts_jobs_for_bucket]
 
