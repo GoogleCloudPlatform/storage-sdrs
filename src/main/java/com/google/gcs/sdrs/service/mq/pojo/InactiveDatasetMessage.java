@@ -17,20 +17,20 @@
  */
 package com.google.gcs.sdrs.service.mq.pojo;
 
-import com.google.gcs.sdrs.service.mq.events.SuccessDeleteNotificationEvent;
+import com.google.gcs.sdrs.service.mq.events.InactiveDatasetNotificationEvent;
 import com.google.gcs.sdrs.service.mq.events.context.EventContext;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import java.time.Instant;
 import java.util.UUID;
 import org.joda.time.DateTime;
 
-/** POJO for successful delete notification message */
-public class DeleteNotificationMessage {
-  public static final String DELETE_NOTIFICAITON_EVENT_NAME = "SuccessDeleteNotificationEvent";
+/** POJO for inactive dataset message */
+public class InactiveDatasetMessage {
+  public static final String INACTIVE_DATASET_NOTIFICAITON_EVENT_NAME =
+      "InactiveDatasetNotificationEvent";
   public static final String AVRO_MESSAGE_VERSION = "1.0";
-
   private String projectId;
-  private Instant deletedAt;
+  private Instant inactiveAt;
   private String deletedDirectoryUri;
   private String trigger;
   private String correlationId;
@@ -47,12 +47,12 @@ public class DeleteNotificationMessage {
     return correlationId;
   }
 
-  public Instant getDeletedAt() {
-    return deletedAt;
+  public Instant getInactiveAt() {
+    return inactiveAt;
   }
 
-  public void setDeletedAt(Instant deletedAt) {
-    this.deletedAt = deletedAt;
+  public void setInactiveAt(Instant inactiveAt) {
+    this.inactiveAt = inactiveAt;
   }
 
   public void setCorrelationId(String correlationId) {
@@ -75,22 +75,22 @@ public class DeleteNotificationMessage {
     this.trigger = trigger;
   }
 
-  public SuccessDeleteNotificationEvent convertToAvro() {
+  public InactiveDatasetNotificationEvent convertToAvro() {
 
     EventContext ctx =
         EventContext.newBuilder()
-            .setName(DELETE_NOTIFICAITON_EVENT_NAME)
+            .setName(INACTIVE_DATASET_NOTIFICAITON_EVENT_NAME)
             .setUuid(UUID.randomUUID().toString())
             .setVersion(AVRO_MESSAGE_VERSION)
             .setCorrelationID(this.getCorrelationId())
             .setTimestamp(new DateTime())
             .build();
 
-    SuccessDeleteNotificationEvent event =
-        SuccessDeleteNotificationEvent.newBuilder()
+    InactiveDatasetNotificationEvent event =
+        InactiveDatasetNotificationEvent.newBuilder()
             .setContext(ctx)
             .setBucket(RetentionUtil.getBucketName(this.getDeletedDirectoryUri()))
-            .setDeletedAt(this.getDeletedAt().toString())
+            .setInactiveAt(this.getInactiveAt().toString())
             .setDirectory(this.getDeletedDirectoryUri())
             .setTrigger(this.getTrigger())
             .setProjectId(this.getProjectId())

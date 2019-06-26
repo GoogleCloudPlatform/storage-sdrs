@@ -18,9 +18,12 @@
 package com.google.gcs.sdrs.service.mq;
 
 import com.google.gcs.sdrs.service.mq.pojo.DeleteNotificationMessage;
+import com.google.gcs.sdrs.service.mq.pojo.InactiveDatasetMessage;
 import java.io.IOException;
 
 public interface MessageQueueManager {
 
   void sendSuccessDeleteMessage(DeleteNotificationMessage msg) throws IOException;
+
+  void sendInactiveDatasetMessage(InactiveDatasetMessage msg) throws IOException;
 }
