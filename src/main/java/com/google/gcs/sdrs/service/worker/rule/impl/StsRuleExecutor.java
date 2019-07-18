@@ -135,7 +135,6 @@ public class StsRuleExecutor implements RuleExecutor {
    *
    * @param userCommandedRules A list of user commanded retention rules.
    * @param projectId GCP project ID
-   * @return
    * @throws IOException when STS api call fails or other errors
    */
   @Override
@@ -227,7 +226,6 @@ public class StsRuleExecutor implements RuleExecutor {
    *
    * @param datasetRules a list of dataset retention rules
    * @param projectId the project that the datasets belong to
-   * @return
    * @throws IOException when STS api call fails or other errors
    */
   @Override
@@ -286,16 +284,18 @@ public class StsRuleExecutor implements RuleExecutor {
       try {
         TransferJob stsPooledJob =
             findPooledJob(projectId, bucketName, scheduleTimeOfDay, RetentionRuleType.DATASET);
-        if (stsPooledJob == null && !isStsJobPoolOnly) {
-          job =
-              StsUtil.createStsJob(
-                  client,
-                  projectId,
-                  sourceBucket,
-                  destinationBucket,
-                  prefixes,
-                  description,
-                  zonedDateTimeNow);
+        if (stsPooledJob == null) {
+          if (!isStsJobPoolOnly) {
+            job =
+                StsUtil.createStsJob(
+                    client,
+                    projectId,
+                    sourceBucket,
+                    destinationBucket,
+                    prefixes,
+                    description,
+                    zonedDateTimeNow);
+          }
         } else {
           TransferJob jobToUpdate = new TransferJob();
           jobToUpdate
@@ -339,7 +339,6 @@ public class StsRuleExecutor implements RuleExecutor {
    * @param datasetRules A list of dataset rules
    * @param scheduledTime The time at which the STS job for default rule is schedule to run daily
    * @param projectId GCP project ID
-   * @return
    * @throws IOException when STS api call fails or other errors
    */
   @Override
@@ -512,18 +511,20 @@ public class StsRuleExecutor implements RuleExecutor {
       RetentionJob existingDefaultRetentionJob =
           retentionJobDao.findLatestDefaultJob(ValidationConstants.STORAGE_PREFIX + sourceBucket);
 
-      if (stsPooledJob == null && existingDefaultRetentionJob == null && !isStsJobPoolOnly) {
-        transferJob =
-            StsUtil.createDefaultStsJob(
-                client,
-                projectId,
-                sourceBucket,
-                destinationBucket,
-                prefixesToExclude,
-                description,
-                scheduledTime,
-                RetentionValue.convertValue(RetentionValue.parse(defaultRule.getRetentionValue())));
-
+      if (stsPooledJob == null && existingDefaultRetentionJob == null) {
+        if (!isStsJobPoolOnly) {
+          transferJob =
+              StsUtil.createDefaultStsJob(
+                  client,
+                  projectId,
+                  sourceBucket,
+                  destinationBucket,
+                  prefixesToExclude,
+                  description,
+                  scheduledTime,
+                  RetentionValue.convertValue(
+                      RetentionValue.parse(defaultRule.getRetentionValue())));
+        }
       } else {
         if (stsPooledJob == null && existingDefaultRetentionJob != null) {
           stsPooledJob =
