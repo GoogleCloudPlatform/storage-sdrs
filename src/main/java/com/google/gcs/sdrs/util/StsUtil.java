@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 public class StsUtil {
 
   public static final String STS_ENABLED_STRING = "ENABLED";
+  public static final String STS_DISABLED_STRING = "DISABLED";
   public static final String TRANSFER_OPERATION_STRING = "transferOperations";
   private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
 
@@ -369,7 +370,7 @@ public class StsUtil {
         .build();
   }
 
-  static @NotNull Date convertToDate(LocalDate startDate) {
+  public static @NotNull Date convertToDate(LocalDate startDate) {
     Date googleDate = new Date();
     googleDate.setYear(startDate.getYear());
     googleDate.setMonth(startDate.getMonthValue());
@@ -378,12 +379,29 @@ public class StsUtil {
     return googleDate;
   }
 
-  static @NotNull TimeOfDay convertToTimeOfDay(LocalTime startTime) {
+  public static @NotNull TimeOfDay convertToTimeOfDay(LocalTime startTime) {
     TimeOfDay timeOfDay = new TimeOfDay();
     timeOfDay.setHours(startTime.getHour());
     timeOfDay.setMinutes(startTime.getMinute());
     timeOfDay.setSeconds(startTime.getSecond());
 
     return timeOfDay;
+  }
+
+  public static String timeOfDayToString(TimeOfDay timeOfDay) {
+    if (timeOfDay == null) {
+      return "00:00:00";
+    }
+    int hours = timeOfDay.getHours() != null ? timeOfDay.getHours() : 0;
+    int minutes = timeOfDay.getMinutes() != null ? timeOfDay.getMinutes() : 0;
+    int seconds = timeOfDay.getSeconds() != null ? timeOfDay.getSeconds() : 0;
+    return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+  }
+
+  public static LocalTime convertToLocalTime(TimeOfDay timeOfDay) {
+    int hours = timeOfDay.getHours() != null ? timeOfDay.getHours() : 0;
+    int minutes = timeOfDay.getMinutes() != null ? timeOfDay.getMinutes() : 0;
+    int seconds = timeOfDay.getSeconds() != null ? timeOfDay.getSeconds() : 0;
+    return LocalTime.of(hours, minutes, seconds);
   }
 }

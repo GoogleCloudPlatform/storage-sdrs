@@ -46,6 +46,9 @@
     <shadowBucketExtensionPrefix>true</shadowBucketExtensionPrefix>
     <defaultRuleExlcudePrefixList>_lock/</defaultRuleExlcudePrefixList>
     <jobPoolOnly>true</jobPoolOnly>
+    <jobPoolOnDemand>
+      <user>24</user>
+    </jobPoolOnDemand>
     <defaultProjectId>global-default</defaultProjectId>
     <defaultStorageName>gs://global</defaultStorageName>
     <maxLookBackInDays>365</maxLookBackInDays>
