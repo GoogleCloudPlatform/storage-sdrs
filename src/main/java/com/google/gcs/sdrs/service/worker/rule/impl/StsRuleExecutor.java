@@ -20,8 +20,12 @@ package com.google.gcs.sdrs.service.worker.rule.impl;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
+import com.google.api.services.storagetransfer.v1.model.GcsData;
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
+import com.google.api.services.storagetransfer.v1.model.Schedule;
+import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
+import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.common.RetentionRuleType;
@@ -44,6 +48,8 @@ import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -74,7 +80,6 @@ public class StsRuleExecutor implements RuleExecutor {
     "2017/", "2018/", "2019/", "2020/", "2021"
   };
   private static final String JOB_TYPE_STS = "STS";
-  private static final String LESS_THAN_ZERO_HOUR = "-24:00:00";
   private String shadowBucketExtension;
   private boolean isShadowBucketExtensionPrefix;
   private String defaultProjectId;
@@ -86,6 +91,11 @@ public class StsRuleExecutor implements RuleExecutor {
   PooledStsJobDao stsJobDao;
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
+
+  public static final String DEFAULT_STS_JOB_POOL_NUMBER = "24";
+  public static final int MAX_USER_STS_JOB_POOL_NUMBER = 96;
+  public static final int MAX_DATASET_STS_JOB_POOL_NUMBER = 24;
+  public static final int DEFAULT_STS_JOB_POOL_TIMEOFDAY_BUFFER = 30;
 
   public static StsRuleExecutor getInstance() {
     if (instance == null) {
@@ -657,27 +667,190 @@ public class StsRuleExecutor implements RuleExecutor {
     return retentionJob;
   }
 
-  private TransferJob findPooledJob(
+  public static List<TimeOfDay> generateScheduleTimeOfDay(RetentionRuleType retentionRuleType) {
+    int numberOfJobs = 0;
+    List<TimeOfDay> result = new ArrayList<>();
+    LocalTime now = LocalTime.now();
+    LocalTime timeOfDay = LocalTime.of(0, now.getMinute(), now.getSecond());
+
+    if (retentionRuleType == null) {
+      return result;
+    }
+
+    switch (retentionRuleType) {
+      case USER:
+        numberOfJobs =
+            Integer.parseInt(
+                SdrsApplication.getAppConfigProperty(
+                    "jobPoolOnDemand." + RetentionRuleType.USER.toString().toLowerCase(),
+                    DEFAULT_STS_JOB_POOL_NUMBER));
+        numberOfJobs = Math.min(numberOfJobs, MAX_USER_STS_JOB_POOL_NUMBER);
+        break;
+      case DATASET:
+        numberOfJobs =
+            Integer.parseInt(
+                SdrsApplication.getAppConfigProperty(
+                    "jobPoolOnDemand." + RetentionRuleType.DATASET.toString().toLowerCase(),
+                    DEFAULT_STS_JOB_POOL_NUMBER));
+        numberOfJobs = Math.min(numberOfJobs, MAX_DATASET_STS_JOB_POOL_NUMBER);
+        break;
+      case DEFAULT:
+        numberOfJobs = 1;
+        timeOfDay = LocalTime.of(23, 59, 59);
+        break;
+      default:
+        // shouldn't happen
+        return result;
+    }
+
+    result.add(StsUtil.convertToTimeOfDay(timeOfDay));
+    // incremental in minutes within 24 hours.
+    int increment = 24 * 60 / numberOfJobs;
+    for (int i = 1; i < numberOfJobs; i++) {
+      timeOfDay = timeOfDay.plusMinutes(increment);
+      result.add(StsUtil.convertToTimeOfDay(timeOfDay));
+    }
+
+    return result;
+  }
+
+  private List<TransferJob> createJobPool(
+      String projectId,
+      String sourceBucket,
+      String destinationBucket,
+      RetentionRuleType retentionRuleType) {
+
+    List<TransferJob> transferJobList = new ArrayList<>();
+    List<TimeOfDay> timeOfDayList = generateScheduleTimeOfDay(retentionRuleType);
+    for (int i = 0; i < timeOfDayList.size(); i++) {
+      String description =
+          String.format(
+              "Pooled STS Job %d  %s %s",
+              i, retentionRuleType.toString(), StsUtil.timeOfDayToString(timeOfDayList.get(i)));
+
+      TransferSpec transferSpec =
+          new TransferSpec()
+              .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
+              .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
+              .setTransferOptions(
+                  new TransferOptions()
+                      .setDeleteObjectsFromSourceAfterTransfer(true)
+                      .setOverwriteObjectsAlreadyExistingInSink(true));
+
+      Schedule schedule =
+          new Schedule()
+              .setScheduleStartDate(StsUtil.convertToDate(LocalDate.now().minusDays(1)))
+              .setStartTimeOfDay(timeOfDayList.get(i));
+
+      TransferJob transferJob =
+          new TransferJob()
+              .setProjectId(projectId)
+              .setDescription(description)
+              .setTransferSpec(transferSpec)
+              .setSchedule(schedule)
+              .setStatus(StsUtil.STS_DISABLED_STRING);
+
+      try {
+        logger.info(
+            String.format(
+                "Creating %s STS job for job pool: %s ",
+                retentionRuleType.toString(), transferJob.toPrettyString()));
+        transferJobList.add(client.transferJobs().create(transferJob).execute());
+      } catch (IOException e) {
+        logger.error(
+            String.format(
+                "Failed to create %s STS job for %s/%s",
+                retentionRuleType.toString(), projectId, sourceBucket),
+            e);
+        return null;
+      }
+    }
+    return transferJobList;
+  }
+
+  private PooledStsJob saveJobPoolAndGetNextJob(
+      List<TransferJob> transferJobList, String currentTime, RetentionRuleType retentionRuleType) {
+    PooledStsJob nextAvailableJob = null;
+
+    LocalTime targetStartTimeOfDay =
+        LocalTime.parse(currentTime, DateTimeFormatter.ofPattern("HH:mm:ss"))
+            .plusMinutes(DEFAULT_STS_JOB_POOL_TIMEOFDAY_BUFFER);
+
+    if (transferJobList != null && !transferJobList.isEmpty()) {
+      List<PooledStsJob> pooledStsJobList = new ArrayList<>();
+      // the list is sorted by timeOfDay in asc order
+      for (int i = 0; i < transferJobList.size(); i++) {
+        TransferJob transferJob = transferJobList.get(i);
+        TimeOfDay timeOfDay = transferJob.getSchedule().getStartTimeOfDay();
+        PooledStsJob pooledStsJob = new PooledStsJob();
+        pooledStsJob.setName(transferJob.getName());
+        pooledStsJob.setProjectId(transferJob.getProjectId());
+        pooledStsJob.setType(retentionRuleType.toDatabaseRepresentation());
+        pooledStsJob.setSchedule(StsUtil.timeOfDayToString(timeOfDay));
+        pooledStsJob.setSourceBucket(
+            transferJob.getTransferSpec().getGcsDataSource().getBucketName());
+        pooledStsJob.setSourceProject(transferJob.getProjectId());
+        pooledStsJob.setStatus(transferJob.getStatus());
+        pooledStsJob.setTargetBucket(
+            transferJob.getTransferSpec().getGcsDataSink().getBucketName());
+        pooledStsJob.setTargetProject(transferJob.getProjectId());
+
+        if (StsUtil.convertToLocalTime(timeOfDay).isAfter(targetStartTimeOfDay)
+            && nextAvailableJob == null) {
+          // we found the job at the right scheduled time of day. it won't come here
+          // after setting nextAvailableJob
+          nextAvailableJob = pooledStsJob;
+        }
+
+        /*  if (timeOfDay.compareTo(scheduledAt) > 0 && nextAvailableJob == null) {
+
+        }*/
+
+        pooledStsJobList.add(pooledStsJob);
+      }
+
+      stsJobDao.saveOrUpdateBatch(pooledStsJobList);
+      if (nextAvailableJob == null) {
+        nextAvailableJob = pooledStsJobList.get(0);
+      }
+    }
+    return nextAvailableJob;
+  }
+
+  public TransferJob findPooledJob(
       String projectId,
       String bucketName,
       @Nullable String scheduledAt,
       RetentionRuleType retentionRuleType)
       throws IOException {
-    if (scheduledAt != null && scheduledAt.startsWith("23")) {
-      // set scheduledAt to a fake string that's smaller than 00:00:00 if the hour is 23
-      scheduledAt = LESS_THAN_ZERO_HOUR;
-    }
     PooledStsJob pooledJob =
         stsJobDao.getJob(
             bucketName, projectId, scheduledAt, retentionRuleType.toDatabaseRepresentation());
+    boolean isOnDemandPoolCreation =
+        SdrsApplication.getAppConfigProperty(
+                    "sts.jobPoolOnDemand." + retentionRuleType.toString().toLowerCase())
+                != null
+            ? true
+            : false;
+    if (pooledJob == null && isOnDemandPoolCreation) {
+      // create STS job pool
+      String destinationBucket =
+          buildDestinationBucketName(
+              bucketName, shadowBucketExtension, isShadowBucketExtensionPrefix);
+      List<TransferJob> transferJobList =
+          createJobPool(projectId, bucketName, destinationBucket, retentionRuleType);
+      pooledJob = saveJobPoolAndGetNextJob(transferJobList, scheduledAt, retentionRuleType);
+    }
     String jobName = null;
     if (pooledJob != null) {
       jobName = pooledJob.getName();
-    } else {
-      logger.error(
+
+      logger.info(
           String.format(
-              "No pooled STS job found to run at %s for %s/%s",
-              scheduledAt, projectId, bucketName));
+              "STS job found from the pool to run at %s for %s/%s",
+              pooledJob.getSchedule(), projectId, bucketName));
+    } else {
+      logger.error(String.format("No pooled STS job found for %s/%s", projectId, bucketName));
       return null;
     }
 
@@ -722,20 +895,8 @@ public class StsRuleExecutor implements RuleExecutor {
       return false;
     }
 
-    int hours =
-        pooledJob.getSchedule().getStartTimeOfDay().getHours() != null
-            ? pooledJob.getSchedule().getStartTimeOfDay().getHours()
-            : 0;
-    int minutes =
-        pooledJob.getSchedule().getStartTimeOfDay().getMinutes() != null
-            ? pooledJob.getSchedule().getStartTimeOfDay().getMinutes()
-            : 0;
-    int seconds =
-        pooledJob.getSchedule().getStartTimeOfDay().getSeconds() != null
-            ? pooledJob.getSchedule().getStartTimeOfDay().getSeconds()
-            : 0;
-
-    return scheduledAt.equals(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+    return scheduledAt.equals(
+        StsUtil.timeOfDayToString(pooledJob.getSchedule().getStartTimeOfDay()));
   }
 
   public static String convertPrefixToString(List<String> prefixes) {
