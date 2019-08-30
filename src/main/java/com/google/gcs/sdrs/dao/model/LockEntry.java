@@ -48,4 +48,9 @@ public class LockEntry {
   public void setDurationOfLockInSeconds(int durationOfLockInSeconds) {
     this.durationOfLockInSeconds = durationOfLockInSeconds;
   }
+
+  public Timestamp getLockCreationTime() {
+    return lockCreationTime;
+  }
+
 }
