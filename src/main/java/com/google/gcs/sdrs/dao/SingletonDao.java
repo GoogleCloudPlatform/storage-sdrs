@@ -17,6 +17,8 @@
 
 package com.google.gcs.sdrs.dao;
 
+import com.google.gcs.sdrs.dao.impl.DMQueueTableDaoImpl;
+import com.google.gcs.sdrs.dao.impl.LockDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionJobDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionJobValidationDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
@@ -29,6 +31,8 @@ public class SingletonDao {
   private static RetentionJobDao retentionJobDao;
   private static RetentionJobValidationDao retentionJobValidationDao;
   private static PooledStsJobDao pooledStsJobDao;
+  private static DMQueueTableDao dmQueueDao;
+  private static LockDao lockDao;
 
   public static synchronized RetentionRuleDao getRetentionRuleDao() {
     if (retentionRuleDao == null) {
@@ -56,5 +60,19 @@ public class SingletonDao {
       retentionJobValidationDao = new RetentionJobValidationDaoImpl();
     }
     return retentionJobValidationDao;
+  }
+
+  public static synchronized DMQueueTableDao getDMQueueDao(){
+    if(dmQueueDao == null){
+      dmQueueDao = new DMQueueTableDaoImpl();
+    }
+    return dmQueueDao;
+  }
+
+  public static synchronized LockDao getLockDao(){
+    if(lockDao == null){
+      lockDao = new LockDaoImpl();
+    }
+    return lockDao;
   }
 }
