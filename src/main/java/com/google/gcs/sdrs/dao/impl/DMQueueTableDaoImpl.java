@@ -28,41 +28,7 @@ public class DMQueueTableDaoImpl extends GenericDao<DMQueueTableEntry, Integer> 
   public DMQueueTableDaoImpl() {
     super(DMQueueTableEntry.class);
   }
-
-  /**
-   * Dont worry about locking table here, we will have locking table to handle update transaction status. Insert are not worried
-   *
-   * @return
-   */
-
-  public List<DMQueueTableEntry> getAvailableQueueForProcessingSTSJobs() {
-    Session session = openSession();
-    CriteriaBuilder builder = session.getCriteriaBuilder();
-    Transaction transaction = session.beginTransaction();
-
-    CriteriaQuery<DMQueueTableEntry> query = builder.createQuery(DMQueueTableEntry.class);
-    Root<DMQueueTableEntry> root = query.from(DMQueueTableEntry.class);
-
-
-    Predicate ready_status = (builder.equal(root.get(""), DMQUEUE_STATUS_READY));
-    Predicate ready_retry_status = (builder.equal(root.get(""), DMQUEUE_STATUS_READY_RETRY));
-    Predicate ready_or_ready_retry = builder.or(ready_status, ready_retry_status);
-
-    List<Order> orderList = new ArrayList();
-    orderList.add(builder.desc(root.get("priority")));
-    orderList.add(builder.desc(root.get("numberOfRetry")));
-    orderList.add(builder.asc(root.get("createdAt")));
-
-    query.where(ready_or_ready_retry);
-    query.orderBy(orderList);
-
-
-    List<DMQueueTableEntry> results = session.createQuery(query).getResultList();
-
-    closeSessionWithTransaction(session, transaction);
-
-    return results;
-  }
+  
 
 
   @Override
