@@ -1,8 +1,7 @@
 package com.google.gcs.sdrs.dao;
 
-import java.util.List;
-
 import com.google.gcs.sdrs.dao.model.DMQueueTableEntry;
+import java.util.List;
 
 public interface DMQueueTableDao extends Dao<DMQueueTableEntry, Integer> {
 
@@ -12,5 +11,5 @@ public interface DMQueueTableDao extends Dao<DMQueueTableEntry, Integer> {
   List<DMQueueTableEntry> getQueueEntryForSTSLock();
 
 
-
+  getAvailableQueueForProcessingSTSJobs
 }
