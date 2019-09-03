@@ -27,6 +27,7 @@ public class LockDaoImpl extends GenericDao<LockEntry, Integer> implements LockD
   }
 
   public Session getLockSession(){
+
     return openSession();
   }
 
@@ -46,13 +47,10 @@ public class LockDaoImpl extends GenericDao<LockEntry, Integer> implements LockD
     if(null == verificationKey  || "".equals(verificationKey)){
       return false;
     }
-    boolean canIObtain = false;
-
     //query if the table is empty or not, if it is empty then you insert new verification key
     //then set canIObtaion to true;
-
     try {
-      lockSession.beginTransaction();
+
       lockSession.buildLockRequest(new LockOptions(LockMode.WRITE)).setTimeOut(Session.LockRequest.PESSIMISTIC_NO_WAIT);
 
       CriteriaBuilder builder = lockSession.getCriteriaBuilder();
