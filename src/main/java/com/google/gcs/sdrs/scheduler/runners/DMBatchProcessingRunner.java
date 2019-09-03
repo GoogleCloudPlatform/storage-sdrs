@@ -77,7 +77,8 @@ public class DMBatchProcessingRunner implements Runnable {
         }
         // we need to release lock by executing releaseDock inside lockDao, since they need to perform
         // clean up to lock table entry. if acquired lock fail, then this code will not be executed.
-        // hence no
+        // we also need to commit the transaction.
+        currentLockSession.getTransaction().commit();
         lockDao.releaseLock(token.toString(), currentLockSession);
 
       }
