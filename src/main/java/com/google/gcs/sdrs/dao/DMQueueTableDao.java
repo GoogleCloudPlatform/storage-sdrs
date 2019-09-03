@@ -10,6 +10,4 @@ public interface DMQueueTableDao extends Dao<DMQueueTableEntry, Integer> {
 
   List<DMQueueTableEntry> getQueueEntryForSTSLock();
 
-
-  getAvailableQueueForProcessingSTSJobs
 }
