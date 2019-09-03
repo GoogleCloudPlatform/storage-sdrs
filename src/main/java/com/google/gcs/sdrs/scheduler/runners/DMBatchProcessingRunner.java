@@ -18,6 +18,8 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.gcs.sdrs.dao.util.DatabaseConstants.DMQUEUE_STATUS_STS_EXECUTION;
+
 //TODO // this run the actual processing of DM   (2)
 public class DMBatchProcessingRunner implements Runnable {
 
@@ -25,7 +27,7 @@ public class DMBatchProcessingRunner implements Runnable {
   private DMQueueTableDao queueDao = SingletonDao.getDMQueueDao();
   private LockDao lockDao = SingletonDao.getLockDao();
   private UUID token;
-  private Session currentSession  =  lockDao.getLockSession();
+  private Session currentLockSession =  lockDao.getLockSession();
 
   @Override
   public void run() {
@@ -33,13 +35,13 @@ public class DMBatchProcessingRunner implements Runnable {
     try {
       token = generateType5UUID("testing", "sdrsRunner");
 
-      if(lockDao.obtainLock(token.toString(), currentSession)){
+      if(lockDao.obtainLock(token.toString(), currentLockSession)){
+        //getting sorted list of all available queue for processing
         List<DMQueueTableEntry> allAvailableQueueForProcessingSTSJobs = queueDao.getAllAvailableQueueForProcessingSTSJobs();
-
+        //stream maintain order processing, so we still have order based on the sorted list above.
         Map<String, List<DMQueueTableEntry>> groupedRawResult = allAvailableQueueForProcessingSTSJobs.stream().collect(Collectors.groupingBy(DMQueueTableEntry::getDataStorageRoot));
 
-        //Map<String, List<DMQueueTableEntry>> groupedOneThousandLessResult = ;
-
+        //iterate thru every bucket
         Iterator it = groupedRawResult.entrySet().iterator();
         while (it.hasNext()) {
           Map.Entry pair = (Map.Entry)it.next();
@@ -50,24 +52,37 @@ public class DMBatchProcessingRunner implements Runnable {
 
             //called sts job
             //change status of this list to STSExecuting
+            changeStatusToSTSExecuting(entriesPerBucket);
+
           }else{
             // bucket size is > 1000
+            // change status of this listing, if we are doing nothing for greater than 1000 (to be executed next time this thread active)
+            // then we dont update the status of this listing
+
+            //called sts job for the first 1000
+            //change status of the first 100 to STSExecuting.
+
+            List<DMQueueTableEntry> first1k = entriesPerBucket.subList(0,1000);
+            //call sts job
+            changeStatusToSTSExecuting(first1k);
 
           }
 
         }
 
-
-
-        //update list<DMQueueTableEntry> STATUS to PROCESSING
-
-
-        lockDao.releaseLock(token.toString(), currentSession);
+        //lockDao.releaseLock(token.toString(), currentLockSession); no need here, we have finally
 
       }
 
     }catch(UnsupportedEncodingException ue){
-      //throw error
+      // put error on logstack
+    }catch(Exception e){
+      // put error on logstack
+    }
+    finally{
+      // guarante execution
+      lockDao.releaseLock(token.toString(), currentLockSession);
+      currentLockSession.close();
     }
 
     //else do nothing since we dont obtain the lock (it means some other system is running the DMBatch Processing Runner)
@@ -76,26 +91,14 @@ public class DMBatchProcessingRunner implements Runnable {
 
 
   }
-     //this class is a scheduller, i can wrap the logic in sperate class but do that after I finish and verify things.
-     //KISS PRINCIPLE!!!
-     //we can wrap this logic into its own class...
-     //Perfrom Lock ( call Lock so that STSAPI call only can be executed one at a time
 
-        // get candidates from the queue
-        // filtered = filter results for every bucket keep maximum 1000
-        //
-        // for every bucket filtered, call for execute STS Api wrapper
-        // if successful change those 1000 prefix in the bucket to have,
-        //           processing sts status pending run do it one at a time
-        //
-        //
+  private void changeStatusToSTSExecuting(List<DMQueueTableEntry> dMQueueThatIsInSTSProcessing){
+    for (DMQueueTableEntry dmqueue : dMQueueThatIsInSTSProcessing){
+      dmqueue.setStatus(DMQUEUE_STATUS_STS_EXECUTION);
+      queueDao.save(dmqueue);
+    }
 
-
-
-
-    // Unlock
-
-
+  }
   /**
    * Type 5 UUID Generation
    *
