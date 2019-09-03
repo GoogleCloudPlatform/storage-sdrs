@@ -1,5 +1,8 @@
 package com.google.gcs.sdrs.scheduler.runners;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 import java.io.UnsupportedEncodingException;
@@ -26,14 +29,17 @@ public class DMBatchProcessingRunner implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(DMBatchProcessingRunner.class);
   private DMQueueTableDao queueDao = SingletonDao.getDMQueueDao();
   private LockDao lockDao = SingletonDao.getLockDao();
-  private UUID token;
+  private String token;
   private Session currentLockSession =  lockDao.getLockSession();
 
+  public DMBatchProcessingRunner(){
+    super();
+  }
   @Override
   public void run() {
     logger.info("Making request to execution service endpoint.");
     try {
-      token = generateType5UUID("testing", "sdrsRunner");
+      token = getUniqueToken("sdrsRunner");
 
       if(lockDao.obtainLock(token.toString(), currentLockSession)){
         //getting sorted list of all available queue for processing
@@ -74,8 +80,6 @@ public class DMBatchProcessingRunner implements Runnable {
 
       }
 
-    }catch(UnsupportedEncodingException ue){
-      // put error on logstack
     }catch(Exception e){
       // put error on logstack
     }
@@ -99,45 +103,22 @@ public class DMBatchProcessingRunner implements Runnable {
     }
 
   }
-  /**
-   * Type 5 UUID Generation
-   *
-   * @throws UnsupportedEncodingException
-   */
-  private static UUID generateType5UUID(String namespace, String name) throws UnsupportedEncodingException {
-    String source = namespace + name;
-    byte[] bytes = source.getBytes("UTF-8");
-    UUID uuid = type5UUIDFromBytes(bytes);
-    return uuid;
-  }
 
-  private static UUID type5UUIDFromBytes(byte[] name) {
-    MessageDigest md;
+  private String getUniqueToken(String seed){
+    String uniqueToken = seed + "-";
     try {
-      md = MessageDigest.getInstance("SHA-1");
-    } catch (NoSuchAlgorithmException nsae) {
-      throw new InternalError("MD5 not supported", nsae);
+      InetAddress inetAddress = InetAddress.getLocalHost();               // can throw UnknownHostEception
+      uniqueToken = uniqueToken + inetAddress.getAddress().toString()+"-";
+      uniqueToken = uniqueToken + inetAddress.getHostName().toString()+"-";
+      uniqueToken = uniqueToken + GregorianCalendar.getInstance().getTimeInMillis();
+    } catch (UnknownHostException e) {
+      UUID uuid = UUID.randomUUID();
+      uniqueToken = uniqueToken + uuid.toString()+ "-";
+      uniqueToken = uniqueToken + GregorianCalendar.getInstance().getTimeInMillis();
     }
-    byte[] bytes = md.digest(name);
-    bytes[6] &= 0x0f; /* clear version        */
-    bytes[6] |= 0x50; /* set to version 5     */
-    bytes[8] &= 0x3f; /* clear variant        */
-    bytes[8] |= 0x80; /* set to IETF variant  */
-    return constructType5UUID(bytes);
+    return uniqueToken;
   }
 
-  private static UUID constructType5UUID(byte[] data) {
-    long msb = 0;
-    long lsb = 0;
-    assert data.length == 16 : "data must be 16 bytes in length";
-
-    for (int i = 0; i < 8; i++)
-      msb = (msb << 8) | (data[i] & 0xff);
-
-    for (int i = 8; i < 16; i++)
-      lsb = (lsb << 8) | (data[i] & 0xff);
-    return new UUID(msb, lsb);
-  }
 }
 
 
