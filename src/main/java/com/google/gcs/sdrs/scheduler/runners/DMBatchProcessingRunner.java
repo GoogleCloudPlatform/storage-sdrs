@@ -75,21 +75,24 @@ public class DMBatchProcessingRunner implements Runnable {
           }
 
         }
-
-        //lockDao.releaseLock(token.toString(), currentLockSession); no need here, we have finally
+        // we need to release lock by executing releaseDock inside lockDao, since they need to perform
+        // clean up to lock table entry. if acquired lock fail, then this code will not be executed.
+        // hence no
+        lockDao.releaseLock(token.toString(), currentLockSession);
 
       }
 
     }catch(Exception e){
       // put error on logstack
+      //else do nothing since we dont obtain the lock (it means some other system is running the DMBatch Processing Runner) lockDao.releaseLock(token.toString(), currentLockSession);
+
+
     }
     finally{
-      // guarante execution
-      lockDao.releaseLock(token.toString(), currentLockSession);
+      // guarante execution even when the lock are not obtain, running the close session is necessary even when exception occured
+      // since there are no achive-able goal of ke
       currentLockSession.close();
     }
-
-    //else do nothing since we dont obtain the lock (it means some other system is running the DMBatch Processing Runner)
 
 
 
