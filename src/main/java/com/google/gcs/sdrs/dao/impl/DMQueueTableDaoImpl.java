@@ -28,7 +28,7 @@ public class DMQueueTableDaoImpl extends GenericDao<DMQueueTableEntry, Integer> 
   public DMQueueTableDaoImpl() {
     super(DMQueueTableEntry.class);
   }
-  
+
 
 
   @Override
