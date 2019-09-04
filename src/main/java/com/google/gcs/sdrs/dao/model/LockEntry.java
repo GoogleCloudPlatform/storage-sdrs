@@ -22,6 +22,10 @@ public class LockEntry {
   @Column(name = "lockDuration",nullable = false)
   private int durationOfLockInSeconds;
 
+  public void setLockCreationTime(Timestamp lockCreationTime) {
+    this.lockCreationTime = lockCreationTime;
+  }
+
   @Column(name = "created_at",nullable = false)
   private Timestamp lockCreationTime;
 
