@@ -1,8 +1,10 @@
 package com.google.gcs.sdrs.dao;
 
+import com.google.gcs.sdrs.dao.model.LockEntry;
+
 import org.hibernate.Session;
 
-public interface LockDao {
+public interface LockDao  extends Dao<LockEntry, Integer>{
 
   public Session getLockSession();
 
