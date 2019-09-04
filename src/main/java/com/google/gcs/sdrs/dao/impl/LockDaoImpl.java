@@ -3,6 +3,12 @@ package com.google.gcs.sdrs.dao.impl;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.sql.Timestamp;
+import java.util.concurrent.TimeUnit;
+
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -10,7 +16,6 @@ import javax.persistence.criteria.Root;
 import com.google.gcs.sdrs.dao.LockDao;
 import com.google.gcs.sdrs.dao.model.LockEntry;
 
-import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.PessimisticLockException;
@@ -50,18 +55,34 @@ public class LockDaoImpl extends GenericDao<LockEntry, Integer> implements LockD
     //query if the table is empty or not, if it is empty then you insert new verification key
     //then set canIObtaion to true;
     try {
+      /*
+      em.getTransaction().begin();
+      LockEntry le = em.find(LockEntry.class, 1L, LockModeType.PESSIMISTIC_WRITE);
+      try {//sleep for long enough to block read thread lock for long tim
+        TimeUnit.MINUTES.sleep(1);
+      }catch(InterruptedException e){
+        e.printStackTrace();
+      }
+      return true;
 
-      lockSession.buildLockRequest(new LockOptions(LockMode.WRITE)).setTimeOut(Session.LockRequest.PESSIMISTIC_NO_WAIT);
+       */
+
 
       CriteriaBuilder builder = lockSession.getCriteriaBuilder();
       Transaction transaction = lockSession.beginTransaction();
 
-      CriteriaQuery<LockEntry> query = builder.createQuery(LockEntry.class);
+      //lockSession.buildLockRequest(new LockOptions(LockMode.UPGRADE_NOWAIT)).setTimeOut(Session.LockRequest.PESSIMISTIC_NO_WAIT);
 
-      Root<LockEntry> root = query.from(LockEntry.class);
-      Query<LockEntry> queryResults = lockSession.createQuery(query);
+      LockEntry le = lockSession.get(LockEntry.class, 1 , LockMode.PESSIMISTIC_WRITE);
 
-      List<LockEntry> list = queryResults.getResultList();
+
+      le.setLockIdName(verificationKey);
+      le.setLockCreationTime(new Timestamp(System.currentTimeMillis()));
+      //lockSession.save(le);
+
+      return true;
+
+/*
       if(list.isEmpty()){
         // insert new LockEntry to the DistributedLockEntry
         insertNewLockKey(lockSession, verificationKey);
@@ -95,6 +116,7 @@ public class LockDaoImpl extends GenericDao<LockEntry, Integer> implements LockD
           }
 
       }
+*/
     } catch(PessimisticLockException ple) {
 
       // failure to acquire lock means hibernate will throw exception
@@ -116,11 +138,13 @@ public class LockDaoImpl extends GenericDao<LockEntry, Integer> implements LockD
     LockEntry currentEntry = new LockEntry();
     currentEntry.setLockIdName(verificationKey);
     currentEntry.setDurationOfLockInSeconds(600);
+    currentEntry.setLockCreationTime(new Timestamp(System.currentTimeMillis()));
     lockSession.save(currentEntry);
   }
 
   public boolean releaseLock(String verificationKey ,Session lockSession){
     if(null == verificationKey  || "".equals(verificationKey)){
+      System.out.println("Verification key is null");
       return false;
     }else{
         // call query make sure the verification key is the same as the one in db
@@ -130,32 +154,40 @@ public class LockDaoImpl extends GenericDao<LockEntry, Integer> implements LockD
         // find out if the lockidverification match if it is match then we delete that entry. then close the session we are done our work
         // if somehow the program crash, it will release the session per JDBC and the lock table will be unlocked. Entries will be roll back.
 
-
+      // it doesnt matter we only want to unlock
         CriteriaBuilder builder = lockSession.getCriteriaBuilder();
-
 
         CriteriaQuery<LockEntry> query = builder.createQuery(LockEntry.class);
         Root<LockEntry> root = query.from(LockEntry.class);
+        System.out.println("token on release "+ verificationKey );
         Predicate verKey = (builder.equal(root.get("LockIdVerificationToken"), verificationKey));
         query.select(root).where(verKey);
         Query<LockEntry> queryResults = lockSession.createQuery(query);
 
         List<LockEntry> list = queryResults.getResultList();
-
+        /*
         if(list.size() >= 1 ) {
           // only successfull finding got deleted back.
-          lockSession.delete(list);
+          LockEntry le = list.get(0);
+          le.setLockCreationTime(null);
+          le.setLockIdName(null);
+          //lockSession.save(le);
+          //lockSession.delete(list.get(0));
+          System.out.println("successfully reseting the old lock entry");
           // do not commit transaction since we are not the one that issuing the session.
           // Let the creator of the session be the one that responsible
           // to close it. All we have to do here is to return the status of the release
           return true;
         }
-
+*/
+        //System.out.println("Did not find any match for lock id token!");
         // do not commit transaction since we are not sure whether lockSession are valid one,
         // or we are not the one that issuing the session. let the creator of the session passed here
         // be the one that responsible for closing the session.
         // Just return false, since we got zero result from the tokenid verification.
-        return false;
+        return true;
+
+
     }
 
   }
