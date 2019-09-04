@@ -38,15 +38,18 @@ public class DMBatchProcessingRunner implements Runnable {
   @Override
   public void run() {
     logger.info("Making request to execution service endpoint.");
+    System.out.println("Running Thread");
     try {
       token = getUniqueToken("sdrsRunner");
-
+      System.out.println("Token is: " + token);
       if(lockDao.obtainLock(token.toString(), currentLockSession)){
+        System.out.println("Lock Acquired. Thread name = " + Thread.currentThread().getName());
         //getting sorted list of all available queue for processing
         List<DMQueueTableEntry> allAvailableQueueForProcessingSTSJobs = queueDao.getAllAvailableQueueForProcessingSTSJobs();
         //stream maintain order processing, so we still have order based on the sorted list above.
         Map<String, List<DMQueueTableEntry>> groupedRawResult = allAvailableQueueForProcessingSTSJobs.stream().collect(Collectors.groupingBy(DMQueueTableEntry::getDataStorageRoot));
 
+        Thread.sleep(120000l);
         //iterate thru every bucket
         Iterator it = groupedRawResult.entrySet().iterator();
         while (it.hasNext()) {
@@ -72,18 +75,26 @@ public class DMBatchProcessingRunner implements Runnable {
             //call sts job
             changeStatusToSTSExecuting(first1k);
 
+            //put the rest logic here!
+
           }
 
         }
         // we need to release lock by executing releaseDock inside lockDao, since they need to perform
         // clean up to lock table entry. if acquired lock fail, then this code will not be executed.
-        // we also need to commit the transaction.
-        currentLockSession.getTransaction().commit();
-        lockDao.releaseLock(token.toString(), currentLockSession);
+        // we also need to commit the transaction after releasing the lock.
 
+        lockDao.releaseLock(token.toString(), currentLockSession);
+        currentLockSession.getTransaction().commit();
+      }else{
+        // we can delete the else logic here. This is for debuging and testing purposes
+        System.out.println("Lock Failed To Acquire other system are using it!");
       }
 
     }catch(Exception e){
+      e.printStackTrace();
+
+      System.out.println("Weird exception caught");
       // put error on logstack
       //else do nothing since we dont obtain the lock (it means some other system is running the DMBatch Processing Runner) lockDao.releaseLock(token.toString(), currentLockSession);
 
@@ -91,7 +102,9 @@ public class DMBatchProcessingRunner implements Runnable {
     }
     finally{
       // guarante execution even when the lock are not obtain, running the close session is necessary even when exception occured
-      // since there are no achive-able goal of ke
+      // since there are no achive-able goal of the current lock session in case exception, we need to close the session anyway. Hence giving
+
+      System.out.println("Closing Lock Session!");
       currentLockSession.close();
     }
 
@@ -109,6 +122,7 @@ public class DMBatchProcessingRunner implements Runnable {
   }
 
   private String getUniqueToken(String seed){
+    System.out.println("Seed = " + seed);
     String uniqueToken = seed + "-";
     try {
       InetAddress inetAddress = InetAddress.getLocalHost();               // can throw UnknownHostEception
@@ -121,6 +135,16 @@ public class DMBatchProcessingRunner implements Runnable {
       uniqueToken = uniqueToken + GregorianCalendar.getInstance().getTimeInMillis();
     }
     return uniqueToken;
+  }
+
+
+  public static void main(String[] args){
+    System.out.println("-------------------------------------Xaaaaaa------------------------------------------");
+    Runnable runnable1 = new DMBatchProcessingRunner();
+    runnable1.run();
+    //Runnable runnable2 = new DMBatchProcessingRunner();
+    //runnable2.run();
+
   }
 
 }
