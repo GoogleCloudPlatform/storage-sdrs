@@ -9,6 +9,10 @@ DROP TABLE IF EXISTS retention_job;
 DROP TABLE IF EXISTS retention_rule_history;
 DROP TABLE IF EXISTS retention_rule;
 DROP TABLE IF EXISTS pooled_sts_job;
+DROP TABLE IF EXISTS dm_queue;
+DROP TABLE IF EXISTS distributed_lock;
+
+
 
 -- Table Create Scripts
 -- ----------------------------------------------------------
@@ -102,7 +106,7 @@ CREATE TABLE `pooled_sts_job` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `DMQueueTable` (
+CREATE TABLE `dm_queue` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -116,15 +120,13 @@ CREATE TABLE `DMQueueTable` (
   FOREIGN KEY (retention_job_id) REFERENCES retention_job(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `DistributedLockEntry` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `lockIdVerificationToken` varchar(256) NOT NULL,
-  `lockDuration` int(10) NOT NULL,
+CREATE TABLE `distributed_lock` (
+  `id` varchar(128) NOT NULL,
+  `lock_token` varchar(256) NOT NULL,
+  `lock_duration` int(10) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
 
 
 -- TRIGGER SCRIPTS

@@ -16,18 +16,12 @@
  */
 package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.dao.model.DistributedLock;
-import org.hibernate.Session;
+import com.google.gcs.sdrs.dao.model.DMQueue;
+import java.util.List;
 
-public interface LockDao extends Dao<DistributedLock, Integer> {
+public interface DMQueueDao extends Dao<DMQueue, Integer> {
 
-  Session getLockSession();
+  List<DMQueue> getAllAvailableQueueForProcessingSTSJobs();
 
-  void closeLockSession(Session lockSession);
-
-  DistributedLock obtainLock(Session session, int timeout, String lockId);
-
-  void releaseLock(Session session, DistributedLock distributedLock);
-
-  DistributedLock initLock(String lockId);
+  List<DMQueue> getQueueEntryForSTSLock();
 }

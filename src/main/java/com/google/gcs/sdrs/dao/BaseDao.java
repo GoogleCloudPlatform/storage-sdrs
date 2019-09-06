@@ -17,8 +17,8 @@
 
 package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.dao.model.DMQueueTableEntry;
-import com.google.gcs.sdrs.dao.model.LockEntry;
+import com.google.gcs.sdrs.dao.model.DMQueue;
+import com.google.gcs.sdrs.dao.model.DistributedLock;
 import com.google.gcs.sdrs.dao.model.PooledStsJob;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
@@ -100,8 +100,8 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
                 .addAnnotatedClass(RetentionJob.class)
                 .addAnnotatedClass(RetentionJobValidation.class)
                 .addAnnotatedClass(PooledStsJob.class)
-                .addAnnotatedClass(DMQueueTableEntry.class)
-                .addAnnotatedClass(LockEntry.class)
+                .addAnnotatedClass(DMQueue.class)
+                .addAnnotatedClass(DistributedLock.class)
                 .getMetadataBuilder()
                 .build();
 
