@@ -1,61 +1,86 @@
+/*
+ * Copyright 2019 Google LLC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the “License”);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
+ *
+ * Any software provided by Google hereunder is distributed “AS IS”,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ *
+ */
 package com.google.gcs.sdrs.scheduler.runners;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.GregorianCalendar;
-import java.util.Iterator;
-import java.util.List;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import static com.google.gcs.sdrs.dao.util.DatabaseConstants.DMQUEUE_STATUS_STS_EXECUTION;
 
-import com.google.gcs.sdrs.dao.DMQueueTableDao;
+import com.google.gcs.sdrs.SdrsApplication;
+import com.google.gcs.sdrs.dao.DMQueueDao;
 import com.google.gcs.sdrs.dao.LockDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
-import com.google.gcs.sdrs.dao.model.DMQueueTableEntry;
-
+import com.google.gcs.sdrs.dao.model.DMQueue;
+import com.google.gcs.sdrs.dao.model.DistributedLock;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.gcs.sdrs.dao.util.DatabaseConstants.DMQUEUE_STATUS_STS_EXECUTION;
-
-//TODO // this run the actual processing of DM   (2)
 public class DMBatchProcessingRunner implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(DMBatchProcessingRunner.class);
-  private DMQueueTableDao queueDao = SingletonDao.getDMQueueDao();
+  private DMQueueDao queueDao = SingletonDao.getDMQueueDao();
   private LockDao lockDao = SingletonDao.getLockDao();
-  private String token;
-  private Session currentLockSession =  lockDao.getLockSession();
 
-  public DMBatchProcessingRunner(){
+  public static final int DEFAULT_DM_LOCK_TIMEOUT = 60000; // one minute by default
+  public static final int DM_LOCK_TIMEOUT =
+      Integer.valueOf(
+          SdrsApplication.getAppConfigProperty(
+              "lock.dm.timeout", String.valueOf(DEFAULT_DM_LOCK_TIMEOUT)));
+  public static final String DEFAULT_DM_LOCK_ID = "dm-batch";
+  public static final String DM_LOCK_ID =
+      SdrsApplication.getAppConfigProperty("lock.dm.id", DEFAULT_DM_LOCK_ID);
+
+  public DMBatchProcessingRunner() {
     super();
   }
+
   @Override
   public void run() {
-    logger.info("Making request to execution service endpoint.");
-    System.out.println("Running Thread");
+    Session currentLockSession = lockDao.getLockSession();
     try {
-      token = getUniqueToken("sdrsRunner");
-      System.out.println("Token is: " + token);
-      if(lockDao.obtainLock(token.toString(), currentLockSession)){
-        System.out.println("Lock Acquired. Thread name = " + Thread.currentThread().getName());
-        //getting sorted list of all available queue for processing
-        List<DMQueueTableEntry> allAvailableQueueForProcessingSTSJobs = queueDao.getAllAvailableQueueForProcessingSTSJobs();
-        //stream maintain order processing, so we still have order based on the sorted list above.
-        Map<String, List<DMQueueTableEntry>> groupedRawResult = allAvailableQueueForProcessingSTSJobs.stream().collect(Collectors.groupingBy(DMQueueTableEntry::getDataStorageRoot));
 
-        Thread.sleep(120000l);
-        //iterate thru every bucket
-        Iterator it = groupedRawResult.entrySet().iterator();
+      logger.info(String.format("acquiring lock at %s", Instant.now(Clock.systemUTC()).toString()));
+      DistributedLock distributedLock =
+          lockDao.obtainLock(currentLockSession, DM_LOCK_TIMEOUT, DM_LOCK_ID);
+      if (distributedLock != null) {
+        logger.info(
+            String.format(
+                "acquired lock %s at %s",
+                distributedLock.getLockToken(), Instant.now(Clock.systemUTC()).toString()));
+        // getting sorted list of all available queue for processing
+        List<DMQueue> allAvailableQueueForProcessingSTSJobs =
+            queueDao.getAllAvailableQueueForProcessingSTSJobs();
+        // stream maintain order processing, so we still have order based on the sorted list above.
+        Map<String, List<DMQueue>> groupedRawResult =
+            allAvailableQueueForProcessingSTSJobs.stream()
+                .collect(Collectors.groupingBy(DMQueue::getDataStorageRoot));
+
+        Thread.sleep(3000);
+        // iterate thru every bucket
+        /*        Iterator it = groupedRawResult.entrySet().iterator();
         while (it.hasNext()) {
           Map.Entry pair = (Map.Entry)it.next();
           String currentBucket = pair.getKey().toString();
-          List<DMQueueTableEntry> entriesPerBucket = (List<DMQueueTableEntry>)pair.getValue();
+          List<DMQueue> entriesPerBucket = (List<DMQueue>)pair.getValue();
           if(entriesPerBucket.size() <=1000){
 
 
@@ -71,7 +96,7 @@ public class DMBatchProcessingRunner implements Runnable {
             //called sts job for the first 1000
             //change status of the first 100 to STSExecuting.
 
-            List<DMQueueTableEntry> first1k = entriesPerBucket.subList(0,1000);
+            List<DMQueue> first1k = entriesPerBucket.subList(0,1000);
             //call sts job
             changeStatusToSTSExecuting(first1k);
 
@@ -79,75 +104,32 @@ public class DMBatchProcessingRunner implements Runnable {
 
           }
 
-        }
-        // we need to release lock by executing releaseDock inside lockDao, since they need to perform
+        }*/
+        // we need to release lock by executing releaseDock inside lockDao, since they need to
+        // perform
         // clean up to lock table entry. if acquired lock fail, then this code will not be executed.
         // we also need to commit the transaction after releasing the lock.
 
-        lockDao.releaseLock(token.toString(), currentLockSession);
-        currentLockSession.getTransaction().commit();
-      }else{
-        // we can delete the else logic here. This is for debuging and testing purposes
-        System.out.println("Lock Failed To Acquire other system are using it!");
+        lockDao.releaseLock(currentLockSession, distributedLock);
+        logger.info(
+            String.format(
+                "released lock %s at %s",
+                distributedLock.getLockToken(), Instant.now(Clock.systemUTC()).toString()));
+      } else {
+        logger.info("Can not acquire lock.");
       }
-
-    }catch(Exception e){
-      e.printStackTrace();
-
-      System.out.println("Weird exception caught");
-      // put error on logstack
-      //else do nothing since we dont obtain the lock (it means some other system is running the DMBatch Processing Runner) lockDao.releaseLock(token.toString(), currentLockSession);
-
-
+    } catch (Exception e) {
+      logger.error("Unknown error. ", e);
+    } finally {
+      // clean up resource
+      lockDao.closeLockSession(currentLockSession);
     }
-    finally{
-      // guarante execution even when the lock are not obtain, running the close session is necessary even when exception occured
-      // since there are no achive-able goal of the current lock session in case exception, we need to close the session anyway. Hence giving
-
-      System.out.println("Closing Lock Session!");
-      currentLockSession.close();
-    }
-
-
-
-
   }
 
-  private void changeStatusToSTSExecuting(List<DMQueueTableEntry> dMQueueThatIsInSTSProcessing){
-    for (DMQueueTableEntry dmqueue : dMQueueThatIsInSTSProcessing){
+  private void changeStatusToSTSExecuting(List<DMQueue> dMQueueThatIsInSTSProcessing) {
+    for (DMQueue dmqueue : dMQueueThatIsInSTSProcessing) {
       dmqueue.setStatus(DMQUEUE_STATUS_STS_EXECUTION);
       queueDao.save(dmqueue);
     }
-
   }
-
-  private String getUniqueToken(String seed){
-    System.out.println("Seed = " + seed);
-    String uniqueToken = seed + "-";
-    try {
-      InetAddress inetAddress = InetAddress.getLocalHost();               // can throw UnknownHostEception
-      uniqueToken = uniqueToken + inetAddress.getAddress().toString()+"-";
-      uniqueToken = uniqueToken + inetAddress.getHostName().toString()+"-";
-      uniqueToken = uniqueToken + GregorianCalendar.getInstance().getTimeInMillis();
-    } catch (UnknownHostException e) {
-      UUID uuid = UUID.randomUUID();
-      uniqueToken = uniqueToken + uuid.toString()+ "-";
-      uniqueToken = uniqueToken + GregorianCalendar.getInstance().getTimeInMillis();
-    }
-    return uniqueToken;
-  }
-
-
-  public static void main(String[] args){
-    System.out.println("-------------------------------------Xaaaaaa------------------------------------------");
-    Runnable runnable1 = new DMBatchProcessingRunner();
-    runnable1.run();
-    //Runnable runnable2 = new DMBatchProcessingRunner();
-    //runnable2.run();
-
-  }
-
 }
-
-
-

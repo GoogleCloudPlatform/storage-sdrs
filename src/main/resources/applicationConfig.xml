@@ -53,6 +53,12 @@
     <defaultStorageName>gs://global</defaultStorageName>
     <maxLookBackInDays>365</maxLookBackInDays>
   </sts>
+  <lock>
+    <dm>
+      <id>dm-batch</id>
+      <timeout>60000</timeout>
+    </dm>
+  </lock>
   <pubsub>
     <topic>${SDRS_PUBSUB_TOPIC_NAME}</topic>
   </pubsub>

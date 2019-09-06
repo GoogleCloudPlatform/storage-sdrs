@@ -17,12 +17,12 @@
 
 package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.dao.impl.DMQueueTableDaoImpl;
+import com.google.gcs.sdrs.dao.impl.DmQueueDaoImpl;
 import com.google.gcs.sdrs.dao.impl.LockDaoImpl;
+import com.google.gcs.sdrs.dao.impl.PooledStsJobDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionJobDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionJobValidationDaoImpl;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
-import com.google.gcs.sdrs.dao.impl.PooledStsJobDaoImpl;
 
 /** Class to manage singleton DAO instances. */
 public class SingletonDao {
@@ -31,7 +31,7 @@ public class SingletonDao {
   private static RetentionJobDao retentionJobDao;
   private static RetentionJobValidationDao retentionJobValidationDao;
   private static PooledStsJobDao pooledStsJobDao;
-  private static DMQueueTableDao dmQueueDao;
+  private static DMQueueDao dmQueueDao;
   private static LockDao lockDao;
 
   public static synchronized RetentionRuleDao getRetentionRuleDao() {
@@ -62,15 +62,15 @@ public class SingletonDao {
     return retentionJobValidationDao;
   }
 
-  public static synchronized DMQueueTableDao getDMQueueDao(){
-    if(dmQueueDao == null){
-      dmQueueDao = new DMQueueTableDaoImpl();
+  public static synchronized DMQueueDao getDMQueueDao() {
+    if (dmQueueDao == null) {
+      dmQueueDao = new DmQueueDaoImpl();
     }
     return dmQueueDao;
   }
 
-  public static synchronized LockDao getLockDao(){
-    if(lockDao == null){
+  public static synchronized LockDao getLockDao() {
+    if (lockDao == null) {
       lockDao = new LockDaoImpl();
     }
     return lockDao;

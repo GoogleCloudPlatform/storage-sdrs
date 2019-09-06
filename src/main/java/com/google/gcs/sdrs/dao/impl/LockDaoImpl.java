@@ -1,195 +1,167 @@
+/*
+ * Copyright 2019 Google LLC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the “License”);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
+ *
+ * Any software provided by Google hereunder is distributed “AS IS”,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ */
 package com.google.gcs.sdrs.dao.impl;
 
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.sql.Timestamp;
-import java.util.concurrent.TimeUnit;
-
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.Persistence;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import com.google.gcs.sdrs.dao.LockDao;
-import com.google.gcs.sdrs.dao.model.LockEntry;
-
+import com.google.gcs.sdrs.dao.model.DistributedLock;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.GregorianCalendar;
+import java.util.UUID;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.PessimisticLockException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.query.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static java.util.Calendar.MILLISECOND;
-
-public class LockDaoImpl extends GenericDao<LockEntry, Integer> implements LockDao {
+/** Hibernate based LockDao implementation */
+public class LockDaoImpl extends GenericDao<DistributedLock, Integer> implements LockDao {
+  private static final Logger logger = LoggerFactory.getLogger(DmQueueDaoImpl.class);
 
   public LockDaoImpl() {
-    super(LockEntry.class);
+    super(DistributedLock.class);
   }
 
-  public Session getLockSession(){
-
+  /**
+   * To use a distributed lock a user has to start a lock session, which is a Hibernate session in
+   * this implementation
+   *
+   * @return a Hibernate(JPA) session
+   */
+  public Session getLockSession() {
     return openSession();
   }
 
   /**
-   * Method to get lock for Distributed Lock Table. this method will not lock any other table. String verification must be present.
-   * It will return false if verification is null.
-   * this method are not responsible for opening and closing the session passed as parameter. Make sure to handle opening and closing the
-   * session by the cod that is calling this method
-   * to open and close lock, identical verificationKey must match.
+   * Close the lock session after the lock is released.
    *
-   * @param verificationKey
-   * @param lockSession         session object for locking Distributed Lock Table.
-   * @return                    true when you successfully obtain the lock, false when fail.
+   * @param lockSession a lock session, which is a Hibernate session in this implementation
    */
-
-  public boolean obtainLock(String verificationKey ,Session lockSession){
-    if(null == verificationKey  || "".equals(verificationKey)){
-      return false;
-    }
-    //query if the table is empty or not, if it is empty then you insert new verification key
-    //then set canIObtaion to true;
-    try {
-      /*
-      em.getTransaction().begin();
-      LockEntry le = em.find(LockEntry.class, 1L, LockModeType.PESSIMISTIC_WRITE);
-      try {//sleep for long enough to block read thread lock for long tim
-        TimeUnit.MINUTES.sleep(1);
-      }catch(InterruptedException e){
-        e.printStackTrace();
-      }
-      return true;
-
-       */
-
-
-      CriteriaBuilder builder = lockSession.getCriteriaBuilder();
-      Transaction transaction = lockSession.beginTransaction();
-
-      //lockSession.buildLockRequest(new LockOptions(LockMode.UPGRADE_NOWAIT)).setTimeOut(Session.LockRequest.PESSIMISTIC_NO_WAIT);
-
-      LockEntry le = lockSession.get(LockEntry.class, 1 , LockMode.PESSIMISTIC_WRITE);
-
-
-      le.setLockIdName(verificationKey);
-      le.setLockCreationTime(new Timestamp(System.currentTimeMillis()));
-      //lockSession.save(le);
-
-      return true;
-
-/*
-      if(list.isEmpty()){
-        // insert new LockEntry to the DistributedLockEntry
-        insertNewLockKey(lockSession, verificationKey);
-
-        return true;
-      }else{
-        // we assume that the distributedLock to be always size 0 and 1.
-        // there is entry point, in table, however we are able to obtain the lock.
-        // This means that the server crash, and mysql decide to expire the lock that was still hanging leaving the entry here.
-        // This also means that the server is having an old data that need
-
-          Timestamp creationTime = list.get(0).getLockCreationTime();
-          GregorianCalendar cTime =  new GregorianCalendar();
-          cTime.setTimeInMillis(creationTime.getTime());
-
-          GregorianCalendar threadTime = new GregorianCalendar();
-          threadTime.setTimeInMillis(threadTime.getTimeInMillis());
-
-          int expiredInMilis = list.get(0).getDurationOfLockInSeconds() * 1000;
-
-          cTime.add(MILLISECOND, expiredInMilis);
-
-          // check if the thread time is after th expiration date then we are safely delete the old thread then
-          if( threadTime.after(cTime)) {
-            delete(list.get(0));
-            // insert new entry on LockEntry
-            insertNewLockKey(lockSession, verificationKey);
-            return true;
-          }else{
-            return false;
-          }
-
-      }
-*/
-    } catch(PessimisticLockException ple) {
-
-      // failure to acquire lock means hibernate will throw exception
-      return false;
-
-    } catch(Exception e) {
-      // any other exception
-      e.printStackTrace();
-      return false;
+  public void closeLockSession(Session lockSession) {
+    if (lockSession != null && lockSession.isOpen()) {
+      closeSession(lockSession);
     }
   }
 
   /**
-   * This method required to have the same session that is being used for locking the table. We do not want to create new session since creating
-   * new session will not have the right of the lock thus not able to insert into the table.
-   * @param lockSession
+   * Get a exclusive lock. The method uses JPA PESSIMISTIC_WRITE lock, which translates into an
+   * exclusive row-level lock for the underlining database.
+   *
+   * @param lockSession a Hiberneate session.
+   * @return a DistributedLock if lock is acquired or null otherwise.
    */
-  private void insertNewLockKey(Session lockSession, String verificationKey){
-    LockEntry currentEntry = new LockEntry();
-    currentEntry.setLockIdName(verificationKey);
-    currentEntry.setDurationOfLockInSeconds(600);
-    currentEntry.setLockCreationTime(new Timestamp(System.currentTimeMillis()));
-    lockSession.save(currentEntry);
-  }
+  public DistributedLock obtainLock(Session lockSession, int timeout, String lockId) {
+    if (lockSession == null || lockId == null) {
+      return null;
+    }
+    DistributedLock distributedLock = null;
+    try {
+      lockSession.beginTransaction();
 
-  public boolean releaseLock(String verificationKey ,Session lockSession){
-    if(null == verificationKey  || "".equals(verificationKey)){
-      System.out.println("Verification key is null");
-      return false;
-    }else{
-        // call query make sure the verification key is the same as the one in db
-        // if it is the same, then delete that entry.
-        // then return true;
-
-        // find out if the lockidverification match if it is match then we delete that entry. then close the session we are done our work
-        // if somehow the program crash, it will release the session per JDBC and the lock table will be unlocked. Entries will be roll back.
-
-      // it doesnt matter we only want to unlock
-        CriteriaBuilder builder = lockSession.getCriteriaBuilder();
-
-        CriteriaQuery<LockEntry> query = builder.createQuery(LockEntry.class);
-        Root<LockEntry> root = query.from(LockEntry.class);
-        System.out.println("token on release "+ verificationKey );
-        Predicate verKey = (builder.equal(root.get("LockIdVerificationToken"), verificationKey));
-        query.select(root).where(verKey);
-        Query<LockEntry> queryResults = lockSession.createQuery(query);
-
-        List<LockEntry> list = queryResults.getResultList();
-        /*
-        if(list.size() >= 1 ) {
-          // only successfull finding got deleted back.
-          LockEntry le = list.get(0);
-          le.setLockCreationTime(null);
-          le.setLockIdName(null);
-          //lockSession.save(le);
-          //lockSession.delete(list.get(0));
-          System.out.println("successfully reseting the old lock entry");
-          // do not commit transaction since we are not the one that issuing the session.
-          // Let the creator of the session be the one that responsible
-          // to close it. All we have to do here is to return the status of the release
-          return true;
-        }
-*/
-        //System.out.println("Did not find any match for lock id token!");
-        // do not commit transaction since we are not sure whether lockSession are valid one,
-        // or we are not the one that issuing the session. let the creator of the session passed here
-        // be the one that responsible for closing the session.
-        // Just return false, since we got zero result from the tokenid verification.
-        return true;
-
-
+      distributedLock =
+          lockSession.get(
+              DistributedLock.class,
+              lockId,
+              new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(timeout));
+      distributedLock.setLockToken(generateUniqueToken(Thread.currentThread().getName()));
+      distributedLock.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+    } catch (PessimisticLockException e) {
+      logger.info("Lock wait timeout exceeded.", e);
+    } catch (Exception e) {
+      logger.info("Failed to acquire lock.", e);
     }
 
+    return distributedLock;
   }
 
+  /**
+   * Reelase the lock by committing the transaction.
+   *
+   * @param lockSession a Hibernate session.
+   * @param distributedLock a DistributedLock entity
+   */
+  public void releaseLock(Session lockSession, DistributedLock distributedLock) {
+    if (distributedLock == null
+        || lockSession == null
+        || !lockSession.isOpen()
+        || lockSession.getTransaction() == null
+        || !lockSession.getTransaction().isActive()) {
+      return;
+    }
+    try {
+      distributedLock.getCreatedAt().toInstant();
+      long duration =
+          Instant.now().toEpochMilli() - distributedLock.getCreatedAt().toInstant().toEpochMilli();
+
+      distributedLock.setLockDuration(duration);
+
+      logger.debug(
+          String.format(
+              "tokenName=%s, duration=%d, createdAt=%s",
+              distributedLock.getLockToken(),
+              distributedLock.getLockDuration(),
+              distributedLock.getCreatedAt().toString()));
+      lockSession.update(distributedLock);
+      closeSessionWithTransaction(lockSession, lockSession.getTransaction());
+    } catch (Exception e) {
+      logger.info("Failed to release lock.", e);
+    }
+  }
+
+  /**
+   * Distributed lock is implemented using database exclusive row-level lock. The method provisions
+   * the record in the table before the distributed lock can be used.
+   *
+   * @param lockId  a unique lock ID.
+   * @return
+   */
+  public DistributedLock initLock(String lockId) {
+    Session session = openSession();
+    DistributedLock distributedLock = session.get(DistributedLock.class, lockId);
+    if (distributedLock == null) {
+      distributedLock = new DistributedLock();
+      distributedLock.setLockToken("init-lock-token");
+      distributedLock.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+      distributedLock.setLockDuration(0);
+      distributedLock.setId(lockId);
+      Transaction transaction = session.beginTransaction();
+      session.save(distributedLock);
+      transaction.commit();
+    }
+    closeSession(session);
+    return distributedLock;
+  }
+
+  private String generateUniqueToken(String seed) {
+    String uniqueToken = seed + "-";
+    try {
+      InetAddress inetAddress = InetAddress.getLocalHost();
+      uniqueToken = uniqueToken + inetAddress.getAddress().toString() + "-";
+      uniqueToken = uniqueToken + inetAddress.getHostName() + "-";
+      uniqueToken = uniqueToken + GregorianCalendar.getInstance().getTimeInMillis();
+    } catch (UnknownHostException e) {
+      UUID uuid = UUID.randomUUID();
+      uniqueToken = uniqueToken + uuid.toString() + "-";
+      uniqueToken = uniqueToken + GregorianCalendar.getInstance().getTimeInMillis();
+    }
+    return uniqueToken;
+  }
 }
