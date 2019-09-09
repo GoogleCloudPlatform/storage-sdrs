@@ -118,7 +118,7 @@ public class LockDaoImpl extends GenericDao<DistributedLock, Integer> implements
               "tokenName=%s, duration=%d, createdAt=%s",
               distributedLock.getLockToken(),
               distributedLock.getLockDuration(),
-              distributedLock.getCreatedAt().toString()));
+              distributedLock.getCreatedAt().toInstant().toString()));
       lockSession.update(distributedLock);
       closeSessionWithTransaction(lockSession, lockSession.getTransaction());
     } catch (Exception e) {
@@ -130,7 +130,7 @@ public class LockDaoImpl extends GenericDao<DistributedLock, Integer> implements
    * Distributed lock is implemented using database exclusive row-level lock. The method provisions
    * the record in the table before the distributed lock can be used.
    *
-   * @param lockId  a unique lock ID.
+   * @param lockId a unique lock ID.
    * @return
    */
   public DistributedLock initLock(String lockId) {

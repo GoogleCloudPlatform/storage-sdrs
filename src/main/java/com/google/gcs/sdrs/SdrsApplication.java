@@ -18,11 +18,14 @@
 
 package com.google.gcs.sdrs;
 
+import com.google.gcs.sdrs.dao.LockDao;
+import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
+import com.google.gcs.sdrs.dao.model.DistributedLock;
 import com.google.gcs.sdrs.scheduler.JobScheduler;
-import com.google.gcs.sdrs.scheduler.runners.RuleExecutionRunner;
-import com.google.gcs.sdrs.scheduler.runners.ValidationRunner;
+import com.google.gcs.sdrs.scheduler.runners.DMBatchProcessingRunner;
 import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
+import com.google.gcs.sdrs.service.worker.impl.DmBatchProcessingWorker;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +53,10 @@ public class SdrsApplication {
     SLF4JBridgeHandler.install();
   }
 
+  public static final int DEFAULT_DM_RUNNER_INITIAL_DELAY = 0;
+  public static final int DEFAULT_DM_RUNNER_FREQUENCY = 60;
+  public static final TimeUnit DEFAULT_DM_RUNNER_TIMEUNIT = TimeUnit.MINUTES;
+
   /**
    * Starts the SDRS service
    *
@@ -64,11 +71,13 @@ public class SdrsApplication {
     startWebServer();
     registerPubSub();
     connectDatabase();
+    initDmDistributedLock();
+    scheduleDmProcessingRunner();
 
-    if (Boolean.valueOf(getAppConfigProperty("scheduler.enabled", "false"))) {
+    /*   if (Boolean.valueOf(getAppConfigProperty("scheduler.enabled", "false"))) {
       scheduleExecutionServiceJob();
       scheduleValidationServiceJob();
-    }
+    }*/
   }
 
   /** Triggers the shutdown hook and gracefully shuts down the SDRS service */
@@ -113,28 +122,44 @@ public class SdrsApplication {
     }
   }
 
-  private static void scheduleExecutionServiceJob() {
-    JobScheduler scheduler = JobScheduler.getInstance();
-
-    int initialDelay = xmlConfig.getInt("scheduler.task.ruleExecution.initialDelay");
-    int frequency = xmlConfig.getInt("scheduler.task.ruleExecution.frequency");
-    TimeUnit timeUnit =
-        TimeUnit.valueOf(xmlConfig.getString("scheduler.task.ruleExecution.timeUnit"));
-
-    scheduler.submitScheduledJob(new RuleExecutionRunner(), initialDelay, frequency, timeUnit);
-    logger.info("Rule execution scheduled successfully.");
+  private static void initDmDistributedLock() {
+    LockDao daoDao = SingletonDao.getLockDao();
+    DistributedLock distributedLock = daoDao.initLock(DmBatchProcessingWorker.DM_LOCK_ID);
+    if (distributedLock == null) {
+      logger.error(
+          String.format(
+              "Failed to initialize distributed lock for DM batch processing %s",
+              DmBatchProcessingWorker.DM_LOCK_ID));
+    } else {
+      logger.info(
+          String.format(
+              "DM batch processing lock has been initialized:  tokenName=%s, duration=%d, createdAt=%s",
+              distributedLock.getLockToken(),
+              distributedLock.getLockDuration(),
+              distributedLock.getCreatedAt().toInstant().toString()));
+    }
   }
 
-  private static void scheduleValidationServiceJob() {
+  private static void scheduleDmProcessingRunner() {
     JobScheduler scheduler = JobScheduler.getInstance();
 
-    int initialDelay = xmlConfig.getInt("scheduler.task.validationService.initialDelay");
-    int frequency = xmlConfig.getInt("scheduler.task.validationService.frequency");
+    int initialDelay =
+        Integer.valueOf(
+            getAppConfigProperty(
+                "scheduler.task.dmBatchProcessing.initialDelay",
+                String.valueOf(DEFAULT_DM_RUNNER_INITIAL_DELAY)));
+    int frequency =
+        Integer.valueOf(
+            getAppConfigProperty(
+                "scheduler.task.dmBatchProcessing.frequency",
+                String.valueOf(DEFAULT_DM_RUNNER_FREQUENCY)));
     TimeUnit timeUnit =
-        TimeUnit.valueOf(xmlConfig.getString("scheduler.task.validationService.timeUnit"));
+        TimeUnit.valueOf(
+            getAppConfigProperty(
+                "scheduler.task.dmBatchProcessing.timeUnit", DEFAULT_DM_RUNNER_TIMEUNIT.name()));
 
-    scheduler.submitScheduledJob(new ValidationRunner(), initialDelay, frequency, timeUnit);
-    logger.info("Validation service scheduled successfully.");
+    scheduler.submitScheduledJob(new DMBatchProcessingRunner(), initialDelay, frequency, timeUnit);
+    logger.info("DM batch processing runner scheduled successfully.");
   }
 
   public static Configuration getAppConfig() {
