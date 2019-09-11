@@ -193,6 +193,7 @@ public class ExecuteRetentionWorkerTest {
   @Test
   public void doWorkSavesJobs() {
     ExecutionEventRequest request = createBasicRequest();
+    request.setExecutionEventType(ExecutionEventType.POLICY);
     ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request, uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
@@ -202,7 +203,9 @@ public class ExecuteRetentionWorkerTest {
     RetentionJob retentionJob = new RetentionJob();
     retentionJob.setName("retentionJob");
     retentionJobs.add(retentionJob);
-    when(ruleExecutorMock.executeUserCommandedRule(any(), any())).thenReturn(retentionJobs);
+    RetentionRule rule = new RetentionRule();
+    when(retentionRuleDaoMock.findDatasetRuleByBusinessKey(any(), any())).thenReturn(rule);
+    when(ruleExecutorMock.executeDatasetRule(any(), any())).thenReturn(retentionJobs);
 
     worker.doWork();
 

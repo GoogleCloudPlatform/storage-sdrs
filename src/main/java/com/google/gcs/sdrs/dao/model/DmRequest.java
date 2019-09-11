@@ -28,62 +28,56 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "dm_queue")
-public class DMQueue {
+public class DmRequest {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "id", updatable = false, nullable = false)
   private Integer id;
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", updatable = false)
   @CreationTimestamp
   private Timestamp createdAt;
 
-  @Column(name = "updated_at", nullable = false)
+  @Column(name = "updated_at", updatable = false)
   @UpdateTimestamp
   private Timestamp updatedAt;
 
-  @Column(name = "data_storage_name", nullable = false)
+  @Column(name = "data_storage_name")
   private String dataStorageName;
 
   @Column(name = "status")
   private String status;
 
-  @Column(name = "priority", nullable = false)
+  @Column(name = "priority")
   private int priority;
 
-  @Column(name = "data_storage_root", nullable = false)
+  @Column(name = "data_storage_root")
   private String dataStorageRoot;
 
   @Column(name = "retention_job_id")
   private int retentionJobId;
 
-  @Column(name = "number_of_retry", nullable = false)
+  @Column(name = "number_of_retry")
   private int numberOfRetry;
+
+  @Column(name = "project_id")
+  private String projectId;
 
   public Integer getId() {
     return id;
   }
 
-  public void setId(Integer id) {
-    this.id = id;
-  }
 
   public Timestamp getCreatedAt() {
     return createdAt;
   }
 
-  public void setCreatedAt(Timestamp createdAt) {
-    this.createdAt = createdAt;
-  }
 
   public Timestamp getUpdatedAt() {
     return updatedAt;
   }
 
-  public void setUpdatedAt(Timestamp updatedAt) {
-    this.updatedAt = updatedAt;
-  }
 
   public String getDataStorageName() {
     return dataStorageName;
@@ -131,5 +125,13 @@ public class DMQueue {
 
   public void setNumberOfRetry(int numberOfRetry) {
     this.numberOfRetry = numberOfRetry;
+  }
+
+  public String getProjectId() {
+    return projectId;
+  }
+
+  public void setProjectId(String projectId) {
+    this.projectId = projectId;
   }
 }

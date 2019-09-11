@@ -16,12 +16,14 @@
  */
 package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.dao.model.DMQueue;
+import com.google.gcs.sdrs.dao.model.DmRequest;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import java.io.IOException;
 import java.util.List;
 
-public interface DMQueueDao extends Dao<DMQueue, Integer> {
+public interface DMQueueDao extends Dao<DmRequest, Integer> {
 
-  List<DMQueue> getAllAvailableQueueForProcessingSTSJobs();
+  List<DmRequest> getAllAvailableRequestsByPriority();
 
-  List<DMQueue> getQueueEntryForSTSLock();
+  void createRetentionJobUdpateDmStatus(RetentionJob retentionJob, List<DmRequest> dmRequests) throws IOException;
 }

@@ -32,11 +32,10 @@ public class DatabaseConstants {
   public static final String RETENTION_PERIOD_UNIT_MONTH = "month";
   public static final String RETENTION_PERIOD_UNIT_VERSION = "version";
 
-  public static final String DMQUEUE_STATUS_READY = "ready";
-  public static final String DMQUEUE_STATUS_PROCESSING =  "processing";
-  public static final String DMQUEUE_STATUS_READY_RETRY = "ready_retry" ;
-  public static final String DMQUEUE_STATUS_STS_EXECUTION = "sts_execution";
-  public static final String DMQUEUE_STATUS_FAIL= "fail";
+  public static final String DM_REQUEST_STATUS_PENDING = "pending";
+  public static final String DM_REQUEST_STATUS_SCHEDULED =  "scheduled";
+  public static final String DM_REQUEST_STATIUS_RETRY = "retry";
+  public static final String DM_REQUEST_STATUS_FAIL= "fail";
 
 
 }

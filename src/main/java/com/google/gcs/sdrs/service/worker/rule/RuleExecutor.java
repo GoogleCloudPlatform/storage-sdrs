@@ -18,6 +18,7 @@
 
 package com.google.gcs.sdrs.service.worker.rule;
 
+import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import java.time.ZonedDateTime;
@@ -26,7 +27,7 @@ import java.util.List;
 
 public interface RuleExecutor {
 
-  List<RetentionJob> executeUserCommandedRule(
+  List<DmRequest> executeUserCommandedRule(
       Collection<RetentionRule> userCommandedRules, String projectId);
 
   List<RetentionJob> executeDatasetRule(Collection<RetentionRule> datasetRules, String projectId);
