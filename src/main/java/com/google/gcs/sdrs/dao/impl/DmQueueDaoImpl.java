@@ -16,14 +16,14 @@
  */
 package com.google.gcs.sdrs.dao.impl;
 
-import static com.google.gcs.sdrs.dao.util.DatabaseConstants.DMQUEUE_STATUS_PROCESSING;
-import static com.google.gcs.sdrs.dao.util.DatabaseConstants.DMQUEUE_STATUS_READY;
-import static com.google.gcs.sdrs.dao.util.DatabaseConstants.DMQUEUE_STATUS_READY_RETRY;
-
 import com.google.gcs.sdrs.dao.DMQueueDao;
-import com.google.gcs.sdrs.dao.model.DMQueue;
+import com.google.gcs.sdrs.dao.model.DmRequest;
+import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
@@ -34,57 +34,86 @@ import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Hibernate based  DmQueue implementation */
-public class DmQueueDaoImpl extends GenericDao<DMQueue, Integer> implements DMQueueDao {
+/** Hibernate based DmQueue implementation */
+public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements DMQueueDao {
 
   private static final Logger logger = LoggerFactory.getLogger(DmQueueDaoImpl.class);
 
   public DmQueueDaoImpl() {
-    super(DMQueue.class);
+    super(DmRequest.class);
   }
 
   @Override
-  public List<DMQueue> getAllAvailableQueueForProcessingSTSJobs() {
+  public List<DmRequest> getAllAvailableRequestsByPriority() {
     Session session = openSession();
     CriteriaBuilder builder = session.getCriteriaBuilder();
     Transaction transaction = session.beginTransaction();
 
-    CriteriaQuery<DMQueue> query = builder.createQuery(DMQueue.class);
-    Root<DMQueue> root = query.from(DMQueue.class);
+    CriteriaQuery<DmRequest> query = builder.createQuery(DmRequest.class);
+    Root<DmRequest> root = query.from(DmRequest.class);
 
-    Predicate ready_status = (builder.equal(root.get("status"), DMQUEUE_STATUS_READY));
-    Predicate ready_retry_status = (builder.equal(root.get("status"), DMQUEUE_STATUS_READY_RETRY));
-    Predicate ready_or_ready_retry = builder.or(ready_status, ready_retry_status);
+    Predicate pending_status = (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATUS_PENDING));
+    Predicate retry_status = (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATIUS_RETRY));
+    Predicate pending_or_retry = builder.or(pending_status, retry_status);
 
     List<Order> orderList = new ArrayList();
     orderList.add(builder.desc(root.get("priority")));
     orderList.add(builder.desc(root.get("numberOfRetry")));
     orderList.add(builder.asc(root.get("createdAt")));
 
-    query.where(ready_or_ready_retry);
+    query.where(pending_or_retry);
     query.orderBy(orderList);
 
-    List<DMQueue> results = session.createQuery(query).getResultList();
+    List<DmRequest> results = session.createQuery(query).getResultList();
     closeSessionWithTransaction(session, transaction);
 
     return results;
   }
 
   @Override
-  public List<DMQueue> getQueueEntryForSTSLock() {
-    Session session = openSession();
-    CriteriaBuilder builder = session.getCriteriaBuilder();
-    Transaction transaction = session.beginTransaction();
+  public void createRetentionJobUdpateDmStatus(
+      RetentionJob retentionJob, List<DmRequest> dmRequests) throws IOException {
+    Session session = null;
+    Transaction transaction = null;
 
-    CriteriaQuery<DMQueue> query = builder.createQuery(DMQueue.class);
-    Root<DMQueue> root = query.from(DMQueue.class);
+    try {
+      session = openSession();
+      transaction = session.beginTransaction();
+      Integer retentionJobId = (Integer) session.save(retentionJob);
 
-    Predicate ready_status = (builder.equal(root.get("status"), DMQUEUE_STATUS_PROCESSING));
-    query.where(ready_status);
+      dmRequests.stream()
+          .forEach(
+              request -> {
+                request.setRetentionJobId(retentionJobId);
+                request.setStatus(DatabaseConstants.DM_REQUEST_STATUS_SCHEDULED);
+              });
+      int i = 0;
 
-    List<DMQueue> results = session.createQuery(query).getResultList();
-    closeSessionWithTransaction(session, transaction);
+      // database batch update
+      for (DmRequest dmRequest : dmRequests) {
+        session.saveOrUpdate(dmRequest);
 
-    return results;
+        if (++i % 20 == 0) {
+          session.flush();
+          session.clear();
+        }
+      }
+      transaction.commit();
+      session.close();
+    } catch (PersistenceException e) {
+      // catch unchecked exceptions to rollback and throw application level IOException
+      logger.error("Runtime exception.", e);
+      if (transaction != null && transaction.isActive()) {
+        transaction.rollback();
+      }
+      if (session != null && session.isOpen()) {
+        session.close();
+      }
+
+      throw new IOException(
+          String.format(
+              "Failed to create retention job and update DM requests. bucket: %s; STS: %s.",
+              retentionJob.getDataStorageRoot(), retentionJob.getName()));
+    }
   }
 }

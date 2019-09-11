@@ -201,26 +201,9 @@ public class ExecuteRetentionWorker extends BaseWorker {
   }
 
   private void executeUserCommandedRule(String target, String projectId) throws IOException {
-    List<RetentionJob> errorJobs = new ArrayList<>();
     List<RetentionRule> userRules = new ArrayList<>();
     userRules.add(buildUserCommandedRule(target, projectId));
-    List<RetentionJob> jobs = ruleExecutor.executeUserCommandedRule(userRules, projectId);
-    if (jobs != null) {
-      for (RetentionJob job : jobs) {
-        job.setBatchId(getUuid());
-        if (job.getName() == null) {
-          errorJobs.add(job);
-        } else {
-          retentionJobDao.save(job);
-        }
-      }
-    }
-
-    if (!errorJobs.isEmpty()) {
-      throw new IOException(
-          String.format(
-              "Failed to schedule %d retention jobs for user commanded rule", errorJobs.size()));
-    }
+    ruleExecutor.executeUserCommandedRule(userRules, projectId);
   }
 
   private RetentionRule buildUserCommandedRule(String target, String projectId) {

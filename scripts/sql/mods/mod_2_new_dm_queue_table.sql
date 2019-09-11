@@ -3,7 +3,7 @@ CREATE TABLE `dm_queue` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `data_storage_name` varchar(256) NOT NULL,
-  `status` varchar(256) DEFAULT NULL,
+  `status` varchar(256) NOT NULL,
   `priority` int(10) unsigned NOT NULL DEFAULT 0,
   `data_storage_root` varchar(256) NOT NULL,
   `retention_job_id` int(10) unsigned,
