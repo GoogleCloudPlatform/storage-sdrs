@@ -25,6 +25,7 @@
         <initialDelay>0</initialDelay>
         <frequency>60</frequency>
         <timeUnit>MINUTES</timeUnit>
+        <maxRetry>5</maxRetry>
       </dmBatchProcessing>
     </task>
   </scheduler>

@@ -5,12 +5,13 @@ import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
-import com.google.gcs.sdrs.dao.DMQueueDao;
+import com.google.gcs.sdrs.dao.DmQueueDao;
 import com.google.gcs.sdrs.dao.LockDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.DistributedLock;
 import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import com.google.gcs.sdrs.service.worker.BaseWorker;
 import com.google.gcs.sdrs.service.worker.WorkerResult.WorkerResultStatus;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
@@ -32,11 +33,17 @@ import org.slf4j.LoggerFactory;
 
 public class DmBatchProcessingWorker extends BaseWorker {
   private static final Logger logger = LoggerFactory.getLogger(DmBatchProcessingWorker.class);
-  private DMQueueDao dmQueueDao;
+  private DmQueueDao dmQueueDao;
   private LockDao lockDao;
   private Storagetransfer client;
 
+  public static final long EVERY_SIX_HOUR = 6 * 60 * 60 * 1000;
   public static final int DEFAULT_DM_LOCK_TIMEOUT = 60000; // one minute by default
+  public static final int DEFAULT_DM_MAX_RETRY = 5;
+  public static final int DM_MAX_RETRY =
+      Integer.valueOf(
+          SdrsApplication.getAppConfigProperty(
+              "scheduler.task.dmBatchProcessing.maxRetry", String.valueOf(DEFAULT_DM_MAX_RETRY)));
   public static final int DM_LOCK_TIMEOUT =
       Integer.valueOf(
           SdrsApplication.getAppConfigProperty(
@@ -52,7 +59,7 @@ public class DmBatchProcessingWorker extends BaseWorker {
     } catch (IOException e) {
       logger.error("Failed to create STS client.", e);
     }
-    dmQueueDao = SingletonDao.getDMQueueDao();
+    dmQueueDao = SingletonDao.getDmQueueDao();
     lockDao = SingletonDao.getLockDao();
   }
 
@@ -142,9 +149,8 @@ public class DmBatchProcessingWorker extends BaseWorker {
 
     int maxPrefxiNumber = StsUtil.MAX_PREFIX_COUNT - existingIncludePrefixList.size();
 
-    // Replace the existing prefix list if last modified time is 24 hours ago, meaning the daily STS
-    // job
-    // has already run and the existing prefix list has been processed.
+    // Replace the existing prefix list if last modified time is 24 hours ago,
+    // meaning the daily STS job has already run and the existing prefix list has been processed.
     if (lastModifiedTime.isBefore(zonedDateTimeNow.minusHours(24))) {
       maxPrefxiNumber = StsUtil.MAX_PREFIX_COUNT;
     }
@@ -188,6 +194,16 @@ public class DmBatchProcessingWorker extends BaseWorker {
 
     // update retention_job and dm_queue tables
     List<DmRequest> processedDmRequests = dmRequests.subList(0, maxPrefxiNumber);
+    dmRequests.stream()
+        .forEach(
+            request -> {
+              if (request.getStatus().equals(DatabaseConstants.DM_REQUEST_STATIUS_RETRY)) {
+                request.setNumberOfRetry(request.getNumberOfRetry() + 1);
+                request.setNumberOfRetry(DmBatchProcessingWorker.generatePriority(request.getNumberOfRetry(), request.getCreatedAt().toInstant().toEpochMilli()));
+              }
+              request.setStatus(DatabaseConstants.DM_REQUEST_STATUS_SCHEDULED);
+            });
+
     try {
       dmQueueDao.createRetentionJobUdpateDmStatus(retentionJob, processedDmRequests);
     } catch (IOException e) {
@@ -197,5 +213,9 @@ public class DmBatchProcessingWorker extends BaseWorker {
     }
 
     return true;
+  }
+
+  public static int generatePriority(int numberOfRetry, long timeInQueue) {
+    return numberOfRetry +  Math.min(4, (int)(timeInQueue / EVERY_SIX_HOUR));
   }
 }

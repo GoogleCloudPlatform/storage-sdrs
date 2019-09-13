@@ -16,7 +16,7 @@
  */
 package com.google.gcs.sdrs.dao.impl;
 
-import com.google.gcs.sdrs.dao.DMQueueDao;
+import com.google.gcs.sdrs.dao.DmQueueDao;
 import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Hibernate based DmQueue implementation */
-public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements DMQueueDao {
+public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements DmQueueDao {
 
   private static final Logger logger = LoggerFactory.getLogger(DmQueueDaoImpl.class);
 
@@ -52,8 +52,10 @@ public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements DM
     CriteriaQuery<DmRequest> query = builder.createQuery(DmRequest.class);
     Root<DmRequest> root = query.from(DmRequest.class);
 
-    Predicate pending_status = (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATUS_PENDING));
-    Predicate retry_status = (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATIUS_RETRY));
+    Predicate pending_status =
+        (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATUS_PENDING));
+    Predicate retry_status =
+        (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATIUS_RETRY));
     Predicate pending_or_retry = builder.or(pending_status, retry_status);
 
     List<Order> orderList = new ArrayList();
@@ -64,10 +66,24 @@ public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements DM
     query.where(pending_or_retry);
     query.orderBy(orderList);
 
-    List<DmRequest> results = session.createQuery(query).getResultList();
+    List<DmRequest> result = session.createQuery(query).getResultList();
     closeSessionWithTransaction(session, transaction);
 
-    return results;
+    return result;
+  }
+
+  @Override
+  public List<DmRequest> getByStatus(String status) {
+    Session session = openSession();
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+
+    CriteriaQuery<DmRequest> query = builder.createQuery(DmRequest.class);
+    Root<DmRequest> root = query.from(DmRequest.class);
+    query.select(root).where(builder.equal(root.get("status"), status));
+
+    List<DmRequest> result = session.createQuery(query).getResultList();
+    closeSession(session);
+    return result;
   }
 
   @Override
@@ -81,12 +97,7 @@ public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements DM
       transaction = session.beginTransaction();
       Integer retentionJobId = (Integer) session.save(retentionJob);
 
-      dmRequests.stream()
-          .forEach(
-              request -> {
-                request.setRetentionJobId(retentionJobId);
-                request.setStatus(DatabaseConstants.DM_REQUEST_STATUS_SCHEDULED);
-              });
+      dmRequests.stream().forEach(request -> request.setRetentionJobId(retentionJobId));
       int i = 0;
 
       // database batch update

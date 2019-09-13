@@ -21,9 +21,11 @@ import com.google.gcs.sdrs.dao.model.RetentionJob;
 import java.io.IOException;
 import java.util.List;
 
-public interface DMQueueDao extends Dao<DmRequest, Integer> {
+public interface DmQueueDao extends Dao<DmRequest, Integer> {
 
   List<DmRequest> getAllAvailableRequestsByPriority();
+
+  List<DmRequest> getByStatus(String status);
 
   void createRetentionJobUdpateDmStatus(RetentionJob retentionJob, List<DmRequest> dmRequests) throws IOException;
 }

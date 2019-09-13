@@ -18,10 +18,15 @@
 
 package com.google.gcs.sdrs.service.worker.impl;
 
+import com.google.gcs.sdrs.common.RetentionJobStatusType;
+import com.google.gcs.sdrs.common.RetentionRuleType;
+import com.google.gcs.sdrs.dao.DmQueueDao;
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
+import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
+import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import com.google.gcs.sdrs.service.worker.BaseWorker;
 import com.google.gcs.sdrs.service.worker.WorkerResult;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleValidator;
@@ -38,8 +43,9 @@ public class ValidationWorker extends BaseWorker {
 
   private final Logger logger = LoggerFactory.getLogger(ValidationWorker.class);
 
-  RetentionJobValidationDao dao = SingletonDao.getRetentionJobValidationDao();
+  RetentionJobValidationDao jobValidationDao = SingletonDao.getRetentionJobValidationDao();
   StsRuleValidator stsRuleValidator = StsRuleValidator.getInstance();
+  DmQueueDao dmQueueDao = SingletonDao.getDmQueueDao();
 
   public ValidationWorker(String correlationId) {
     super(correlationId);
@@ -51,7 +57,11 @@ public class ValidationWorker extends BaseWorker {
    */
   @Override
   public void doWork() {
-    List<RetentionJob> retentionJobs = dao.findAllPendingRetentionJobs();
+    List<RetentionJob> retentionJobs = jobValidationDao.findAllPendingRetentionJobs();
+    Map<Integer, RetentionJob> dmRetentionJobMap = new HashMap<>();
+    retentionJobs.stream()
+        .filter(job -> job.getRetentionRuleType() == RetentionRuleType.USER)
+        .forEach(job -> dmRetentionJobMap.put(job.getId(), job));
 
     if (retentionJobs.size() > 0) {
       // An STS job status query can only be done on one project id at a time, so split the list
@@ -86,7 +96,7 @@ public class ValidationWorker extends BaseWorker {
         // Our map of STS validations may or may not already exist in the DB. We need to query the
         // DB for each one to see if it exists.
         List<RetentionJobValidation> existingValidations =
-            dao.findAllByRetentionJobNames(new ArrayList<>(stsValidations.keySet()));
+            jobValidationDao.findAllByRetentionJobNames(new ArrayList<>(stsValidations.keySet()));
 
         // For each validation that exists in the DB, update the matching STS validation with the Id
         // so it can be properly updated
@@ -110,9 +120,56 @@ public class ValidationWorker extends BaseWorker {
                     })
                 .get();
 
-        dao.saveOrUpdateBatch(finalValidationList);
+        jobValidationDao.saveOrUpdateBatch(finalValidationList);
+
+        List<RetentionJobValidation> dmValidationList =
+            finalValidationList.stream()
+                .filter(validation -> dmRetentionJobMap.containsKey(validation.getRetentionJobId()))
+                .collect(Collectors.toList());
+
+        updateDmRequests(dmValidationList);
       }
     }
     workerResult.setStatus(WorkerResult.WorkerResultStatus.SUCCESS);
+  }
+
+  private void updateDmRequests(List<RetentionJobValidation> dmValidationList) {
+    if (dmValidationList == null || dmValidationList.isEmpty()) {
+      return;
+    }
+    Map<Integer, RetentionJobStatusType> finalValidationMap = new HashMap<>();
+    /* dmValidationList.stream()
+    .collect(
+        Collectors.toMap(
+            RetentionJobValidation::getRetentionJobId, RetentionJobValidation::getStatus));*/
+
+    dmValidationList.stream()
+        .forEach(
+            validation ->
+                finalValidationMap.put(validation.getRetentionJobId(), validation.getStatus()));
+
+    List<DmRequest> dmRequests =
+        dmQueueDao.getByStatus(DatabaseConstants.DM_REQUEST_STATUS_SCHEDULED);
+
+    dmRequests.forEach(
+        request -> {
+          RetentionJobStatusType jobStatus = finalValidationMap.get(request.getRetentionJobId());
+          if (jobStatus != null) {
+            switch (jobStatus) {
+              case SUCCESS:
+                request.setStatus(DatabaseConstants.DM_REQUEST_STATUS_SUCCESS);
+                break;
+              case ERROR:
+                if (request.getNumberOfRetry() < DmBatchProcessingWorker.DM_MAX_RETRY) {
+                  request.setStatus(DatabaseConstants.DM_REQUEST_STATIUS_RETRY);
+                } else {
+                  request.setStatus(DatabaseConstants.DM_REQUEST_STATUS_FAIL);
+                }
+                break;
+              default:
+            }
+          }
+        });
+    dmQueueDao.saveOrUpdateBatch(dmRequests);
   }
 }

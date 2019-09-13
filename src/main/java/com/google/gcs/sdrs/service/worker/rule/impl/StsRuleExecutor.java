@@ -31,7 +31,7 @@ import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.common.RetentionValue;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
-import com.google.gcs.sdrs.dao.DMQueueDao;
+import com.google.gcs.sdrs.dao.DmQueueDao;
 import com.google.gcs.sdrs.dao.PooledStsJobDao;
 import com.google.gcs.sdrs.dao.RetentionJobDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
@@ -77,7 +77,7 @@ public class StsRuleExecutor implements RuleExecutor {
   Storagetransfer client;
   private RetentionJobDao retentionJobDao;
   private PooledStsJobDao stsJobDao;
-  private DMQueueDao dmQueueDao;
+  private DmQueueDao dmQueueDao;
 
   private static final Logger logger = LoggerFactory.getLogger(StsRuleExecutor.class);
 
@@ -104,7 +104,7 @@ public class StsRuleExecutor implements RuleExecutor {
     client = StsUtil.createStsClient(credentials);
     retentionJobDao = SingletonDao.getRetentionJobDao();
     stsJobDao = SingletonDao.getPooledStsJobDao();
-    dmQueueDao = SingletonDao.getDMQueueDao();
+    dmQueueDao = SingletonDao.getDmQueueDao();
   }
 
   /**

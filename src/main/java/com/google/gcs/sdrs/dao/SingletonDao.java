@@ -31,7 +31,7 @@ public class SingletonDao {
   private static RetentionJobDao retentionJobDao;
   private static RetentionJobValidationDao retentionJobValidationDao;
   private static PooledStsJobDao pooledStsJobDao;
-  private static DMQueueDao dmQueueDao;
+  private static DmQueueDao dmQueueDao;
   private static LockDao lockDao;
 
   public static synchronized RetentionRuleDao getRetentionRuleDao() {
@@ -62,7 +62,7 @@ public class SingletonDao {
     return retentionJobValidationDao;
   }
 
-  public static synchronized DMQueueDao getDMQueueDao() {
+  public static synchronized DmQueueDao getDmQueueDao() {
     if (dmQueueDao == null) {
       dmQueueDao = new DmQueueDaoImpl();
     }
