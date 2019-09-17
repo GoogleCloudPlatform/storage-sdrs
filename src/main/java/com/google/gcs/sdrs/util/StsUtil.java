@@ -252,6 +252,7 @@ public class StsUtil {
         }
         List<String> jobNameList = new ArrayList<>();
         jobNameList.add(job.getName());
+        // All STS jobs are daily run. Get the operations for the past 5 days.
         Storagetransfer.TransferOperations.List operationRequest =
             client
                 .transferOperations()
@@ -263,12 +264,13 @@ public class StsUtil {
         Operation operationClosestToJobCreatedAtTime = null;
         Instant closestTime = Instant.MAX;
         if (operationsPerJob != null) {
-          for (Operation operation : operationsPerJob) {
-            if (job.getRetentionRuleType() == RetentionRuleType.DATASET
-                || job.getRetentionRuleType() == RetentionRuleType.USER) {
-              operationClosestToJobCreatedAtTime = operation;
-              break;
-            } else {
+          if (operationsPerJob.size() == 1) {
+            // only one operation. it's immediately run STS job
+            operationClosestToJobCreatedAtTime = operationsPerJob.get(0);
+          } else {
+            // for daily run STS job, loop through operations to find the one closest to when the
+            // job is scheduled.
+            for (Operation operation : operationsPerJob) {
               String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
               Instant operationStartTime = Instant.parse(opeationStartTimeString);
               Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();

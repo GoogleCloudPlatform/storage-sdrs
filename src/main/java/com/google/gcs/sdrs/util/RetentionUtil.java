@@ -106,4 +106,16 @@ public class RetentionUtil {
     }
     return result;
   }
+
+  public static String getDmPrefix(String dataStroage) {
+    String prefix = getDatasetPath(dataStroage);
+
+    if (prefix.lastIndexOf("/") > 0 && prefix.lastIndexOf("/") < prefix.length() - 1) {
+      prefix = prefix.substring(0, prefix.lastIndexOf("/") + 1);
+    } else {
+      prefix = null;
+    }
+
+    return prefix;
+  }
 }
