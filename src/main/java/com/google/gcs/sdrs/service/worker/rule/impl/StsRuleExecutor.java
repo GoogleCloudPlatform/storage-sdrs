@@ -73,8 +73,7 @@ import org.slf4j.LoggerFactory;
 public class StsRuleExecutor implements RuleExecutor {
 
   private static StsRuleExecutor instance;
-  static CredentialsUtil credentialsUtil = CredentialsUtil.getInstance();
-  Storagetransfer client;
+  private Storagetransfer client;
   private RetentionJobDao retentionJobDao;
   private PooledStsJobDao stsJobDao;
   private DmQueueDao dmQueueDao;
@@ -146,7 +145,11 @@ public class StsRuleExecutor implements RuleExecutor {
           DmRequest dmRequest = new DmRequest();
           dmRequest.setStatus(DatabaseConstants.DM_REQUEST_STATUS_PENDING);
           dmRequest.setDataStorageName(userCommandedRule.getDataStorageName());
-          dmRequest.setDataStorageRoot(userCommandedRule.getDataStorageRoot());
+          String dataStroageRoot = userCommandedRule.getDataStorageRoot();
+          if (dataStroageRoot == null) {
+            dataStroageRoot = RetentionUtil.getBucketName(userCommandedRule.getDataStorageName());
+          }
+          dmRequest.setDataStorageRoot(dataStroageRoot);
           dmRequest.setProjectId(userCommandedRule.getProjectId());
           dmRequests.add(dmRequest);
           prefixes.add(prefix);

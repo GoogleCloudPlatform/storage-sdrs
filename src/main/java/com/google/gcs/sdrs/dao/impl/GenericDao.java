@@ -48,20 +48,28 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public void saveOrUpdateBatch(final List<T> entities) {
-    Session session = openSession();
-    Transaction transaction = session.beginTransaction();
+    Session session = null;
+    Transaction transaction = null;
+    try {
+      session = openSession();
+      transaction = session.beginTransaction();
 
-    int i = 0;
-    for (T entity : entities) {
-      session.saveOrUpdate(entity);
+      int i = 0;
+      for (T entity : entities) {
+        session.saveOrUpdate(entity);
 
-      if (++i % 20 == 0) { // 20, same as the JDBC batch size
-        // flush a batch of inserts and release memory:
-        session.flush();
-        session.clear();
+        if (++i % 20 == 0) { // 20, same as the JDBC batch size
+          // flush a batch of inserts and release memory:
+          session.flush();
+          session.clear();
+        }
       }
+      closeSessionWithTransaction(session, transaction);
+    } catch (Exception e) {
+      handleRuntimeException(e, transaction);
+    } finally {
+      closeSession(session);
     }
-    closeSessionWithTransaction(session, transaction);
   }
 
   /* (non-Javadoc)
@@ -70,10 +78,19 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
   @Override
   @SuppressWarnings("unchecked")
   public Id save(final T entity) {
-    Session session = openSession();
-    Transaction transaction = session.beginTransaction();
-    Id result = (Id) session.save(entity);
-    closeSessionWithTransaction(session, transaction);
+    Session session = null;
+    Transaction transaction = null;
+    Id result = null;
+    try {
+      session = openSession();
+      transaction = session.beginTransaction();
+      result = (Id) session.save(entity);
+      closeSessionWithTransaction(session, transaction);
+    } catch (Exception e) {
+      handleRuntimeException(e, transaction);
+    } finally {
+      closeSession(session);
+    }
     return result;
   }
 
@@ -82,10 +99,18 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public void update(final T entity) {
-    Session session = openSession();
-    Transaction transaction = session.beginTransaction();
-    session.update(entity);
-    closeSessionWithTransaction(session, transaction);
+    Transaction transaction = null;
+    Session session = null;
+    try {
+      session = openSession();
+      transaction = session.beginTransaction();
+      session.update(entity);
+      closeSessionWithTransaction(session, transaction);
+    } catch (Exception e) {
+     handleRuntimeException(e, transaction);
+    } finally {
+      closeSession(session);
+    }
   }
 
   /* (non-Javadoc)
@@ -93,9 +118,17 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public T findById(Id id) {
-    Session session = openSession();
-    T entity = session.get(type, id);
-    closeSession(session);
+    Session session = null;
+    T entity = null;
+    try {
+      session = openSession();
+      entity = session.get(type, id);
+      closeSession(session);
+    } catch (Exception e) {
+      handleRuntimeException(e, null);
+    } finally {
+      closeSession(session);
+    }
     return entity;
   }
 
@@ -104,10 +137,19 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public List<T> findAllByMultipleIds(Class<T> cls, List<Id> ids) {
-    Session session = openSession();
-    MultiIdentifierLoadAccess<T> multiLoadAccess = session.byMultipleIds(cls);
-    List<T> entities = multiLoadAccess.multiLoad(ids);
-    closeSession(session);
+    Session session = null;
+    List<T> entities = null;
+    try {
+      session = openSession();
+      MultiIdentifierLoadAccess<T> multiLoadAccess = session.byMultipleIds(cls);
+      entities = multiLoadAccess.multiLoad(ids);
+      closeSession(session);
+    } catch (Exception e) {
+      handleRuntimeException(e, null);
+    } finally {
+      closeSession(session);
+    }
+
     return entities;
   }
 
@@ -116,21 +158,39 @@ public class GenericDao<T, Id extends Serializable> extends BaseDao<T, Id> {
    */
   @Override
   public void delete(final T entity) {
-    Session session = openSession();
-    Transaction transaction = session.beginTransaction();
-    session.delete(entity);
-    closeSessionWithTransaction(session, transaction);
+    Session session = null;
+    Transaction transaction = null;
+    try {
+      session = openSession();
+      transaction = session.beginTransaction();
+      session.delete(entity);
+      closeSessionWithTransaction(session, transaction);
+    } catch (Exception e) {
+     handleRuntimeException(e, transaction);
+    } finally {
+      closeSession(session);
+    }
   }
 
   public T getSingleRecordWithCriteriaQuery(CriteriaQuery<T> query, Session session) {
+    if (session == null || query == null) {
+      return null;
+    }
     Query<T> queryResults = session.createQuery(query);
     List<T> list = queryResults.getResultList();
     closeSession(session);
 
     T foundEntity = null;
-    if(!list.isEmpty()){
+    if (!list.isEmpty()) {
       foundEntity = list.get(0);
     }
     return foundEntity;
+  }
+
+  public void handleRuntimeException(Exception e, Transaction transaction) {
+    logger.error("Runtime Exception: ", e);
+    if (transaction != null && transaction.isActive()) {
+      transaction.rollback();
+    }
   }
 }

@@ -22,13 +22,17 @@ import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
 import com.google.gcs.sdrs.controller.validation.FieldValidations;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
+import com.google.gcs.sdrs.dao.SingletonDao;
+import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.service.EventsService;
 import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
+import com.google.gcs.sdrs.util.GcsHelper;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -173,6 +177,22 @@ public class EventsController extends BaseController {
             ValidationResult.fromString(
                 String.format(
                     "The target %s is the root of a bucket. Can not delete a bucket", target)));
+      } else {
+        String bucketName = RetentionUtil.getBucketName(target);
+        if (!GcsHelper.getInstance().doesBucketExist(bucketName, projectId)) {
+          validations.add(
+              ValidationResult.fromString(
+                  String.format("The bucket %s/%s does not exist", projectId, bucketName)));
+        } else {
+          List<DmRequest> dmRequests =
+              SingletonDao.getDmQueueDao().getPendingDmRequestByName(target, projectId);
+          if (dmRequests != null && !dmRequests.isEmpty()) {
+            validations.add(
+                ValidationResult.fromString(
+                    String.format(
+                        "The target %s for project %s already exist.", target, projectId)));
+          }
+        }
       }
     }
 

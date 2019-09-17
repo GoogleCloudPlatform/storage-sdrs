@@ -27,5 +27,7 @@ public interface DmQueueDao extends Dao<DmRequest, Integer> {
 
   List<DmRequest> getByStatus(String status);
 
+  List<DmRequest> getPendingDmRequestByName(String dataStorageName, String projectId);
+
   void createRetentionJobUdpateDmStatus(RetentionJob retentionJob, List<DmRequest> dmRequests) throws IOException;
 }

@@ -116,8 +116,7 @@ CREATE TABLE `dm_queue` (
   `data_storage_root` varchar(256) NOT NULL,
   `retention_job_id` int(10) unsigned,
   `number_of_retry` int(10) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  FOREIGN KEY (retention_job_id) REFERENCES retention_job(id)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `distributed_lock` (
