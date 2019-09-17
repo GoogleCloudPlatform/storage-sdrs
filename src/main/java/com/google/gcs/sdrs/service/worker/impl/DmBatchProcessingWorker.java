@@ -1,6 +1,7 @@
 package com.google.gcs.sdrs.service.worker.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
+import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.common.RetentionRuleType;
@@ -24,8 +25,10 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.hibernate.Session;
 import org.slf4j.Logger;
@@ -144,8 +147,13 @@ public class DmBatchProcessingWorker extends BaseWorker {
     }
 
     ZonedDateTime lastModifiedTime = ZonedDateTime.parse(transferJob.getLastModificationTime());
-    List<String> existingIncludePrefixList =
-        transferJob.getTransferSpec().getObjectConditions().getIncludePrefixes();
+    List<String> existingIncludePrefixList = new ArrayList<>();
+    if (transferJob.getStatus().equals(StsUtil.STS_ENABLED_STRING)) {
+      ObjectConditions objectConditions = transferJob.getTransferSpec().getObjectConditions();
+      if (objectConditions != null && objectConditions.getIncludePrefixes() != null) {
+        existingIncludePrefixList = objectConditions.getIncludePrefixes();
+      }
+    }
 
     int maxPrefxiNumber = StsUtil.MAX_PREFIX_COUNT - existingIncludePrefixList.size();
 
@@ -156,17 +164,23 @@ public class DmBatchProcessingWorker extends BaseWorker {
     }
 
     maxPrefxiNumber = Math.min(maxPrefxiNumber, dmRequests.size());
-    List<String> newIncludePrefixList = new ArrayList<>();
+    Set<String> newIncludePrefixSet = new HashSet<>();
 
     for (int i = 0; i < maxPrefxiNumber; i++) {
-      newIncludePrefixList.add(
-          RetentionUtil.getDatasetPath(dmRequests.get(i).getDataStorageName()));
+      String prefix = RetentionUtil.getDmPrefix(dmRequests.get(i).getDataStorageName());
+      if (prefix != null) {
+        newIncludePrefixSet.add(prefix);
+      } else {
+        logger.error(
+            String.format("%s is not valid delete marker", dmRequests.get(i).getDataStorageName()));
+      }
     }
 
     if (maxPrefxiNumber < 1000) {
-      newIncludePrefixList.addAll(existingIncludePrefixList);
+      newIncludePrefixSet.addAll(existingIncludePrefixList);
     }
 
+    List<String> newIncludePrefixList = new ArrayList<>(newIncludePrefixSet);
     // update STS job
     TransferJob jobToUpdate =
         new TransferJob()
@@ -178,6 +192,7 @@ public class DmBatchProcessingWorker extends BaseWorker {
       StsUtil.updateExistingJob(client, jobToUpdate, transferJob.getName(), projectId);
     } catch (IOException e) {
       // Update STS job failed. Fail the process immediately.
+      logger.error("Failed to update STS job.", e);
       return false;
     }
 
@@ -199,7 +214,10 @@ public class DmBatchProcessingWorker extends BaseWorker {
             request -> {
               if (request.getStatus().equals(DatabaseConstants.DM_REQUEST_STATIUS_RETRY)) {
                 request.setNumberOfRetry(request.getNumberOfRetry() + 1);
-                request.setNumberOfRetry(DmBatchProcessingWorker.generatePriority(request.getNumberOfRetry(), request.getCreatedAt().toInstant().toEpochMilli()));
+                request.setPriority(
+                    DmBatchProcessingWorker.generatePriority(
+                        request.getNumberOfRetry(),
+                        request.getCreatedAt().toInstant().toEpochMilli()));
               }
               request.setStatus(DatabaseConstants.DM_REQUEST_STATUS_SCHEDULED);
             });
@@ -216,6 +234,6 @@ public class DmBatchProcessingWorker extends BaseWorker {
   }
 
   public static int generatePriority(int numberOfRetry, long timeInQueue) {
-    return numberOfRetry +  Math.min(4, (int)(timeInQueue / EVERY_SIX_HOUR));
+    return numberOfRetry + Math.min(4, (int) (timeInQueue / EVERY_SIX_HOUR));
   }
 }

@@ -98,6 +98,7 @@ public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements Dm
               builder.equal(root.get("projectId"), projectId),
               builder.or(
                   builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATUS_PENDING),
+                  builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATUS_SCHEDULED),
                   builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATIUS_RETRY)));
 
       result = session.createQuery(query).getResultList();

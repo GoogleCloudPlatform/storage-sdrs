@@ -58,6 +58,8 @@ public class ValidationWorker extends BaseWorker {
   @Override
   public void doWork() {
     List<RetentionJob> retentionJobs = jobValidationDao.findAllPendingRetentionJobs();
+
+    // Create a map of user retention job keyed of jobId for later look up.
     Map<Integer, RetentionJob> dmRetentionJobMap = new HashMap<>();
     retentionJobs.stream()
         .filter(job -> job.getRetentionRuleType() == RetentionRuleType.USER)
@@ -121,6 +123,8 @@ public class ValidationWorker extends BaseWorker {
                 .get();
 
         jobValidationDao.saveOrUpdateBatch(finalValidationList);
+        logger.info(
+            String.format("%d retention jobs have been validated.", finalValidationList.size()));
 
         List<RetentionJobValidation> dmValidationList =
             finalValidationList.stream()
@@ -138,10 +142,6 @@ public class ValidationWorker extends BaseWorker {
       return;
     }
     Map<Integer, RetentionJobStatusType> finalValidationMap = new HashMap<>();
-    /* dmValidationList.stream()
-    .collect(
-        Collectors.toMap(
-            RetentionJobValidation::getRetentionJobId, RetentionJobValidation::getStatus));*/
 
     dmValidationList.stream()
         .forEach(
@@ -151,15 +151,22 @@ public class ValidationWorker extends BaseWorker {
     List<DmRequest> dmRequests =
         dmQueueDao.getByStatus(DatabaseConstants.DM_REQUEST_STATUS_SCHEDULED);
 
+    final Map<String, Integer> countMap = new HashMap<>();
+    String keySuccess = "success";
+    String keyError = "error";
+    countMap.put(keySuccess, 0);
+    countMap.put(keyError, 0);
     dmRequests.forEach(
         request -> {
           RetentionJobStatusType jobStatus = finalValidationMap.get(request.getRetentionJobId());
           if (jobStatus != null) {
             switch (jobStatus) {
               case SUCCESS:
+                countMap.put(keySuccess, countMap.get(keySuccess) + 1);
                 request.setStatus(DatabaseConstants.DM_REQUEST_STATUS_SUCCESS);
                 break;
               case ERROR:
+                countMap.put(keyError, countMap.get(keyError) + 1);
                 if (request.getNumberOfRetry() < DmBatchProcessingWorker.DM_MAX_RETRY) {
                   request.setStatus(DatabaseConstants.DM_REQUEST_STATIUS_RETRY);
                 } else {
@@ -171,5 +178,9 @@ public class ValidationWorker extends BaseWorker {
           }
         });
     dmQueueDao.saveOrUpdateBatch(dmRequests);
+    logger.info(
+        String.format(
+            "Processed %d DM jobs. DM requests processing status: success=%d; fail=%d",
+            dmValidationList.size(), countMap.get(keySuccess), countMap.get(keyError)));
   }
 }
