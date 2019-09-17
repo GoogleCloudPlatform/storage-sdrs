@@ -68,12 +68,24 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
   }
 
   protected void closeSession(Session session) {
-    session.close();
+    try {
+      if (session != null && session.isOpen()) {
+        session.close();
+      }
+    } catch (Exception e) {
+      logger.error("Error closing Hibernate session.", e);
+    }
   }
 
   protected void closeSessionWithTransaction(Session session, Transaction transaction) {
-    transaction.commit();
-    closeSession(session);
+    try {
+      if (transaction != null && transaction.isActive()) {
+        transaction.commit();
+      }
+      closeSession(session);
+    } catch (Exception e) {
+      logger.error("Error closing hibernate session with transaction.", e);
+    }
   }
 
   /** Gets the session factory */
@@ -93,7 +105,6 @@ public abstract class BaseDao<T, Id extends Serializable> implements Dao<T, Id> 
         registry = registryBuilder.build();
 
         // TODO - refactor to remove this hardcoded strategy
-        // Create Metadata
         Metadata metadata =
             new MetadataSources(registry)
                 .addAnnotatedClass(RetentionRule.class)

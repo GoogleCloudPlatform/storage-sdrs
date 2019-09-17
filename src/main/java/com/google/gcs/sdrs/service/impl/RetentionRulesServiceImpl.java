@@ -17,7 +17,6 @@
 
 package com.google.gcs.sdrs.service.impl;
 
-import com.google.api.services.storage.model.Bucket;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.common.RetentionUnitType;
@@ -76,9 +75,9 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       throws SQLException, IOException {
     String bucketName = RetentionUtil.getBucketName(rule.getDataStorageName());
     if (rule.getRetentionRuleType() != RetentionRuleType.GLOBAL) {
-      Bucket bucket = GcsHelper.getInstance().getBucket(bucketName);
-      if (bucket == null) {
-        throw new IOException(String.format("Bucket %s does not exist", bucketName));
+      if (!GcsHelper.getInstance().doesBucketExist(bucketName, rule.getProjectId())) {
+        throw new IOException(
+            String.format("Bucket %s does not exist for project %s", bucketName, rule.getProjectId()));
       }
     }
     String userName = user.getEmail() == null ? DEFAULT_UNKNOWN_USER : user.getEmail();

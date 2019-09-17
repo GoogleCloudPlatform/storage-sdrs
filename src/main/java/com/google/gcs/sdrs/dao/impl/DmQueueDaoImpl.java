@@ -23,7 +23,6 @@ import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
@@ -45,44 +44,93 @@ public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements Dm
 
   @Override
   public List<DmRequest> getAllAvailableRequestsByPriority() {
-    Session session = openSession();
-    CriteriaBuilder builder = session.getCriteriaBuilder();
-    Transaction transaction = session.beginTransaction();
+    Session session = null;
+    List<DmRequest> result = null;
+    try {
+      session = openSession();
+      CriteriaBuilder builder = session.getCriteriaBuilder();
 
-    CriteriaQuery<DmRequest> query = builder.createQuery(DmRequest.class);
-    Root<DmRequest> root = query.from(DmRequest.class);
+      CriteriaQuery<DmRequest> query = builder.createQuery(DmRequest.class);
+      Root<DmRequest> root = query.from(DmRequest.class);
 
-    Predicate pending_status =
-        (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATUS_PENDING));
-    Predicate retry_status =
-        (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATIUS_RETRY));
-    Predicate pending_or_retry = builder.or(pending_status, retry_status);
+      Predicate pending_status =
+          (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATUS_PENDING));
+      Predicate retry_status =
+          (builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATIUS_RETRY));
+      Predicate pending_or_retry = builder.or(pending_status, retry_status);
 
-    List<Order> orderList = new ArrayList();
-    orderList.add(builder.desc(root.get("priority")));
-    orderList.add(builder.desc(root.get("numberOfRetry")));
-    orderList.add(builder.asc(root.get("createdAt")));
+      List<Order> orderList = new ArrayList();
+      orderList.add(builder.desc(root.get("priority")));
+      orderList.add(builder.desc(root.get("numberOfRetry")));
+      orderList.add(builder.asc(root.get("createdAt")));
 
-    query.where(pending_or_retry);
-    query.orderBy(orderList);
+      query.where(pending_or_retry);
+      query.orderBy(orderList);
 
-    List<DmRequest> result = session.createQuery(query).getResultList();
-    closeSessionWithTransaction(session, transaction);
+      result = session.createQuery(query).getResultList();
+      closeSession(session);
+    } catch (Exception e) {
+      handleRuntimeException(e, null);
+    } finally {
+      closeSession(session);
+    }
+
+    return result;
+  }
+
+  @Override
+  public List<DmRequest> getPendingDmRequestByName(String dataStorageName, String projectId) {
+    if (dataStorageName == null || projectId == null) {
+      return null;
+    }
+    Session session = null;
+    List<DmRequest> result = null;
+    try {
+      session = openSession();
+      CriteriaBuilder builder = session.getCriteriaBuilder();
+      CriteriaQuery<DmRequest> query = builder.createQuery(DmRequest.class);
+      Root<DmRequest> root = query.from(DmRequest.class);
+
+      query
+          .select(root)
+          .where(
+              builder.equal(root.get("dataStorageName"), dataStorageName),
+              builder.equal(root.get("projectId"), projectId),
+              builder.or(
+                  builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATUS_PENDING),
+                  builder.equal(root.get("status"), DatabaseConstants.DM_REQUEST_STATIUS_RETRY)));
+
+      result = session.createQuery(query).getResultList();
+      closeSession(session);
+    } catch (Exception e) {
+      handleRuntimeException(e, null);
+    } finally{
+       closeSession(session);
+    }
 
     return result;
   }
 
   @Override
   public List<DmRequest> getByStatus(String status) {
-    Session session = openSession();
-    CriteriaBuilder builder = session.getCriteriaBuilder();
+    Session session = null;
+    List<DmRequest> result = null;
+    try {
+      session = openSession();
+      CriteriaBuilder builder = session.getCriteriaBuilder();
 
-    CriteriaQuery<DmRequest> query = builder.createQuery(DmRequest.class);
-    Root<DmRequest> root = query.from(DmRequest.class);
-    query.select(root).where(builder.equal(root.get("status"), status));
+      CriteriaQuery<DmRequest> query = builder.createQuery(DmRequest.class);
+      Root<DmRequest> root = query.from(DmRequest.class);
+      query.select(root).where(builder.equal(root.get("status"), status));
 
-    List<DmRequest> result = session.createQuery(query).getResultList();
-    closeSession(session);
+      result = session.createQuery(query).getResultList();
+      closeSession(session);
+    } catch (Exception e) {
+      handleRuntimeException(e, null);
+    } finally {
+      closeSession(session);
+    }
+
     return result;
   }
 
@@ -91,7 +139,6 @@ public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements Dm
       RetentionJob retentionJob, List<DmRequest> dmRequests) throws IOException {
     Session session = null;
     Transaction transaction = null;
-
     try {
       session = openSession();
       transaction = session.beginTransaction();
@@ -109,22 +156,16 @@ public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements Dm
           session.clear();
         }
       }
-      transaction.commit();
-      session.close();
-    } catch (PersistenceException e) {
-      // catch unchecked exceptions to rollback and throw application level IOException
-      logger.error("Runtime exception.", e);
-      if (transaction != null && transaction.isActive()) {
-        transaction.rollback();
-      }
-      if (session != null && session.isOpen()) {
-        session.close();
-      }
+      closeSessionWithTransaction(session, transaction);
+    } catch (Exception e) {
+      handleRuntimeException(e, transaction);
 
       throw new IOException(
           String.format(
               "Failed to create retention job and update DM requests. bucket: %s; STS: %s.",
               retentionJob.getDataStorageRoot(), retentionJob.getName()));
+    } finally{
+      closeSession(session);
     }
   }
 }

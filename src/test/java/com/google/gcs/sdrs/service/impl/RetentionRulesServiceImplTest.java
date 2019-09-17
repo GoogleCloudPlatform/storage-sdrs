@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.api.services.storage.model.Bucket;
+import com.google.cloud.storage.Bucket;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
@@ -81,7 +81,7 @@ public class RetentionRulesServiceImplTest {
 
     PowerMockito.mockStatic(GcsHelper.class);
     when(GcsHelper.getInstance()).thenReturn(mockGcsHelper);
-    when(mockGcsHelper.getBucket(any())).thenReturn(new Bucket());
+    when(mockGcsHelper.doesBucketExist(any(), any())).thenReturn(true);
   }
 
   @Test
@@ -231,7 +231,7 @@ public class RetentionRulesServiceImplTest {
     createRule.setDataStorageName("gs://bucket-not-exist/d");
     createRule.setProjectId("projectId");
 
-    when(mockGcsHelper.getBucket("bucket-not-exist")).thenReturn(null);
+    when(mockGcsHelper.doesBucketExist("bucket-not-exist", "projectId")).thenReturn(false);
 
     try {
       service.createRetentionRule(createRule, new UserInfo());
