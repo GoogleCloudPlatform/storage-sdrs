@@ -17,6 +17,7 @@
 package com.google.gcs.sdrs.dao.impl;
 
 import com.google.gcs.sdrs.dao.DmQueueDao;
+import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
@@ -109,6 +110,26 @@ public class DmQueueDaoImpl extends GenericDao<DmRequest, Integer> implements Dm
        closeSession(session);
     }
 
+    return result;
+  }
+
+  @Override
+  public int deleteSuccessfulDmRequests() {
+    Session session = null;
+    Transaction transaction = null;
+    int result = 0;
+    try {
+      session = openSession();
+      transaction = session.beginTransaction();
+      result = session.createQuery("delete from DmRequest where status=:status")
+          .setParameter("status", DatabaseConstants.DM_REQUEST_STATUS_SUCCESS)
+          .executeUpdate();
+      closeSessionWithTransaction(session, transaction);
+    } catch (Exception e) {
+      handleRuntimeException(e, transaction);
+    } finally{
+      closeSession(session);
+    }
     return result;
   }
 

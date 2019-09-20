@@ -26,7 +26,13 @@
         <frequency>60</frequency>
         <timeUnit>MINUTES</timeUnit>
         <maxRetry>5</maxRetry>
+        <dmRegexPattern>.delete_this_folder</dmRegexPattern>
       </dmBatchProcessing>
+      <dmQueueCleanup>
+        <initialDelay>0</initialDelay>
+        <frequency>240</frequency>
+        <timeUnit>MINUTES</timeUnit>
+      </dmQueueCleanup>
     </task>
   </scheduler>
   <sts>

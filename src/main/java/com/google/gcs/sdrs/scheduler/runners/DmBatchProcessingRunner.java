@@ -25,11 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Submits the job to the task queue managed by JobManager */
-public class DMBatchProcessingRunner implements Runnable {
+public class DmBatchProcessingRunner implements Runnable {
 
-  private static final Logger logger = LoggerFactory.getLogger(DMBatchProcessingRunner.class);
+  private static final Logger logger = LoggerFactory.getLogger(DmBatchProcessingRunner.class);
 
-  public DMBatchProcessingRunner() {
+  public DmBatchProcessingRunner() {
     super();
   }
 

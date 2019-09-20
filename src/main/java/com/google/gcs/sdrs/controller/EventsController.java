@@ -21,6 +21,7 @@ import com.google.gcs.sdrs.controller.pojo.EventResponse;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.pojo.NotificationEventRequest;
 import com.google.gcs.sdrs.controller.validation.FieldValidations;
+import com.google.gcs.sdrs.controller.validation.ValidationConstants;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.DmRequest;
@@ -171,26 +172,40 @@ public class EventsController extends BaseController {
     validations.add(validateTargetNameResult);
 
     if (validateTargetNameResult.isValid) {
-      String datasetPath = RetentionUtil.getDatasetPath(target);
-      if (datasetPath.lastIndexOf("/") < 0) {
+      if (!RetentionUtil.isValidDeleteMarker(target)) {
         validations.add(
             ValidationResult.fromString(
                 String.format(
-                    "The target %s is the root of a bucket. Can not delete a bucket", target)));
+                    "The target %s does not have a valid delete marker. The delete marker needs to match the pattern %s",
+                    target, RetentionUtil.DM_REGEX_PATTERN)));
       } else {
-        String bucketName = RetentionUtil.getBucketName(target);
-        if (!GcsHelper.getInstance().doesBucketExist(bucketName, projectId)) {
+        String datasetPath = RetentionUtil.getDmDatasetPath(target);
+        if (datasetPath == null) {
           validations.add(
               ValidationResult.fromString(
-                  String.format("The bucket %s/%s does not exist", projectId, bucketName)));
+                  String.format(
+                      "The target %s is intended to delete a bucket. Can not delete a bucket",
+                      target)));
         } else {
-          List<DmRequest> dmRequests =
-              SingletonDao.getDmQueueDao().getPendingDmRequestByName(target, projectId);
-          if (dmRequests != null && !dmRequests.isEmpty()) {
+          String bucketName = RetentionUtil.getBucketName(target);
+          if (!GcsHelper.getInstance().doesBucketExist(bucketName, projectId)) {
             validations.add(
                 ValidationResult.fromString(
-                    String.format(
-                        "The target %s for project %s already exist.", target, projectId)));
+                    String.format("The bucket %s/%s does not exist", projectId, bucketName)));
+          } else {
+            String dataStorageName =
+                ValidationConstants.STORAGE_PREFIX
+                    + bucketName
+                    + ValidationConstants.STORAGE_SEPARATOR
+                    + datasetPath;
+            List<DmRequest> dmRequests =
+                SingletonDao.getDmQueueDao().getPendingDmRequestByName(dataStorageName, projectId);
+            if (dmRequests != null && !dmRequests.isEmpty()) {
+              validations.add(
+                  ValidationResult.fromString(
+                      String.format(
+                          "The target %s for project %s already exist.", target, projectId)));
+            }
           }
         }
       }

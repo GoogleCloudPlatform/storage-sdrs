@@ -13,24 +13,24 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
+ *
  */
-package com.google.gcs.sdrs.dao;
 
-import com.google.gcs.sdrs.dao.model.DmRequest;
-import com.google.gcs.sdrs.dao.model.RetentionJob;
-import java.io.IOException;
-import java.util.List;
+package com.google.gcs.sdrs.scheduler.runners;
 
-public interface DmQueueDao extends Dao<DmRequest, Integer> {
+import com.google.gcs.sdrs.dao.DmQueueDao;
+import com.google.gcs.sdrs.dao.SingletonDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-  List<DmRequest> getAllAvailableRequestsByPriority();
+/** Remove successfully processed requests from the queue. */
+public class DmQueueCleanupRunner implements Runnable {
+  private static final Logger logger = LoggerFactory.getLogger(DmQueueCleanupRunner.class);
 
-  List<DmRequest> getByStatus(String status);
-
-  List<DmRequest> getPendingDmRequestByName(String dataStorageName, String projectId);
-
-  int deleteSuccessfulDmRequests();
-
-  void createRetentionJobUdpateDmStatus(RetentionJob retentionJob, List<DmRequest> dmRequests)
-      throws IOException;
+  @Override
+  public void run() {
+    DmQueueDao dmQueueDao = SingletonDao.getDmQueueDao();
+    int result = dmQueueDao.deleteSuccessfulDmRequests();
+    logger.info(String.format("Removed %d successfully processed DM requests.", result));
+  }
 }

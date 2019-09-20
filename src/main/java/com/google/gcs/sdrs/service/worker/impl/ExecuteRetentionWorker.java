@@ -201,6 +201,15 @@ public class ExecuteRetentionWorker extends BaseWorker {
   }
 
   private void executeUserCommandedRule(String target, String projectId) throws IOException {
+    if (!RetentionUtil.isValidDeleteMarker(target)) {
+      throw new IOException(String.format("Target %s does not have a valid delete marker", target));
+    }
+
+    if (RetentionUtil.getDmDatasetPath(target) == null) {
+      throw new IOException(
+          String.format("Target %s is a bucket. Can not delete a bucket", target));
+    }
+
     List<RetentionRule> userRules = new ArrayList<>();
     userRules.add(buildUserCommandedRule(target, projectId));
     ruleExecutor.executeUserCommandedRule(userRules, projectId);
@@ -208,7 +217,8 @@ public class ExecuteRetentionWorker extends BaseWorker {
 
   private RetentionRule buildUserCommandedRule(String target, String projectId) {
     RetentionRule rule = new RetentionRule();
-    String dataStorageName = getDataStorageName(target);
+    //remove the delete marker from the target.
+    String dataStorageName = target.substring(0, target.lastIndexOf("/"));
 
     rule.setDataStorageName(dataStorageName);
     rule.setDatasetName(RetentionUtil.getDatasetPath(dataStorageName));
