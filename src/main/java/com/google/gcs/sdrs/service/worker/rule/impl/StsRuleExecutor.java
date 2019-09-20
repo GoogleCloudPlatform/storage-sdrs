@@ -133,7 +133,6 @@ public class StsRuleExecutor implements RuleExecutor {
           continue;
         }
         String prefix = RetentionUtil.getDatasetPath(userCommandedRule.getDataStorageName());
-        prefix = prefix.substring(0, prefix.lastIndexOf("/") + 1);
         if (prefix.isEmpty()) {
           String message =
               String.format(

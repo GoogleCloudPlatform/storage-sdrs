@@ -33,6 +33,7 @@ import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.worker.WorkerResult;
 import com.google.gcs.sdrs.service.worker.WorkerResult.WorkerResultStatus;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -67,7 +68,9 @@ public class ExecuteRetentionWorkerTest {
 
   @Test
   public void doWorkSuccessfullyHandlesUserRequests() {
-    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(createBasicRequest(), uuid);
+    ExecutionEventRequest request = createBasicRequest();
+    request.setTarget("gs://bucket/d/t/" + RetentionUtil.DEFAULT_DM_REGEX_PATTERN);
+    ExecuteRetentionWorker worker = new ExecuteRetentionWorker(request, uuid);
     worker.ruleExecutor = ruleExecutorMock;
     worker.retentionJobDao = retentionJobDaoMock;
     worker.retentionRuleDao = retentionRuleDaoMock;

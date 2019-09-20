@@ -33,6 +33,7 @@ import com.google.gcs.sdrs.dao.DmQueueDao;
 import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
 import com.google.gcs.sdrs.util.GcsHelper;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import javax.ws.rs.core.Response;
 import org.glassfish.grizzly.http.util.HttpStatus;
 import org.junit.Before;
@@ -111,7 +112,7 @@ public class EventsControllerTest {
     ExecutionEventRequest request = new ExecutionEventRequest();
     request.setExecutionEventType(ExecutionEventType.USER_COMMANDED);
     request.setProjectId("projectId");
-    request.setTarget("gs://b/s/t");
+    request.setTarget("gs://b/s/" + RetentionUtil.DEFAULT_DM_REGEX_PATTERN);
 
     when(mockGcsHelper.doesBucketExist(any(), any())).thenReturn(true);
     when(mockDmQueueDao.getPendingDmRequestByName(any(), any())).thenReturn(null);

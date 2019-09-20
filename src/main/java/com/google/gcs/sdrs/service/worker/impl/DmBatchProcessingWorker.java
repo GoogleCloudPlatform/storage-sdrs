@@ -167,12 +167,12 @@ public class DmBatchProcessingWorker extends BaseWorker {
     Set<String> newIncludePrefixSet = new HashSet<>();
 
     for (int i = 0; i < maxPrefxiNumber; i++) {
-      String prefix = RetentionUtil.getDmPrefix(dmRequests.get(i).getDataStorageName());
-      if (prefix != null) {
+      String prefix = RetentionUtil.getDatasetPath(dmRequests.get(i).getDataStorageName());
+      if (prefix != null && !prefix.isEmpty()) {
+        if (!prefix.endsWith("/")) {
+          prefix = prefix + "/";
+        }
         newIncludePrefixSet.add(prefix);
-      } else {
-        logger.error(
-            String.format("%s is not valid delete marker", dmRequests.get(i).getDataStorageName()));
       }
     }
 

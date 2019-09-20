@@ -23,7 +23,8 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.impl.RetentionRuleDaoImpl;
 import com.google.gcs.sdrs.dao.model.DistributedLock;
 import com.google.gcs.sdrs.scheduler.JobScheduler;
-import com.google.gcs.sdrs.scheduler.runners.DMBatchProcessingRunner;
+import com.google.gcs.sdrs.scheduler.runners.DmBatchProcessingRunner;
+import com.google.gcs.sdrs.scheduler.runners.DmQueueCleanupRunner;
 import com.google.gcs.sdrs.service.mq.PubSubMessageQueueManagerImpl;
 import com.google.gcs.sdrs.service.worker.impl.DmBatchProcessingWorker;
 import java.io.IOException;
@@ -53,9 +54,12 @@ public class SdrsApplication {
     SLF4JBridgeHandler.install();
   }
 
-  public static final int DEFAULT_DM_RUNNER_INITIAL_DELAY = 0;
-  public static final int DEFAULT_DM_RUNNER_FREQUENCY = 60;
-  public static final TimeUnit DEFAULT_DM_RUNNER_TIMEUNIT = TimeUnit.MINUTES;
+  public static final int DEFAULT_DM_BATCH_RUNNER_INITIAL_DELAY = 0;
+  public static final int DEFAULT_DM_BATCH_RUNNER_FREQUENCY = 60;
+  public static final TimeUnit DEFAULT_DM_BATCH_RUNNER_TIMEUNIT = TimeUnit.MINUTES;
+  public static final int DEFAULT_DM_CLEANUP_RUNNER_INITIAL_DELAY = 0;
+  public static final int DEFAULT_DM_CLEANUP_RUNNER_FREQUENCY = 60 * 4;
+  public static final TimeUnit DEFAULT_DM_CLEANUP_RUNNER_TIMEUNIT = TimeUnit.MINUTES;
 
   /**
    * Starts the SDRS service
@@ -73,11 +77,7 @@ public class SdrsApplication {
     connectDatabase();
     initDmDistributedLock();
     scheduleDmProcessingRunner();
-
-    /*   if (Boolean.valueOf(getAppConfigProperty("scheduler.enabled", "false"))) {
-      scheduleExecutionServiceJob();
-      scheduleValidationServiceJob();
-    }*/
+    scheduleDmQueueCleanupRunner();
   }
 
   /** Triggers the shutdown hook and gracefully shuts down the SDRS service */
@@ -140,6 +140,29 @@ public class SdrsApplication {
     }
   }
 
+  private static void scheduleDmQueueCleanupRunner() {
+    JobScheduler scheduler = JobScheduler.getInstance();
+
+    int initialDelay =
+        Integer.valueOf(
+            getAppConfigProperty(
+                "scheduler.task.dmQueueCleanup.initialDelay",
+                String.valueOf(DEFAULT_DM_CLEANUP_RUNNER_INITIAL_DELAY)));
+    int frequency =
+        Integer.valueOf(
+            getAppConfigProperty(
+                "scheduler.task.dmQueueCleanup.frequency",
+                String.valueOf(DEFAULT_DM_CLEANUP_RUNNER_FREQUENCY)));
+    TimeUnit timeUnit =
+        TimeUnit.valueOf(
+            getAppConfigProperty(
+                "scheduler.task.dmQueueCleanup.timeUnit",
+                DEFAULT_DM_CLEANUP_RUNNER_TIMEUNIT.name()));
+
+    scheduler.submitScheduledJob(new DmQueueCleanupRunner(), initialDelay, frequency, timeUnit);
+    logger.info("DM queue cleanup runner scheduled successfully.");
+  }
+
   private static void scheduleDmProcessingRunner() {
     JobScheduler scheduler = JobScheduler.getInstance();
 
@@ -147,18 +170,19 @@ public class SdrsApplication {
         Integer.valueOf(
             getAppConfigProperty(
                 "scheduler.task.dmBatchProcessing.initialDelay",
-                String.valueOf(DEFAULT_DM_RUNNER_INITIAL_DELAY)));
+                String.valueOf(DEFAULT_DM_BATCH_RUNNER_INITIAL_DELAY)));
     int frequency =
         Integer.valueOf(
             getAppConfigProperty(
                 "scheduler.task.dmBatchProcessing.frequency",
-                String.valueOf(DEFAULT_DM_RUNNER_FREQUENCY)));
+                String.valueOf(DEFAULT_DM_BATCH_RUNNER_FREQUENCY)));
     TimeUnit timeUnit =
         TimeUnit.valueOf(
             getAppConfigProperty(
-                "scheduler.task.dmBatchProcessing.timeUnit", DEFAULT_DM_RUNNER_TIMEUNIT.name()));
+                "scheduler.task.dmBatchProcessing.timeUnit",
+                DEFAULT_DM_BATCH_RUNNER_TIMEUNIT.name()));
 
-    scheduler.submitScheduledJob(new DMBatchProcessingRunner(), initialDelay, frequency, timeUnit);
+    scheduler.submitScheduledJob(new DmBatchProcessingRunner(), initialDelay, frequency, timeUnit);
     logger.info("DM batch processing runner scheduled successfully.");
   }
 
