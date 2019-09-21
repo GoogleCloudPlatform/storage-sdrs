@@ -19,7 +19,12 @@ package com.google.gcs.sdrs.util;
 
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
+import java.io.File;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,5 +139,30 @@ public class RetentionUtil {
       String deleteMarker = dmTarget.substring(dmTarget.lastIndexOf("/") + 1);
       return Pattern.matches(DM_REGEX_PATTERN, deleteMarker);
     }
+  }
+
+  /**
+   * Consolidate nested prefixes.
+   *
+   * @param pathNames A list of path names
+   * @return A list of prefixes without nested ones
+   */
+  public static List<String> consolidateDmPrefixes(List<String> pathNames) {
+    List<File> files = pathNames.stream().map(n -> new File(n)).collect(Collectors.toList());
+    Collections.sort(files, Comparator.naturalOrder()); // Sort in ascending order
+
+    // File.getPath does not have the "/" at the end. So add it.
+    List<String> sortedPathNames =
+        files.stream().map(f -> f.getPath() + "/").collect(Collectors.toList());
+    for (int i = 0; i < sortedPathNames.size() - 1; i++) {
+      String current = sortedPathNames.get(i);
+      String next = sortedPathNames.get(i + 1);
+      if (next.startsWith(current)) {
+        sortedPathNames.remove(i + 1);
+        i = i - 1;
+      }
+    }
+
+    return sortedPathNames;
   }
 }

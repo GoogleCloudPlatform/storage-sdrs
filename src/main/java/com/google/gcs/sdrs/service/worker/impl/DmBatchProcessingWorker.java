@@ -155,32 +155,41 @@ public class DmBatchProcessingWorker extends BaseWorker {
       }
     }
 
-    int maxPrefxiNumber = StsUtil.MAX_PREFIX_COUNT - existingIncludePrefixList.size();
+    int initPrefxiNumber = 0;
 
+    Set<String> newIncludePrefixSet = new HashSet<>();
     // Replace the existing prefix list if last modified time is 24 hours ago,
     // meaning the daily STS job has already run and the existing prefix list has been processed.
     if (lastModifiedTime.isBefore(zonedDateTimeNow.minusHours(24))) {
-      maxPrefxiNumber = StsUtil.MAX_PREFIX_COUNT;
-    }
-
-    maxPrefxiNumber = Math.min(maxPrefxiNumber, dmRequests.size());
-    Set<String> newIncludePrefixSet = new HashSet<>();
-
-    for (int i = 0; i < maxPrefxiNumber; i++) {
-      String prefix = RetentionUtil.getDatasetPath(dmRequests.get(i).getDataStorageName());
-      if (prefix != null && !prefix.isEmpty()) {
-        if (!prefix.endsWith("/")) {
-          prefix = prefix + "/";
-        }
-        newIncludePrefixSet.add(prefix);
-      }
-    }
-
-    if (maxPrefxiNumber < 1000) {
+      initPrefxiNumber = StsUtil.MAX_PREFIX_COUNT;
+    } else {
+      initPrefxiNumber = StsUtil.MAX_PREFIX_COUNT - existingIncludePrefixList.size();
       newIncludePrefixSet.addAll(existingIncludePrefixList);
     }
 
-    List<String> newIncludePrefixList = new ArrayList<>(newIncludePrefixSet);
+    int maxCount = Math.min(initPrefxiNumber, dmRequests.size());
+    int total = 0;
+    int start = 0;
+    List<String> newIncludePrefixList = null;
+
+    while (total < StsUtil.MAX_PREFIX_COUNT && start < dmRequests.size()) {
+      for (int i = 0; i < maxCount; i++) {
+        String prefix =
+            RetentionUtil.getDatasetPath(dmRequests.get(i + start).getDataStorageName());
+        if (prefix != null && !prefix.isEmpty()) {
+          if (!prefix.endsWith("/")) {
+            prefix = prefix + "/";
+          }
+          newIncludePrefixSet.add(prefix);
+        }
+      }
+      newIncludePrefixList =
+          RetentionUtil.consolidateDmPrefixes(new ArrayList<>(newIncludePrefixSet));
+      total = newIncludePrefixList.size();
+      start = maxCount + start;
+      maxCount = Math.min(StsUtil.MAX_PREFIX_COUNT - total, dmRequests.size() - start);
+      newIncludePrefixSet = new HashSet<>(newIncludePrefixList);
+    }
     // update STS job
     TransferJob jobToUpdate =
         new TransferJob()
@@ -208,7 +217,7 @@ public class DmBatchProcessingWorker extends BaseWorker {
     retentionJob.setMetadata(StsUtil.convertPrefixToString(newIncludePrefixList));
 
     // update retention_job and dm_queue tables
-    List<DmRequest> processedDmRequests = dmRequests.subList(0, maxPrefxiNumber);
+    List<DmRequest> processedDmRequests = dmRequests.subList(0, start);
     dmRequests.stream()
         .forEach(
             request -> {
