@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Calls the Rule execution endpoint when run */
+@Deprecated
 public class RuleExecutionRunner implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(RuleExecutionRunner.class);

@@ -17,27 +17,22 @@
     </monitor>
   </jobManager>
   <scheduler>
-    <enabled>${SDRS_SCHEDULER_ENABLED}</enabled>
-    <threadPoolSize>1</threadPoolSize>
+    <threadPoolSize>7</threadPoolSize>
     <shutdownWait>30</shutdownWait>
     <shutdownTimeUnit>SECONDS</shutdownTimeUnit>
     <task>
-      <endpointHost>${SDRS_TASK_ENDPOINT_HOST}</endpointHost>
-      <endpointPort>${SDRS_TASK_ENDPOINT_PORT}</endpointPort>
-      <endpointApiKey>${SDRS_TASK_ENDPOINT_API_KEY}</endpointApiKey>
-      <endpointHttpsEnabled>${SDRS_TASK_ENDPOINT_HTTPS_ENABLED}</endpointHttpsEnabled>
-      <ruleExecution>
-        <endpoint>events/execution</endpoint>
+      <dmBatchProcessing>
         <initialDelay>0</initialDelay>
         <frequency>60</frequency>
         <timeUnit>MINUTES</timeUnit>
-      </ruleExecution>
-      <validationService>
-        <endpoint>events/validation</endpoint>
+        <maxRetry>5</maxRetry>
+        <dmRegexPattern>.delete_this_folder</dmRegexPattern>
+      </dmBatchProcessing>
+      <dmQueueCleanup>
         <initialDelay>0</initialDelay>
-        <frequency>60</frequency>
+        <frequency>240</frequency>
         <timeUnit>MINUTES</timeUnit>
-      </validationService>
+      </dmQueueCleanup>
     </task>
   </scheduler>
   <sts>
@@ -53,6 +48,12 @@
     <defaultStorageName>gs://global</defaultStorageName>
     <maxLookBackInDays>365</maxLookBackInDays>
   </sts>
+  <lock>
+    <dm>
+      <id>dm-batch</id>
+      <timeout>60000</timeout>
+    </dm>
+  </lock>
   <pubsub>
     <topic>${SDRS_PUBSUB_TOPIC_NAME}</topic>
   </pubsub>

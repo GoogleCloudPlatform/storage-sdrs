@@ -201,31 +201,24 @@ public class ExecuteRetentionWorker extends BaseWorker {
   }
 
   private void executeUserCommandedRule(String target, String projectId) throws IOException {
-    List<RetentionJob> errorJobs = new ArrayList<>();
-    List<RetentionRule> userRules = new ArrayList<>();
-    userRules.add(buildUserCommandedRule(target, projectId));
-    List<RetentionJob> jobs = ruleExecutor.executeUserCommandedRule(userRules, projectId);
-    if (jobs != null) {
-      for (RetentionJob job : jobs) {
-        job.setBatchId(getUuid());
-        if (job.getName() == null) {
-          errorJobs.add(job);
-        } else {
-          retentionJobDao.save(job);
-        }
-      }
+    if (!RetentionUtil.isValidDeleteMarker(target)) {
+      throw new IOException(String.format("Target %s does not have a valid delete marker", target));
     }
 
-    if (!errorJobs.isEmpty()) {
+    if (RetentionUtil.getDmDatasetPath(target) == null) {
       throw new IOException(
-          String.format(
-              "Failed to schedule %d retention jobs for user commanded rule", errorJobs.size()));
+          String.format("Target %s is a bucket. Can not delete a bucket", target));
     }
+
+    List<RetentionRule> userRules = new ArrayList<>();
+    userRules.add(buildUserCommandedRule(target, projectId));
+    ruleExecutor.executeUserCommandedRule(userRules, projectId);
   }
 
   private RetentionRule buildUserCommandedRule(String target, String projectId) {
     RetentionRule rule = new RetentionRule();
-    String dataStorageName = getDataStorageName(target);
+    //remove the delete marker from the target.
+    String dataStorageName = target.substring(0, target.lastIndexOf("/"));
 
     rule.setDataStorageName(dataStorageName);
     rule.setDatasetName(RetentionUtil.getDatasetPath(dataStorageName));

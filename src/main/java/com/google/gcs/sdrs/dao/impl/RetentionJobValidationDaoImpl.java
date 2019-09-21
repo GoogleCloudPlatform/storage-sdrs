@@ -22,8 +22,6 @@ import com.google.gcs.sdrs.common.RetentionJobStatusType;
 import com.google.gcs.sdrs.dao.RetentionJobValidationDao;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionJobValidation;
-import java.sql.Date;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -76,7 +74,6 @@ public class RetentionJobValidationDaoImpl extends GenericDao<RetentionJobValida
    */
   private List<RetentionJob> findAllSingleRunPendingJobs() {
     Session session = openSession();
-    Date oneDayAgo = Date.valueOf(LocalDate.now().atStartOfDay().toLocalDate());
     CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<RetentionJob> query = builder.createQuery(RetentionJob.class);
     Root<RetentionJob> job = query.from(RetentionJob.class);
