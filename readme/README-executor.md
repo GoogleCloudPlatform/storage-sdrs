@@ -14,6 +14,8 @@ A DATASET rule applies only to a given dataset within a bucket. For example, a r
 
 A GLOBAL rule applies to all buckets that are specified by dataset rules and acts as a default retention period. For example, if the GLOBAL retention period is 60 days then the objects in `gs://mybucket/test` will be deleted after 60 days.
 
+The above rules can be managed through [Configuration Service](./README-configuration.md). A user can delete a dataset on demand and this type of retention execution is called user-initiated(USER type) or delete marker, an pre-defined GCS object user creates in a dataset.
+
 NOTE: SDRS allows **ONLY ONE** GLOBAL rule. This rule is denoted by configurable project ID and storage values.
 
 ## Execution Service Design
@@ -38,22 +40,26 @@ The following payload will execute all retention rules within SDRS.
 ```
 
 ### User Requests
-Additionally, a user can initiate an object deletion without a corresponding rule. In this case, the user must specify the target location and the project id of the object to be deleted. Only the objects at or below the target path will be deleted.
+Additionally, a user can initiate a dataset deletion without a corresponding rule. In this case, the user must specify the target location(dataset path with a delete marker) and the project id of the object to be deleted. Only the objects at or below the target path will be deleted.
 ```json
 {
-  "target": "<BUCKET_PATH>",
+  "target": "<DATASET_PATH_with_DELETE_MARKER>",
   "projectId": "<GCP_PROJECT_ID>",
   "type": "USER"
 }
 ```
 
-## Storage Transfer Service
+## Storage Transfer Service (STS)
 SDRS is currently built to operate against Google Cloud's Storage Transfer Service. For SDRS to operate correctly, any bucket that is moved must have a "shadow" bucket created **BEFORE** a retention rule is executed. The shadow bucket should be the same name as the source bucket with a suffix/prefix appended. The suffix/prefix is configurable within SDRS.
 
 For example, if objects are being moved from `gs://mybucket/dataset/2018` and the configured suffix is "shadow" there **MUST** be a bucket called `gs://mybucketshadow` for SDRS to operate successfully.
 
-NOTE: STS has a limit on the number of requests that can be sent in a given time period. SDRS uses exponential backoff retry to handle the rate limit. 
-## Build-in Scheduler
+NOTE: STS has a limit on the number of requests that can be sent in a given time period. SDRS uses exponential backoff retry to handle the rate limit.
+
+### STS Job Pool
+To efficiently use STS, a STS job pool has been implemented ([v0.2.0](https://github.com/GoogleCloudPlatform/storage-sdrs/releases/tag/v0.2.0)). The job pool is provisioned per bucket and each pool contains number of daily recurring STS jobs pre-created for different type of retention rules. The STS jobs for dataset and default rules are created via a [CLI](https://github.com/GoogleCloudPlatform/storage-sdrs/blob/master/scripts/provisioning/README.md) and [on-demand](https://github.com/GoogleCloudPlatform/storage-sdrs/blob/master/src/main/resources/applicationConfig.xml#L45) for user-initiated(a.k.a delete marker).
+
+## Build-in Scheduler(deprecated by v0.3.0)
 SDRS contains a mechanism for executing certain functionality, including rule execution and validation, by periodically calling the relevant endpoints. The built-in scheduler is disabled by default and the preference is to schedule the services through more robust dedicated job scheduling service. Please also note that the build-in scheduler only works for single SDRS instance deployment if enabled.  
 
 ## Additional Information
@@ -66,26 +72,19 @@ SDRS contains a mechanism for executing certain functionality, including rule ex
 * frequency: The frequency at which the Job Manager Monitor will check for worker results
 * timeUnit: The time unit for the previous two config values
 #### Scheduler
-* enabled: Used to turn on and off the internal scheduler service
 * threadPoolSize: Determines the max number of scheduled jobs the scheduler will execute at once
 * shutdownWait: Determines how long the scheduler will wait for scheduled jobs to resolve before shutting down. If no jobs are pending, the scheduler will shut down immediately.
 * shutdownTimeUnit: The time unit for the shutdown wait value
-#### Scheduled Tasks
-* endpointHost: the SDRS host you want to call from the scheduled task
-* endpointPort: the port you want to call from the scheduled task
-* endpointApiKey: the api key to provide to the endpoint from the scheduled task
-* endpointHttpsEnabled: determines whether the scheduler uses HTTPS in its call
-#### Rule Execution Task
-* endpoint: the endpoint to call. Defaults to `events/execution`
-* initialDelay: how long to wait to start making calls after application startup
-* frequency: the period between calls
-* timeUnit: the time unit for the initialDelay and frequency config values
-* timezone: the timezone that is provided for rule scheduling
-#### Validation Task
-* endpoint: the endpoint to call. Defaults to `events/validation`
-* initialDelay: how long to wait to start making calls after application startup
-* frequency: the period between calls
-* timeUnit: the time unit for the initialDelay and frequency config values
+#### DM Batch Processing Task
+* initialDelay: How long the DM batch processor will wait to start
+* frequency: The frequency at which the batch processor will run
+* timeUnit: The time unit for the previous two config values
+* maxRetry: The maximum number that the batch processor will re-run a failed retention job. Default is 5.
+* dmRegexPattern: The regex pattern of delete marker. Default is .delete_this_folder
+#### DM Queue Cleanup Task
+* initialDelay: How long the cleanup will wait to start
+* frequency: The frequency at which the cleanup will run
+* timeUnit: The time unit for the previous two config values
 #### Storage Transfer Service
 * maxPrefixCount: the maximum number of path prefixes to include in a single STS job. A max of 1000 is specified by GCP.
 * shadowBucketExtension: the configurable shadow bucket name extension that is used to determine the destination bucket of STS jobs.
@@ -95,4 +94,10 @@ SDRS contains a mechanism for executing certain functionality, including rule ex
 * defaultProjectId: the project id value that denotes the GLOBAL rule
 * defaultStorageName: the dataStorageName value that denotes the GLOBAL rule
 * maxLookBackInDays: how long back the global rule will operate. This value is used to tamp down the number of prefixes passed to STS
-
+* jobPoolOnDemand:
+    * user: The number of STS jobs provisioned for a pool on demand for a given bucket for user-initiated retention execution. Value is recommended to be multiple of 4 and max is 96.
+#### Distributed Lock
+* lock
+    * dm: Delete marker lock
+        * id: Unique ID for the lock.
+        * timeout: Lock expiration time in milliseconds.

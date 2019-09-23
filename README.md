@@ -13,8 +13,13 @@ reliably enforce object retention based on the encoded creation time.
    
 At the most fundamental level, SDRS enforces object retention by mapping policy rules defining the time-to-live (TTL) for datasets existing in GCS buckets. 
 Note, for scenarios where GCS object retention management can rely solely on object creation time rather than an encoded prefix, please see: [Object Lifecycle Management](https://cloud.google.com/storage/docs/lifecycle)   
-  
-## High Level Architecture  
+
+The project is inspired by working with Google Cloud's customers, close collaboration with Twitter.
+
+## Releases
+See the [latest release](https://github.com/GoogleCloudPlatform/storage-sdrs/releases/latest) and [other releases](https://github.com/GoogleCloudPlatform/storage-sdrs/releases) for the details
+
+## High Level Architecture
   
 SDRS is an open-source [GCP GitHub project](https://github.com/GoogleCloudPlatform/storage-sdrs)  
   
@@ -65,7 +70,7 @@ The instructions in this section describe how to quickly get started and deploy 
 ```
 
 2) Create a [CloudSQL](https://cloud.google.com/sql/docs/mysql/create-instance) instance.   
-3) Run [MySQL DDL](./scripts/sql/retention_schema.sql) to create a database schema in the Cloud SQL instance created above.  
+3) Run [MySQL DDL](./scripts/sql/retention_schema.sql) or [mods](./scripts/sql/mods) to create/update a database schema in the Cloud SQL instance created above.
 Note, set log_bin_trust_function_creators to true to overcome a possible error you may encounter when creating the db trigger.  
 4) Create [Pub/Sub infrastructure](./scripts/deployment/pub-sub/README.md) for SDRS to publish messages.  
 5) Build the SDRS [Docker image](./readme/README-docker.md).    
@@ -100,7 +105,7 @@ In general, deploying SDRS to a production like environment should occur in the 
 ### Deploying the Server Side Components 
 
 1) Cloud SQL Infrastructure Deployment see the [Cloud SQL Deployment README](./scripts/deployment/cloud-sql/README.md).
-2) MySQL DDL execution see the [MySQL Schema](./scripts/sql/retention_schema.sql).
+2) MySQL DDL or mods execution see the [MySQL Schema](./scripts/sql/retention_schema.sql) and [mods](./scripts/sql/mods).
 3) Pub/Sub Infrastructure Deployment the [Server Pub/Sub Deployment README](./scripts/deployment/pub-sub/README.md).
 4) MIG Deployment the [MIG Deployment README](./scripts/deployment/mig/README.md).
 

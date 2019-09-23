@@ -102,7 +102,9 @@ The following are instructions to deploy SDRS. Click the links for details on ea
 
 9. Verify the status of SDRS using [Check SDRS Status](#check-sdrs-status)
 
-### SDRS Update    
+### SDRS Update
+If the update requires database changes, run the [database mods](../sql/mods) against the database to update the schema for the updated SDRS version before updating SDRS. The database mods only update schema and data migration maybe needed as part of update.
+
 Update the SDRS application using [MIG Updater](./mig/README.md).    
  
 Follow the steps section II (subsection 1 through 4) to update the version of new software on the existing Managed Instance Group.    
