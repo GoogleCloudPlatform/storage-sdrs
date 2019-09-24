@@ -610,7 +610,7 @@ public class StsRuleExecutor implements RuleExecutor {
         numberOfJobs =
             Integer.parseInt(
                 SdrsApplication.getAppConfigProperty(
-                    "jobPoolOnDemand." + RetentionRuleType.USER.toString().toLowerCase(),
+                    "sts.jobPoolOnDemand." + RetentionRuleType.USER.toString().toLowerCase(),
                     StsUtil.DEFAULT_STS_JOB_POOL_NUMBER));
         numberOfJobs = Math.min(numberOfJobs, StsUtil.MAX_USER_STS_JOB_POOL_NUMBER);
         break;
@@ -618,7 +618,7 @@ public class StsRuleExecutor implements RuleExecutor {
         numberOfJobs =
             Integer.parseInt(
                 SdrsApplication.getAppConfigProperty(
-                    "jobPoolOnDemand." + RetentionRuleType.DATASET.toString().toLowerCase(),
+                    "sts.jobPoolOnDemand." + RetentionRuleType.DATASET.toString().toLowerCase(),
                     StsUtil.DEFAULT_STS_JOB_POOL_NUMBER));
         numberOfJobs = Math.min(numberOfJobs, StsUtil.MAX_DATASET_STS_JOB_POOL_NUMBER);
         break;
