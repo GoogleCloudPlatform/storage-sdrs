@@ -14,8 +14,6 @@ reliably enforce object retention based on the encoded creation time.
 At the most fundamental level, SDRS enforces object retention by mapping policy rules defining the time-to-live (TTL) for datasets existing in GCS buckets. 
 Note, for scenarios where GCS object retention management can rely solely on object creation time rather than an encoded prefix, please see: [Object Lifecycle Management](https://cloud.google.com/storage/docs/lifecycle)   
 
-The project is inspired by working with Google Cloud's customers, close collaboration with Twitter.
-
 ## Releases
 See the [latest release](https://github.com/GoogleCloudPlatform/storage-sdrs/releases/latest) and [other releases](https://github.com/GoogleCloudPlatform/storage-sdrs/releases) for the details
 
