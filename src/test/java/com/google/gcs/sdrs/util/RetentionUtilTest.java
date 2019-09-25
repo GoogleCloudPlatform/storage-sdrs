@@ -17,9 +17,12 @@
 
 package com.google.gcs.sdrs.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class RetentionUtilTest {
 
@@ -118,5 +121,32 @@ public class RetentionUtilTest {
     String result = RetentionUtil.getDatasetPath(fullPath);
 
     assertEquals(expected, result);
+  }
+
+  @Test
+  public void consolidateDmPrefixes() {
+    List<String> prefixList = new ArrayList<>();
+    prefixList.add("service/worker/impl");
+    prefixList.add("dao/model");
+    prefixList.add("controller/logging");
+    prefixList.add("common/enum");
+    prefixList.add("common");
+    prefixList.add("dao/modelll");
+    prefixList.add("da");
+
+    List<String> expectedList = new ArrayList<>();
+    expectedList.add("common/");
+    expectedList.add("controller/logging/");
+    expectedList.add("da/");
+    expectedList.add("dao/model/");
+    expectedList.add("dao/modelll/");
+    expectedList.add("service/worker/impl/");
+
+    List<String> consolidatedList = RetentionUtil.consolidateDmPrefixes(prefixList);
+
+    String expectedString = expectedList.stream().reduce("", (partialString, element) -> partialString + ";" + element);
+    String actualString = consolidatedList.stream().reduce("", (partialString, element) -> partialString + ";" + element);
+    assertTrue(expectedString.equals(actualString));
+
   }
 }

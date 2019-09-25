@@ -87,6 +87,10 @@ public class DmRequest {
     this.dataStorageName = dataStorageName;
   }
 
+  public void setCreatedAt(Timestamp createdAt) {
+    this.createdAt = createdAt;
+  }
+
   public String getStatus() {
     return status;
   }
