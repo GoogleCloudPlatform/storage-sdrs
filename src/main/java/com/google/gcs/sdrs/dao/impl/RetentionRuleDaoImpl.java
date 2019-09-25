@@ -100,11 +100,8 @@ public class RetentionRuleDaoImpl extends GenericDao<RetentionRule, Integer>
    */
   @Override
   public Integer softDelete(RetentionRule entity) {
-    Session session = openSession();
-    Transaction transaction = session.beginTransaction();
     entity.setIsActive(false);
     update(entity);
-    closeSessionWithTransaction(session, transaction);
     return entity.getId();
   }
 
