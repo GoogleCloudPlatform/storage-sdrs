@@ -18,7 +18,6 @@
 
 package com.google.gcs.sdrs.util;
 
-import com.google.api.services.storage.Storage;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.StorageOptions;
 import java.io.IOException;
