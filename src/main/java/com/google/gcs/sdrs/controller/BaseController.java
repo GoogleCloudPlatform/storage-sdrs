@@ -85,8 +85,7 @@ public abstract class BaseController {
     } else if (exception instanceof HttpException) {
       outgoingException = (HttpException) exception;
     } else {
-      this.logger.error(String.format("Unhandled internal error: %s", exception.getMessage()));
-      logger.error(String.format("Caused by: %s", exception.getCause().getMessage()));
+      logger.error("Unhandled internal error:", exception);
       outgoingException = new InternalServerException(exception);
     }
     return generateExceptionResponse(outgoingException);

@@ -85,8 +85,7 @@ public class StsRuleExecutor implements RuleExecutor {
       try {
         instance = new StsRuleExecutor();
       } catch (IOException ex) {
-        logger.error("Could not establish connection with STS: ", ex.getMessage());
-        logger.error("Underlying error: ", ex.getCause().getMessage());
+        logger.error("Could not establish connection with STS: ", ex);
       }
     }
 
