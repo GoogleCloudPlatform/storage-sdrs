@@ -40,7 +40,6 @@ public class DmBatchProcessingWorker extends BaseWorker {
   private LockDao lockDao;
   private Storagetransfer client;
 
-  public static final long EVERY_SIX_HOUR = 6 * 60 * 60 * 1000;
   public static final int DEFAULT_DM_LOCK_TIMEOUT = 60000; // one minute by default
   public static final int DEFAULT_DM_MAX_RETRY = 5;
   public static final int DM_MAX_RETRY =
@@ -84,8 +83,7 @@ public class DmBatchProcessingWorker extends BaseWorker {
         List<DmRequest> allAvailableRequetsForProcessing =
             dmQueueDao.getAllAvailableRequestsByPriority();
 
-        // sort the list by bucket
-        // TODO eshen make sure the groupingby keep the list in order after sorting
+        // sort the list by bucket while keeping the same order
         Map<String, List<DmRequest>> dmRequestsMap =
             allAvailableRequetsForProcessing.stream()
                 .collect(Collectors.groupingBy(DmRequest::getDataStorageRoot));
@@ -224,7 +222,7 @@ public class DmBatchProcessingWorker extends BaseWorker {
               if (request.getStatus().equals(DatabaseConstants.DM_REQUEST_STATIUS_RETRY)) {
                 request.setNumberOfRetry(request.getNumberOfRetry() + 1);
                 request.setPriority(
-                    DmBatchProcessingWorker.generatePriority(
+                    RetentionUtil.generatePriority(
                         request.getNumberOfRetry(),
                         request.getCreatedAt().toInstant().toEpochMilli()));
               }
@@ -242,7 +240,4 @@ public class DmBatchProcessingWorker extends BaseWorker {
     return true;
   }
 
-  public static int generatePriority(int numberOfRetry, long timeInQueue) {
-    return numberOfRetry + Math.min(4, (int) (timeInQueue / EVERY_SIX_HOUR));
-  }
 }

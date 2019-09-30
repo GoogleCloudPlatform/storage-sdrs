@@ -103,20 +103,35 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
 
   @Override
   public Boolean deleteAllJobsByBucketName(String sourceBucket, String sourceProject) {
+    Session session = null;
+    Transaction transaction = null;
+    boolean isDeleted = false;
+    try {
+      session = openSession();
+      transaction = session.beginTransaction();
 
-    Session session = openSession();
-    CriteriaBuilder builder = session.getCriteriaBuilder();
-    Transaction transaction = session.beginTransaction();
-    CriteriaDelete<PooledStsJob> delete = builder.createCriteriaDelete(PooledStsJob.class);
-    Root<PooledStsJob> root = delete.from(PooledStsJob.class);
+      CriteriaBuilder builder = session.getCriteriaBuilder();
+      CriteriaDelete<PooledStsJob> delete = builder.createCriteriaDelete(PooledStsJob.class);
+      Root<PooledStsJob> root = delete.from(PooledStsJob.class);
 
-    delete.where(
-        builder.equal(root.get("sourceBucket"), sourceBucket),
-        builder.equal(root.get("sourceProject"), sourceProject));
+      delete.where(
+          builder.equal(root.get("sourceBucket"), sourceBucket),
+          builder.equal(root.get("sourceProject"), sourceProject));
 
-    session.createQuery(delete).executeUpdate();
-    closeSessionWithTransaction(session, transaction);
-    return true;
+      session.createQuery(delete).executeUpdate();
+      closeSessionWithTransaction(session, transaction);
+      isDeleted = true;
+    } catch (Exception e) {
+      handleRuntimeException(e, transaction);
+
+      logger.error(
+          String.format(
+              "Failed to delete STS jobs in the pool. bucket: %s; projectId: %s",
+              sourceBucket, sourceProject));
+    } finally {
+      closeSession(session);
+    }
+    return isDeleted;
   }
 
   @Override

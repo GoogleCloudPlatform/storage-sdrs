@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
  * <p>A
  */
 public class RetentionUtil {
+  public static final long EVERY_SIX_HOUR = 6 * 60 * 60 * 1000;
   public static final String DEFAULT_DM_REGEX_PATTERN = ".delete_this_folder";
   public static final String DM_REGEX_PATTERN =
       SdrsApplication.getAppConfigProperty(
@@ -164,5 +165,9 @@ public class RetentionUtil {
     }
 
     return sortedPathNames;
+  }
+
+  public static int generatePriority(int numberOfRetry, long timeInQueue) {
+    return numberOfRetry + Math.min(4, (int) (timeInQueue / EVERY_SIX_HOUR));
   }
 }
