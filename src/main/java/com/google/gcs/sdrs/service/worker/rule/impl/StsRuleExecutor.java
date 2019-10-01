@@ -382,6 +382,12 @@ public class StsRuleExecutor implements RuleExecutor {
       transferSpec.setObjectConditions(objectConditions);
     }
 
+    // make sure transfer options are set properly
+    transferSpec.setTransferOptions(
+        new TransferOptions()
+            .setDeleteObjectsFromSourceAfterTransfer(true)
+            .setOverwriteObjectsAlreadyExistingInSink(true));
+
     boolean retentionPeriodChanged = false;
     boolean prefixesToExcludeChanged = false;
 
