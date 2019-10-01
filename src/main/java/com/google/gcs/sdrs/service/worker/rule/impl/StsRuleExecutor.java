@@ -22,6 +22,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
+import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.common.RetentionRuleType;
@@ -444,6 +445,12 @@ public class StsRuleExecutor implements RuleExecutor {
       objectConditions = new ObjectConditions();
       transferSpec.setObjectConditions(objectConditions);
     }
+
+    // make sure transfer options are set properly
+    transferSpec.setTransferOptions(
+        new TransferOptions()
+            .setDeleteObjectsFromSourceAfterTransfer(true)
+            .setOverwriteObjectsAlreadyExistingInSink(true));
 
     boolean retentionPeriodChanged = false;
     boolean prefixesToExcludeChanged = false;
