@@ -12,6 +12,7 @@ import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.dao.model.DistributedLock;
 import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import com.google.gcs.sdrs.service.worker.BaseWorker;
 import com.google.gcs.sdrs.service.worker.WorkerResult.WorkerResultStatus;
@@ -20,6 +21,7 @@ import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -191,28 +193,34 @@ public class DmBatchProcessingWorker extends BaseWorker {
     // update STS job
     TransferJob jobToUpdate =
         new TransferJob()
+            .setDescription(
+                StsRuleExecutor.buildDescription(
+                    RetentionRuleType.USER.toString(), null, scheduleTimeOfDay))
             .setTransferSpec(
                 StsUtil.buildTransferSpec(
                     bucket, destinationBucket, newIncludePrefixList, false, null))
             .setStatus(StsUtil.STS_ENABLED_STRING);
     try {
-      StsUtil.updateExistingJob(client, jobToUpdate, transferJob.getName(), projectId);
+      transferJob =
+          StsUtil.updateExistingJob(client, jobToUpdate, transferJob.getName(), projectId);
     } catch (IOException e) {
       // Update STS job failed. Fail the process immediately.
       logger.error("Failed to update STS job.", e);
       return false;
     }
 
-    RetentionJob retentionJob = new RetentionJob();
-    retentionJob.setName(transferJob.getName());
+    RetentionRule retentionRule = new RetentionRule();
+    retentionRule.setProjectId(projectId);
+    retentionRule.setDataStorageName(ValidationConstants.STORAGE_PREFIX + bucket);
+    retentionRule.setType(RetentionRuleType.USER);
+
+    RetentionJob retentionJob =
+        StsRuleExecutor.buildRetentionJobEntity(
+            transferJob.getName(),
+            retentionRule,
+            StsUtil.convertPrefixToString(newIncludePrefixList),
+            new Timestamp(Instant.parse(transferJob.getLastModificationTime()).toEpochMilli()));
     retentionJob.setBatchId(getUuid());
-    retentionJob.setRetentionRuleProjectId(projectId);
-    retentionJob.setRetentionRuleDataStorageName(ValidationConstants.STORAGE_PREFIX + bucket);
-    retentionJob.setDataStorageRoot(bucket);
-    retentionJob.setRetentionRuleType(RetentionRuleType.USER);
-    retentionJob.setType(StsUtil.JOB_TYPE_STS);
-    retentionJob.setDataStorageRoot(bucket);
-    retentionJob.setMetadata(StsUtil.convertPrefixToString(newIncludePrefixList));
 
     // update retention_job and dm_queue tables
     List<DmRequest> processedDmRequests = dmRequests.subList(0, start);
@@ -239,5 +247,4 @@ public class DmBatchProcessingWorker extends BaseWorker {
 
     return true;
   }
-
 }

@@ -49,6 +49,7 @@ import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
 import com.google.gcs.sdrs.util.RetentionUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -257,8 +258,10 @@ public class StsRuleExecutor implements RuleExecutor {
       }
 
       String jobName = null;
+      Timestamp createdAt = null;
       if (job != null) {
         jobName = job.getName();
+        createdAt = new Timestamp(Instant.parse(job.getLastModificationTime()).toEpochMilli());
       }
 
       for (RetentionRule datasetRule : bucketDatasetMap.get(bucketName)) {
@@ -267,7 +270,8 @@ public class StsRuleExecutor implements RuleExecutor {
                 jobName,
                 datasetRule,
                 StsUtil.convertPrefixToString(
-                    prefixesPerDatasetMap.get(datasetRule.getDataStorageName()))));
+                    prefixesPerDatasetMap.get(datasetRule.getDataStorageName())),
+                createdAt));
       }
     }
 
@@ -334,7 +338,7 @@ public class StsRuleExecutor implements RuleExecutor {
         }
         RetentionJob defaultRetentionJob =
             buildRetentionJobEntity(
-                jobName, defaultRule, StsUtil.convertPrefixToString(prefixesToExclude));
+                jobName, defaultRule, StsUtil.convertPrefixToString(prefixesToExclude), null);
         defaultRuleJobs.add(defaultRetentionJob);
       }
     }
@@ -495,7 +499,7 @@ public class StsRuleExecutor implements RuleExecutor {
     return transferJob;
   }
 
-  private String buildDescription(
+  public static String buildDescription(
       String type, List<RetentionRule> rules, @Nullable String details) {
     StringBuilder sb = new StringBuilder();
     if (rules != null) {
@@ -584,8 +588,11 @@ public class StsRuleExecutor implements RuleExecutor {
     return bucketDatasetMap;
   }
 
-  RetentionJob buildRetentionJobEntity(
-      String jobName, RetentionRule rule, @Nullable String metadata) {
+  public static RetentionJob buildRetentionJobEntity(
+      String jobName,
+      RetentionRule rule,
+      @Nullable String metadata,
+      @Nullable Timestamp createdAt) {
     RetentionJob retentionJob = new RetentionJob();
     retentionJob.setName(jobName);
     retentionJob.setRetentionRuleId(rule.getId());
@@ -596,6 +603,7 @@ public class StsRuleExecutor implements RuleExecutor {
     retentionJob.setType(StsUtil.JOB_TYPE_STS);
     retentionJob.setDataStorageRoot(RetentionUtil.getBucketName(rule.getDataStorageName()));
     retentionJob.setMetadata(metadata);
+    retentionJob.setCreatedAt(createdAt);
 
     return retentionJob;
   }

@@ -21,6 +21,7 @@ import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.util.DatabaseConstants;
 import com.google.gcs.sdrs.service.worker.rule.impl.StsRuleExecutor;
+import com.google.gcs.sdrs.util.CredentialsUtil;
 import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -40,12 +41,13 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({StsRuleExecutor.class, StsUtil.class, SingletonDao.class})
+@PrepareForTest({StsRuleExecutor.class, StsUtil.class, SingletonDao.class, CredentialsUtil.class})
 @PowerMockIgnore("javax.management.*")
 public class DmBatchProcessingWorkerTest {
   private LockDao lockDaoMock;
   private DmQueueDao dmQueueDaoMock;
   private StsRuleExecutor ruleExecutorMock;
+  private CredentialsUtil credentialsUtilMock;
   private String uuid;
 
   @Before
@@ -55,16 +57,21 @@ public class DmBatchProcessingWorkerTest {
     ruleExecutorMock = mock(StsRuleExecutor.class);
 
     // mock static methods
+    credentialsUtilMock = mock(CredentialsUtil.class);
+    PowerMockito.mockStatic(CredentialsUtil.class);
+    when(CredentialsUtil.getInstance()).thenReturn(credentialsUtilMock);
+
+    PowerMockito.mockStatic((StsUtil.class));
+    when(StsUtil.createStsClient(any())).thenReturn(null);
+    when(StsUtil.buildTransferSpec(any(), any(), any(), any(), any())).thenReturn(null);
+
     PowerMockito.mockStatic(StsRuleExecutor.class);
     when(StsRuleExecutor.getInstance()).thenReturn(ruleExecutorMock);
+    when(StsRuleExecutor.buildRetentionJobEntity(any(), any(), any(), any())).thenReturn(new RetentionJob());
 
     PowerMockito.mockStatic(SingletonDao.class);
     when(SingletonDao.getDmQueueDao()).thenReturn(dmQueueDaoMock);
     when(SingletonDao.getLockDao()).thenReturn(lockDaoMock);
-
-    PowerMockito.mockStatic((StsUtil.class));
-    when(StsUtil.buildTransferSpec(any(), any(), any(), any(), any())).thenReturn(null);
-    when(StsUtil.createStsClient(any())).thenReturn(null);
 
     when(lockDaoMock.obtainLock(any(), anyInt(), any())).thenReturn(new DistributedLock());
 

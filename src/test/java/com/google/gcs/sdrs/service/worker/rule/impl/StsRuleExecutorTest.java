@@ -90,7 +90,7 @@ public class StsRuleExecutorTest {
   public void buildRetentionJobTest() {
     String jobName = "test";
 
-    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule, null);
+    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule, null, null);
 
     assertEquals(result.getName(), jobName);
     assertEquals((int) result.getRetentionRuleId(), (int) testRule.getId());
