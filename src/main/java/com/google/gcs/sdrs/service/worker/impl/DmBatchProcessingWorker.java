@@ -149,6 +149,8 @@ public class DmBatchProcessingWorker extends BaseWorker {
     }
 
     TimeOfDay jobRunAtTimeOfDay = transferJob.getSchedule().getStartTimeOfDay();
+
+    // derived from transferJob.tomeOfDay and now
     ZonedDateTime lastRunTime =
         ZonedDateTime.of(
             zonedDateTimeNow.getYear(),
@@ -158,7 +160,8 @@ public class DmBatchProcessingWorker extends BaseWorker {
             jobRunAtTimeOfDay.getMinutes(),
             jobRunAtTimeOfDay.getSeconds(),
             jobRunAtTimeOfDay.getNanos() != null ? jobRunAtTimeOfDay.getNanos() : 0,
-            ZoneId.of("UTC"));
+            ZoneId.of("UTC")).minusHours(24);
+
     ZonedDateTime lastModifiedTime = ZonedDateTime.parse(transferJob.getLastModificationTime());
     List<String> existingIncludePrefixList = new ArrayList<>();
     if (transferJob.getStatus().equals(StsUtil.STS_ENABLED_STRING)) {
@@ -173,7 +176,7 @@ public class DmBatchProcessingWorker extends BaseWorker {
     Set<String> newIncludePrefixSet = new HashSet<>();
     // Replace the existing prefix list if last modified time is older than the last job run time,
     // meaning the daily STS job has already run and the existing prefix list has been processed.
-    if (lastModifiedTime.isBefore(lastRunTime.minusHours(24))) {
+    if (lastModifiedTime.isBefore(lastRunTime)) {
       initPrefxiNumber = StsUtil.MAX_PREFIX_COUNT;
     } else {
       initPrefxiNumber = StsUtil.MAX_PREFIX_COUNT - existingIncludePrefixList.size();
