@@ -153,14 +153,15 @@ public class DmBatchProcessingWorker extends BaseWorker {
     // derived from transferJob.tomeOfDay and now
     ZonedDateTime lastRunTime =
         ZonedDateTime.of(
-            zonedDateTimeNow.getYear(),
-            zonedDateTimeNow.getMonthValue(),
-            zonedDateTimeNow.getDayOfMonth(),
-            jobRunAtTimeOfDay.getHours(),
-            jobRunAtTimeOfDay.getMinutes(),
-            jobRunAtTimeOfDay.getSeconds(),
-            jobRunAtTimeOfDay.getNanos() != null ? jobRunAtTimeOfDay.getNanos() : 0,
-            ZoneId.of("UTC")).minusHours(24);
+                zonedDateTimeNow.getYear(),
+                zonedDateTimeNow.getMonthValue(),
+                zonedDateTimeNow.getDayOfMonth(),
+                jobRunAtTimeOfDay.getHours() != null ? jobRunAtTimeOfDay.getHours() : 0,
+                jobRunAtTimeOfDay.getMinutes() != null ? jobRunAtTimeOfDay.getMinutes() : 0,
+                jobRunAtTimeOfDay.getSeconds() != null ? jobRunAtTimeOfDay.getSeconds() : 0,
+                jobRunAtTimeOfDay.getNanos() != null ? jobRunAtTimeOfDay.getNanos() : 0,
+                ZoneId.of("UTC"))
+            .minusHours(24);
 
     ZonedDateTime lastModifiedTime = ZonedDateTime.parse(transferJob.getLastModificationTime());
     List<String> existingIncludePrefixList = new ArrayList<>();
