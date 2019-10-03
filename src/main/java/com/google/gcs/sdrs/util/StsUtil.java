@@ -236,7 +236,7 @@ public class StsUtil {
    * @param retentionJobs a {@link List} of jobs to retrieve
    * @return a {@link List} of {@link Operation} objects associated with the given jobs
    */
-  public static List<Operation> getSubmittedStsJobs(
+  public static List<Operation> getStsJobOperations(
       Storagetransfer client, String projectId, List<RetentionJob> retentionJobs) {
 
     List<Operation> operations = new ArrayList<>();
@@ -264,22 +264,17 @@ public class StsUtil {
         Operation operationClosestToJobCreatedAtTime = null;
         Instant closestTime = Instant.MAX;
         if (operationsPerJob != null) {
-          if (operationsPerJob.size() == 1) {
-            // only one operation. it's immediately run STS job
-            operationClosestToJobCreatedAtTime = operationsPerJob.get(0);
-          } else {
-            // for daily run STS job, loop through operations to find the one closest to when the
-            // job is scheduled.
-            for (Operation operation : operationsPerJob) {
-              String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
-              Instant operationStartTime = Instant.parse(opeationStartTimeString);
-              Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
-              if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
-                if (operationClosestToJobCreatedAtTime == null
-                    || operationStartTime.isBefore(closestTime)) {
-                  operationClosestToJobCreatedAtTime = operation;
-                  closestTime = operationStartTime;
-                }
+          // loop through operations to find the one closest to when the
+          // job is scheduled.
+          for (Operation operation : operationsPerJob) {
+            String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
+            Instant operationStartTime = Instant.parse(opeationStartTimeString);
+            Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
+            if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
+              if (operationClosestToJobCreatedAtTime == null
+                  || operationStartTime.isBefore(closestTime)) {
+                operationClosestToJobCreatedAtTime = operation;
+                closestTime = operationStartTime;
               }
             }
           }

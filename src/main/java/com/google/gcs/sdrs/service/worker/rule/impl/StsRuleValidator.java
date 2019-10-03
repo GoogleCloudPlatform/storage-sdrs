@@ -120,7 +120,7 @@ public class StsRuleValidator implements RuleValidator {
       }
     }
 
-    List<Operation> jobOperations = StsUtil.getSubmittedStsJobs(client, projectId, jobs);
+    List<Operation> jobOperations = StsUtil.getStsJobOperations(client, projectId, jobs);
     List<RetentionJobValidation> validationRecords = new ArrayList<>();
     for (Operation operation : jobOperations) {
       String stsJobId = extractStsJobId(operation.getName());
