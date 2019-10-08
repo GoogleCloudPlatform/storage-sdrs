@@ -714,8 +714,7 @@ public class StsRuleExecutor implements RuleExecutor {
     PooledStsJob nextAvailableJob = null;
 
     LocalTime targetStartTimeOfDay =
-        LocalTime.parse(currentTime, DateTimeFormatter.ofPattern("HH:mm:ss"))
-            .plusMinutes(StsUtil.DEFAULT_STS_JOB_POOL_TIMEOFDAY_BUFFER);
+        LocalTime.parse(currentTime, DateTimeFormatter.ofPattern("HH:mm:ss"));
 
     if (transferJobList != null && !transferJobList.isEmpty()) {
       List<PooledStsJob> pooledStsJobList = new ArrayList<>();

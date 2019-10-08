@@ -38,7 +38,6 @@ import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
 import com.google.gcs.sdrs.SdrsApplication;
-import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -72,7 +71,6 @@ public class StsUtil {
   public static final String DEFAULT_STS_JOB_POOL_NUMBER = "24";
   public static final int MAX_USER_STS_JOB_POOL_NUMBER = 96;
   public static final int MAX_DATASET_STS_JOB_POOL_NUMBER = 24;
-  public static final int DEFAULT_STS_JOB_POOL_TIMEOFDAY_BUFFER = 30; // 30 minutes
   public static final String SHADOW_BUCKET_EXTENTION =
       SdrsApplication.getAppConfigProperty(
           "sts.shadowBucketExtension", DEFAULT_SHADOW_BUCKET_EXTENSION);
