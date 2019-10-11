@@ -38,7 +38,6 @@ import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
 import com.google.gcs.sdrs.SdrsApplication;
-import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -72,7 +71,6 @@ public class StsUtil {
   public static final String DEFAULT_STS_JOB_POOL_NUMBER = "24";
   public static final int MAX_USER_STS_JOB_POOL_NUMBER = 96;
   public static final int MAX_DATASET_STS_JOB_POOL_NUMBER = 24;
-  public static final int DEFAULT_STS_JOB_POOL_TIMEOFDAY_BUFFER = 30; // 30 minutes
   public static final String SHADOW_BUCKET_EXTENTION =
       SdrsApplication.getAppConfigProperty(
           "sts.shadowBucketExtension", DEFAULT_SHADOW_BUCKET_EXTENSION);
@@ -236,7 +234,7 @@ public class StsUtil {
    * @param retentionJobs a {@link List} of jobs to retrieve
    * @return a {@link List} of {@link Operation} objects associated with the given jobs
    */
-  public static List<Operation> getSubmittedStsJobs(
+  public static List<Operation> getStsJobOperations(
       Storagetransfer client, String projectId, List<RetentionJob> retentionJobs) {
 
     List<Operation> operations = new ArrayList<>();
@@ -264,22 +262,17 @@ public class StsUtil {
         Operation operationClosestToJobCreatedAtTime = null;
         Instant closestTime = Instant.MAX;
         if (operationsPerJob != null) {
-          if (operationsPerJob.size() == 1) {
-            // only one operation. it's immediately run STS job
-            operationClosestToJobCreatedAtTime = operationsPerJob.get(0);
-          } else {
-            // for daily run STS job, loop through operations to find the one closest to when the
-            // job is scheduled.
-            for (Operation operation : operationsPerJob) {
-              String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
-              Instant operationStartTime = Instant.parse(opeationStartTimeString);
-              Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
-              if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
-                if (operationClosestToJobCreatedAtTime == null
-                    || operationStartTime.isBefore(closestTime)) {
-                  operationClosestToJobCreatedAtTime = operation;
-                  closestTime = operationStartTime;
-                }
+          // loop through operations to find the one closest to when the
+          // job is scheduled.
+          for (Operation operation : operationsPerJob) {
+            String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
+            Instant operationStartTime = Instant.parse(opeationStartTimeString);
+            Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
+            if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
+              if (operationClosestToJobCreatedAtTime == null
+                  || operationStartTime.isBefore(closestTime)) {
+                operationClosestToJobCreatedAtTime = operation;
+                closestTime = operationStartTime;
               }
             }
           }

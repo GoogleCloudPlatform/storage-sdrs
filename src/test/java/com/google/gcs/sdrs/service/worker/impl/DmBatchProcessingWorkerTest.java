@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
+import com.google.api.services.storagetransfer.v1.model.Schedule;
+import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.gcs.sdrs.dao.DmQueueDao;
@@ -67,7 +69,8 @@ public class DmBatchProcessingWorkerTest {
 
     PowerMockito.mockStatic(StsRuleExecutor.class);
     when(StsRuleExecutor.getInstance()).thenReturn(ruleExecutorMock);
-    when(StsRuleExecutor.buildRetentionJobEntity(any(), any(), any(), any())).thenReturn(new RetentionJob());
+    when(StsRuleExecutor.buildRetentionJobEntity(any(), any(), any(), any()))
+        .thenReturn(new RetentionJob());
 
     PowerMockito.mockStatic(SingletonDao.class);
     when(SingletonDao.getDmQueueDao()).thenReturn(dmQueueDaoMock);
@@ -273,6 +276,9 @@ public class DmBatchProcessingWorkerTest {
     transferJob.setTransferSpec(transferSpec);
     transferJob.setLastModificationTime(
         ZonedDateTime.now(Clock.systemUTC()).minusMinutes(10).toString());
+    transferJob.setSchedule(
+        new Schedule()
+            .setStartTimeOfDay(new TimeOfDay().setHours(10).setMinutes(10).setSeconds(10).setNanos(10)));
     return transferJob;
   }
 }

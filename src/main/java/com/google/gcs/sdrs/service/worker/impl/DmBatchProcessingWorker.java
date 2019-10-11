@@ -2,6 +2,7 @@ package com.google.gcs.sdrs.service.worker.impl;
 
 import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.api.services.storagetransfer.v1.model.ObjectConditions;
+import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
 import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.common.RetentionRuleType;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -146,6 +148,21 @@ public class DmBatchProcessingWorker extends BaseWorker {
       return false;
     }
 
+    TimeOfDay jobRunAtTimeOfDay = transferJob.getSchedule().getStartTimeOfDay();
+
+    // derived from transferJob.tomeOfDay and now
+    ZonedDateTime lastRunTime =
+        ZonedDateTime.of(
+                zonedDateTimeNow.getYear(),
+                zonedDateTimeNow.getMonthValue(),
+                zonedDateTimeNow.getDayOfMonth(),
+                jobRunAtTimeOfDay.getHours() != null ? jobRunAtTimeOfDay.getHours() : 0,
+                jobRunAtTimeOfDay.getMinutes() != null ? jobRunAtTimeOfDay.getMinutes() : 0,
+                jobRunAtTimeOfDay.getSeconds() != null ? jobRunAtTimeOfDay.getSeconds() : 0,
+                jobRunAtTimeOfDay.getNanos() != null ? jobRunAtTimeOfDay.getNanos() : 0,
+                ZoneId.of("UTC"))
+            .minusHours(24);
+
     ZonedDateTime lastModifiedTime = ZonedDateTime.parse(transferJob.getLastModificationTime());
     List<String> existingIncludePrefixList = new ArrayList<>();
     if (transferJob.getStatus().equals(StsUtil.STS_ENABLED_STRING)) {
@@ -158,9 +175,9 @@ public class DmBatchProcessingWorker extends BaseWorker {
     int initPrefxiNumber = 0;
 
     Set<String> newIncludePrefixSet = new HashSet<>();
-    // Replace the existing prefix list if last modified time is 24 hours ago,
+    // Replace the existing prefix list if last modified time is older than the last job run time,
     // meaning the daily STS job has already run and the existing prefix list has been processed.
-    if (lastModifiedTime.isBefore(zonedDateTimeNow.minusHours(24))) {
+    if (lastModifiedTime.isBefore(lastRunTime)) {
       initPrefxiNumber = StsUtil.MAX_PREFIX_COUNT;
     } else {
       initPrefxiNumber = StsUtil.MAX_PREFIX_COUNT - existingIncludePrefixList.size();
