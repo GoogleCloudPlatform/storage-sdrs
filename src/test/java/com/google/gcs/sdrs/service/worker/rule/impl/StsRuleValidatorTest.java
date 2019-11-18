@@ -94,6 +94,7 @@ public class StsRuleValidatorTest {
     Map<String, Object> metadataMap = new HashMap<>();
     metadataMap.put("startTime", startTimeStr);
     metadataMap.put("endTime", endTimeStr);
+    metadataMap.put("status", "SUCCESS");
     operation.setMetadata(metadataMap);
 
     RetentionJobValidation validation =

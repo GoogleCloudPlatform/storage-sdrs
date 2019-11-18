@@ -13,29 +13,24 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
-
-package com.google.gcs.sdrs.service.worker.rule;
+package com.google.gcs.sdrs.dao;
 
 import com.google.gcs.sdrs.dao.model.DmRequest;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import java.time.ZonedDateTime;
-import java.util.Collection;
+import java.io.IOException;
 import java.util.List;
 
-public interface RuleExecutor {
+public interface DmQueueDao extends Dao<DmRequest, Integer> {
 
-  List<DmRequest> executeUserCommandedRule(
-      Collection<RetentionRule> userCommandedRules, String projectId);
+  List<DmRequest> getAllAvailableRequestsByPriority();
 
-  List<RetentionJob> executeDatasetRule(Collection<RetentionRule> datasetRules, String projectId);
+  List<DmRequest> getByStatus(String status);
 
-  List<RetentionJob> executeDefaultRule(
-      RetentionRule globalDefaultRule,
-      Collection<RetentionRule> defaultRules,
-      Collection<RetentionRule> datasetRules,
-      ZonedDateTime scheduledTime,
-      String projectId);
+  List<DmRequest> getPendingDmRequestByName(String dataStorageName, String projectId);
+
+  int deleteSuccessfulDmRequests();
+
+  void createRetentionJobUdpateDmStatus(RetentionJob retentionJob, List<DmRequest> dmRequests)
+      throws IOException;
 }

@@ -20,27 +20,51 @@ package com.google.gcs.sdrs.controller;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.gcs.sdrs.common.ExecutionEventType;
 import com.google.gcs.sdrs.controller.pojo.ErrorResponse;
 import com.google.gcs.sdrs.controller.pojo.EventResponse;
 import com.google.gcs.sdrs.controller.pojo.ExecutionEventRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
+import com.google.gcs.sdrs.dao.DmQueueDao;
+import com.google.gcs.sdrs.dao.SingletonDao;
 import com.google.gcs.sdrs.service.impl.EventsServiceImpl;
+import com.google.gcs.sdrs.util.GcsHelper;
+import com.google.gcs.sdrs.util.RetentionUtil;
 import javax.ws.rs.core.Response;
 import org.glassfish.grizzly.http.util.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({GcsHelper.class, SingletonDao.class})
+@PowerMockIgnore("javax.management.*")
 public class EventsControllerTest {
 
   private EventsController controller;
+  private GcsHelper mockGcsHelper;
+  private DmQueueDao mockDmQueueDao;
 
   @Before()
   public void setup() {
     controller = new EventsController();
     controller.service = mock(EventsServiceImpl.class);
+    mockGcsHelper = mock(GcsHelper.class);
+    mockDmQueueDao = mock(DmQueueDao.class);
+
+    PowerMockito.mockStatic(GcsHelper.class);
+    when(GcsHelper.getInstance()).thenReturn(mockGcsHelper);
+
+    PowerMockito.mockStatic(SingletonDao.class);
+    when(SingletonDao.getDmQueueDao()).thenReturn(mockDmQueueDao);
   }
 
   @Test
@@ -88,8 +112,10 @@ public class EventsControllerTest {
     ExecutionEventRequest request = new ExecutionEventRequest();
     request.setExecutionEventType(ExecutionEventType.USER_COMMANDED);
     request.setProjectId("projectId");
-    request.setTarget("gs://b/s/t");
+    request.setTarget("gs://b/s/" + RetentionUtil.DEFAULT_DM_REGEX_PATTERN);
 
+    when(mockGcsHelper.doesBucketExist(any(), any())).thenReturn(true);
+    when(mockDmQueueDao.getPendingDmRequestByName(any(), any())).thenReturn(null);
     Response response = controller.executeEvent(request);
 
     assertEquals(response.getStatus(), HttpStatus.OK_200.getStatusCode());

@@ -18,80 +18,47 @@
 
 package com.google.gcs.sdrs.util;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.util.Utils;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.util.Preconditions;
-import com.google.api.services.storage.Storage;
-import com.google.api.services.storage.StorageScopes;
-import com.google.api.services.storage.model.Bucket;
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.StorageOptions;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Wrapper for using GCS API */
 public class GcsHelper {
 
-  private Storage stroageClient;
+  private com.google.cloud.storage.Storage storage;
   private static GcsHelper instance;
   private static final Logger logger = LoggerFactory.getLogger(GcsHelper.class);
 
   private GcsHelper() throws IOException {
-    stroageClient = createStorageClient(CredentialsUtil.getInstance().getCredentials());
+    storage = StorageOptions.getDefaultInstance().getService();
+    if (storage == null) {
+      throw new IOException("Failed to create GCS client.");
+    }
   }
 
   public static synchronized GcsHelper getInstance() {
     if (instance == null) {
       try {
         instance = new GcsHelper();
-      } catch (IOException ex) {
-        logger.error("Could not establish connection with GCS: ", ex.getMessage());
-        logger.error("Underlying error: ", ex.getCause().getMessage());
+      } catch (IOException e) {
+        logger.error("Could not establish connection with GCS: ", e);
       }
     }
     return instance;
   }
 
+  public boolean doesBucketExist(String bucketName, String projectId) {
+    if (bucketName == null || projectId == null) {
+      return false;
+    }
+
+    Bucket bucket = storage.get(bucketName);
+    return bucket != null && bucket.getStorage().getOptions().getProjectId().equals(projectId);
+  }
+
   public Bucket getBucket(String bucketName) {
-    Bucket bucket = null;
-    try {
-      Storage.Buckets.Get request = stroageClient.buckets().get(bucketName);
-      bucket = request.execute();
-    } catch (IOException e) {
-      logger.error("Failed to get GCS bucket");
-    }
-
-    return bucket;
-  }
-
-  /** Creates an instance of the GCS Client */
-  private Storage createStorageClient(GoogleCredential credential) {
-    HttpTransport httpTransport = Utils.getDefaultTransport();
-    JsonFactory jsonFactory = Utils.getDefaultJsonFactory();
-    return createStorageClient(httpTransport, jsonFactory, credential);
-  }
-
-  private Storage createStorageClient(
-      HttpTransport httpTransport, JsonFactory jsonFactory, GoogleCredential credential) {
-
-    Preconditions.checkNotNull(httpTransport);
-    Preconditions.checkNotNull(jsonFactory);
-    Preconditions.checkNotNull(credential);
-
-    // In some cases, you need to add the scope explicitly.
-    if (credential.createScopedRequired()) {
-      Set<String> scopes = new HashSet<>();
-      scopes.addAll(StorageScopes.all());
-      credential = credential.createScoped(scopes);
-    }
-
-    HttpRequestInitializer initializer = new RetryHttpInitializerWrapper(credential, false);
-    return new Storage.Builder(httpTransport, jsonFactory, initializer)
-        .setApplicationName("sdrs")
-        .build();
+    return storage.get(bucketName);
   }
 }

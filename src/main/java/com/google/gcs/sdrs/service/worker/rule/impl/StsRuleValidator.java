@@ -120,7 +120,7 @@ public class StsRuleValidator implements RuleValidator {
       }
     }
 
-    List<Operation> jobOperations = StsUtil.getSubmittedStsJobs(client, projectId, jobs);
+    List<Operation> jobOperations = StsUtil.getStsJobOperations(client, projectId, jobs);
     List<RetentionJobValidation> validationRecords = new ArrayList<>();
     for (Operation operation : jobOperations) {
       String stsJobId = extractStsJobId(operation.getName());
@@ -141,7 +141,12 @@ public class StsRuleValidator implements RuleValidator {
     if (!operation.getDone()) {
       validation.setStatus(RetentionJobStatusType.PENDING);
     } else if (operation.getResponse() != null) {
-      validation.setStatus(RetentionJobStatusType.SUCCESS);
+      if (operation.getMetadata().get("status").equals("SUCCESS")) {
+        validation.setStatus(RetentionJobStatusType.SUCCESS);
+      } else {
+        validation.setStatus(RetentionJobStatusType.ERROR);
+      }
+
       validation.setStartTime(getJobTime(operation, true));
       validation.setEndTime(getJobTime(operation, false));
       validation.setMetadata(operation.getMetadata().toString());

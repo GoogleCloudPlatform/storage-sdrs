@@ -16,26 +16,21 @@
  *
  */
 
-package com.google.gcs.sdrs.service.worker.rule;
+package com.google.gcs.sdrs.scheduler.runners;
 
-import com.google.gcs.sdrs.dao.model.DmRequest;
-import com.google.gcs.sdrs.dao.model.RetentionJob;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.List;
+import com.google.gcs.sdrs.dao.DmQueueDao;
+import com.google.gcs.sdrs.dao.SingletonDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface RuleExecutor {
+/** Remove successfully processed requests from the queue. */
+public class DmQueueCleanupRunner implements Runnable {
+  private static final Logger logger = LoggerFactory.getLogger(DmQueueCleanupRunner.class);
 
-  List<DmRequest> executeUserCommandedRule(
-      Collection<RetentionRule> userCommandedRules, String projectId);
-
-  List<RetentionJob> executeDatasetRule(Collection<RetentionRule> datasetRules, String projectId);
-
-  List<RetentionJob> executeDefaultRule(
-      RetentionRule globalDefaultRule,
-      Collection<RetentionRule> defaultRules,
-      Collection<RetentionRule> datasetRules,
-      ZonedDateTime scheduledTime,
-      String projectId);
+  @Override
+  public void run() {
+    DmQueueDao dmQueueDao = SingletonDao.getDmQueueDao();
+    int result = dmQueueDao.deleteSuccessfulDmRequests();
+    logger.info(String.format("Removed %d successfully processed DM requests.", result));
+  }
 }

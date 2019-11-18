@@ -75,30 +75,63 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
     predicates.add(builder.equal(root.get("sourceProject"), sourceProjectId));
     predicates.add(builder.equal(root.get("type"), type));
 
-    if (scheduleTimeOfDay != null) {
-      predicates.add(builder.greaterThan(root.get("schedule"), scheduleTimeOfDay));
-    }
-    query.select(root).where(predicates.toArray(new Predicate[predicates.size()])).orderBy(builder.asc(root.get("schedule")));
+    query
+        .select(root)
+        .where(predicates.toArray(new Predicate[predicates.size()]))
+        .orderBy(builder.asc(root.get("schedule")));
 
-    return getSingleRecordWithCriteriaQuery(query, session);
+    List<PooledStsJob> result = session.createQuery(query).getResultList();
+    closeSession(session);
+    PooledStsJob pooledStsJob = null;
+    if (result != null && !result.isEmpty()) {
+      if (scheduleTimeOfDay == null) {
+        pooledStsJob = result.get(0);
+      } else if (result.get(result.size() - 1).getSchedule().compareTo(scheduleTimeOfDay) <= 0) {
+        pooledStsJob = result.get(0);
+      } else {
+        for (int i = 0; i < result.size(); i++) {
+          if (result.get(i).getSchedule().compareTo(scheduleTimeOfDay) > 0) {
+            pooledStsJob = result.get(i);
+            break;
+          }
+        }
+      }
+    }
+
+    return pooledStsJob;
   }
 
   @Override
   public Boolean deleteAllJobsByBucketName(String sourceBucket, String sourceProject) {
+    Session session = null;
+    Transaction transaction = null;
+    boolean isDeleted = false;
+    try {
+      session = openSession();
+      transaction = session.beginTransaction();
 
-    Session session = openSession();
-    CriteriaBuilder builder = session.getCriteriaBuilder();
-    Transaction transaction = session.beginTransaction();
-    CriteriaDelete<PooledStsJob> delete = builder.createCriteriaDelete(PooledStsJob.class);
-    Root<PooledStsJob> root = delete.from(PooledStsJob.class);
+      CriteriaBuilder builder = session.getCriteriaBuilder();
+      CriteriaDelete<PooledStsJob> delete = builder.createCriteriaDelete(PooledStsJob.class);
+      Root<PooledStsJob> root = delete.from(PooledStsJob.class);
 
-    delete.where(
-        builder.equal(root.get("sourceBucket"), sourceBucket),
-        builder.equal(root.get("sourceProject"), sourceProject));
+      delete.where(
+          builder.equal(root.get("sourceBucket"), sourceBucket),
+          builder.equal(root.get("sourceProject"), sourceProject));
 
-    session.createQuery(delete).executeUpdate();
-    closeSessionWithTransaction(session, transaction);
-    return true;
+      session.createQuery(delete).executeUpdate();
+      closeSessionWithTransaction(session, transaction);
+      isDeleted = true;
+    } catch (Exception e) {
+      handleRuntimeException(e, transaction);
+
+      logger.error(
+          String.format(
+              "Failed to delete STS jobs in the pool. bucket: %s; projectId: %s",
+              sourceBucket, sourceProject));
+    } finally {
+      closeSession(session);
+    }
+    return isDeleted;
   }
 
   @Override

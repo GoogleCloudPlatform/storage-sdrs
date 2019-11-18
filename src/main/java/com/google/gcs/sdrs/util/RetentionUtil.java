@@ -17,18 +17,33 @@
 
 package com.google.gcs.sdrs.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.controller.validation.ValidationConstants;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.File;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** A class of helper methods for retention rules, job, and validations. */
+/**
+ * A class of helper methods for retention rules, job, and validations.
+ *
+ * <p>Many methods deal with dataStorageName. A dataStorageName is a fully qualified URL that
+ * identifies a dataset in GCS. For example, gs://[your-bucket]/[your-dataset]. The dataset itself
+ * could contain "/", which is used to represent a "directory" like hierarchy. Conceptually, in a
+ * file system, bucket is a root directory and dataset defines sub-directories.
+ *
+ * <p>A
+ */
 public class RetentionUtil {
+  public static final long EVERY_SIX_HOUR = 6 * 60 * 60 * 1000;
+  public static final String DEFAULT_DM_REGEX_PATTERN = ".delete_this_folder";
+  public static final String DM_REGEX_PATTERN =
+      SdrsApplication.getAppConfigProperty(
+          "scheduler.task.dmBatchProcessing.dmRegexPattern", DEFAULT_DM_REGEX_PATTERN);
   private static final Logger logger = LoggerFactory.getLogger(RetentionUtil.class);
 
   /**
@@ -87,23 +102,72 @@ public class RetentionUtil {
   }
 
   /**
-   * Convert exception stack trace to a string
+   * Extracts the dataset path of a delete marker. A delete marker is a GCS object that triggers a
+   * delete of a dataset containing the delete marker. A delete marker is defined by a
+   * pre-configured regex pattern. The default pattern is .delete_this_folder.
    *
-   * @param e Exception to be converted
+   * @param dmTarget A full GCS url to a delete marker object. i.e
+   *     gs://[your-bucket]/[your-dataset]/.delete_this_folder
+   * @return the dataset path without the root bucket and the delete marker.
+   */
+  public static String getDmDatasetPath(String dmTarget) {
+    String datasetPath = getDatasetPath(dmTarget);
+
+    if (datasetPath.lastIndexOf("/") > 0
+        && datasetPath.lastIndexOf("/") < datasetPath.length() - 1) {
+      datasetPath = datasetPath.substring(0, datasetPath.lastIndexOf("/"));
+    } else {
+      datasetPath = null;
+    }
+
+    return datasetPath;
+  }
+
+  /**
+   * Check where or not a dataStroageName ends with a valid delete marker.
+   *
+   * @param dmTarget A full GCS url to a delete marker object.
    * @return
    */
-  public static String convertStackTrace(Exception e) {
-    StringWriter sw = new StringWriter();
-    e.printStackTrace(new PrintWriter(sw));
-    String result = sw.toString();
-    ObjectMapper mapper = new ObjectMapper();
-    JsonNode rootNode = mapper.createObjectNode();
-    ((ObjectNode) rootNode).put("stackTrace", result);
-    try {
-      result = mapper.writeValueAsString(rootNode);
-    } catch (JsonProcessingException ex) {
-      logger.warn("Failed to convert stack trace to string");
+  public static boolean isValidDeleteMarker(String dmTarget) {
+    if (dmTarget == null) {
+      return false;
     }
-    return result;
+
+    if (dmTarget.lastIndexOf("/") < 0) {
+      return false;
+    } else {
+      String deleteMarker = dmTarget.substring(dmTarget.lastIndexOf("/") + 1);
+      return Pattern.matches(DM_REGEX_PATTERN, deleteMarker);
+    }
+  }
+
+  /**
+   * Consolidate nested prefixes.
+   *
+   * @param pathNames A list of path names
+   * @return A list of prefixes without nested ones
+   */
+  public static List<String> consolidateDmPrefixes(List<String> pathNames) {
+    List<File> files = pathNames.stream().map(n -> new File(n)).collect(Collectors.toList());
+    Collections.sort(files, Comparator.naturalOrder()); // Sort in ascending order
+
+    // File.getPath does not have the "/" at the end. So add it.
+    List<String> sortedPathNames =
+        files.stream().map(f -> f.getPath() + "/").collect(Collectors.toList());
+    for (int i = 0; i < sortedPathNames.size() - 1; i++) {
+      String current = sortedPathNames.get(i);
+      String next = sortedPathNames.get(i + 1);
+      if (next.startsWith(current)) {
+        sortedPathNames.remove(i + 1);
+        i = i - 1;
+      }
+    }
+
+    return sortedPathNames;
+  }
+
+  public static int generatePriority(int numberOfRetry, long timeInQueue) {
+    return numberOfRetry + Math.min(4, (int) (timeInQueue / EVERY_SIX_HOUR));
   }
 }

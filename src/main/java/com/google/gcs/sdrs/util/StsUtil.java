@@ -37,7 +37,7 @@ import com.google.api.services.storagetransfer.v1.model.TransferJob;
 import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
-import com.google.gcs.sdrs.common.RetentionRuleType;
+import com.google.gcs.sdrs.SdrsApplication;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -57,7 +57,38 @@ import org.slf4j.LoggerFactory;
 public class StsUtil {
 
   public static final String STS_ENABLED_STRING = "ENABLED";
+  public static final String STS_DISABLED_STRING = "DISABLED";
   public static final String TRANSFER_OPERATION_STRING = "transferOperations";
+  public static final String JOB_TYPE_STS = "STS";
+  public static final String DEFAULT_SHADOW_BUCKET_EXTENSION = "shadow";
+  public static final String DEFAULT_PROJECT_ID = "global-default";
+  public static final String DEFAULT_MAX_PREFIX_COUNT = "1000";
+  public static final String DEFAULT_LOOKBACK_IN_DAYS = "365";
+  public static final String[] DEFAULT_LOG_CAT_BUCKET_PREFIX = {
+    "2017/", "2018/", "2019/", "2020/", "2021"
+  };
+
+  public static final String DEFAULT_STS_JOB_POOL_NUMBER = "24";
+  public static final int MAX_USER_STS_JOB_POOL_NUMBER = 96;
+  public static final int MAX_DATASET_STS_JOB_POOL_NUMBER = 24;
+  public static final String SHADOW_BUCKET_EXTENTION =
+      SdrsApplication.getAppConfigProperty(
+          "sts.shadowBucketExtension", DEFAULT_SHADOW_BUCKET_EXTENSION);
+  public static final boolean IS_SHADOW_BUCKET_EXTENTION_PREFIX =
+      Boolean.valueOf(
+          SdrsApplication.getAppConfigProperty("sts.shadowBucketExtensionPrefix", "true"));
+
+  public static final int MAX_PREFIX_COUNT =
+      Integer.valueOf(
+          SdrsApplication.getAppConfigProperty("sts.maxPrefixCount", DEFAULT_MAX_PREFIX_COUNT));
+
+  public static final int STS_LOOKBACK_DAYS =
+      Integer.valueOf(
+          SdrsApplication.getAppConfigProperty("sts.maxLookBackInDays", DEFAULT_LOOKBACK_IN_DAYS));
+
+  public static final boolean IS_STS_JOBPOOL_ONLY =
+      Boolean.valueOf(SdrsApplication.getAppConfigProperty("sts.jobPoolOnly", "true"));
+
   private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
 
   /** Creates an instance of the STS Client */
@@ -203,7 +234,7 @@ public class StsUtil {
    * @param retentionJobs a {@link List} of jobs to retrieve
    * @return a {@link List} of {@link Operation} objects associated with the given jobs
    */
-  public static List<Operation> getSubmittedStsJobs(
+  public static List<Operation> getStsJobOperations(
       Storagetransfer client, String projectId, List<RetentionJob> retentionJobs) {
 
     List<Operation> operations = new ArrayList<>();
@@ -219,6 +250,7 @@ public class StsUtil {
         }
         List<String> jobNameList = new ArrayList<>();
         jobNameList.add(job.getName());
+        // All STS jobs are daily run. Get the operations for the past 5 days.
         Storagetransfer.TransferOperations.List operationRequest =
             client
                 .transferOperations()
@@ -230,21 +262,17 @@ public class StsUtil {
         Operation operationClosestToJobCreatedAtTime = null;
         Instant closestTime = Instant.MAX;
         if (operationsPerJob != null) {
+          // loop through operations to find the one closest to when the
+          // job is scheduled.
           for (Operation operation : operationsPerJob) {
-            if (job.getRetentionRuleType() == RetentionRuleType.DATASET
-                || job.getRetentionRuleType() == RetentionRuleType.USER) {
-              operationClosestToJobCreatedAtTime = operation;
-              break;
-            } else {
-              String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
-              Instant operationStartTime = Instant.parse(opeationStartTimeString);
-              Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
-              if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
-                if (operationClosestToJobCreatedAtTime == null
-                    || operationStartTime.isBefore(closestTime)) {
-                  operationClosestToJobCreatedAtTime = operation;
-                  closestTime = operationStartTime;
-                }
+            String opeationStartTimeString = operation.getMetadata().get("startTime").toString();
+            Instant operationStartTime = Instant.parse(opeationStartTimeString);
+            Instant retentionJobCreatedAtTime = job.getCreatedAt().toInstant();
+            if (operationStartTime.isAfter(retentionJobCreatedAtTime)) {
+              if (operationClosestToJobCreatedAtTime == null
+                  || operationStartTime.isBefore(closestTime)) {
+                operationClosestToJobCreatedAtTime = operation;
+                closestTime = operationStartTime;
               }
             }
           }
@@ -369,7 +397,7 @@ public class StsUtil {
         .build();
   }
 
-  static @NotNull Date convertToDate(LocalDate startDate) {
+  public static @NotNull Date convertToDate(LocalDate startDate) {
     Date googleDate = new Date();
     googleDate.setYear(startDate.getYear());
     googleDate.setMonth(startDate.getMonthValue());
@@ -378,12 +406,47 @@ public class StsUtil {
     return googleDate;
   }
 
-  static @NotNull TimeOfDay convertToTimeOfDay(LocalTime startTime) {
+  public static @NotNull TimeOfDay convertToTimeOfDay(LocalTime startTime) {
     TimeOfDay timeOfDay = new TimeOfDay();
     timeOfDay.setHours(startTime.getHour());
     timeOfDay.setMinutes(startTime.getMinute());
     timeOfDay.setSeconds(startTime.getSecond());
 
     return timeOfDay;
+  }
+
+  public static String timeOfDayToString(TimeOfDay timeOfDay) {
+    if (timeOfDay == null) {
+      return "00:00:00";
+    }
+    int hours = timeOfDay.getHours() != null ? timeOfDay.getHours() : 0;
+    int minutes = timeOfDay.getMinutes() != null ? timeOfDay.getMinutes() : 0;
+    int seconds = timeOfDay.getSeconds() != null ? timeOfDay.getSeconds() : 0;
+    return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+  }
+
+  public static LocalTime convertToLocalTime(TimeOfDay timeOfDay) {
+    int hours = timeOfDay.getHours() != null ? timeOfDay.getHours() : 0;
+    int minutes = timeOfDay.getMinutes() != null ? timeOfDay.getMinutes() : 0;
+    int seconds = timeOfDay.getSeconds() != null ? timeOfDay.getSeconds() : 0;
+    return LocalTime.of(hours, minutes, seconds);
+  }
+
+  public static String convertPrefixToString(List<String> prefixes) {
+    if (prefixes == null || prefixes.isEmpty()) {
+      return null;
+    }
+
+    return prefixes.stream().reduce((a, b) -> a + ";" + b).get();
+  }
+
+  public static String buildDestinationBucketName(
+      String sourceBucketName, String appended, boolean isPrefix) {
+    return isPrefix ? appended + sourceBucketName : sourceBucketName + appended;
+  }
+
+  public static String buildDestinationBucketName(String sourceBucketName) {
+    return buildDestinationBucketName(
+        sourceBucketName, SHADOW_BUCKET_EXTENTION, IS_SHADOW_BUCKET_EXTENTION_PREFIX);
   }
 }

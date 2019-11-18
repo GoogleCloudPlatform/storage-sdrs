@@ -135,6 +135,10 @@ public class RetentionJob {
     return createdAt;
   }
 
+  public void setCreatedAt(Timestamp createdAt) {
+    this.createdAt = createdAt;
+  }
+
   public Timestamp getUpdatedAt() {
     return updatedAt;
   }

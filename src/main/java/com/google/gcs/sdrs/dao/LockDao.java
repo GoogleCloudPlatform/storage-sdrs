@@ -13,29 +13,21 @@
  *
  * Any software provided by Google hereunder is distributed “AS IS”,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and is not intended for production use.
- *
  */
+package com.google.gcs.sdrs.dao;
 
-package com.google.gcs.sdrs.service.worker.rule;
+import com.google.gcs.sdrs.dao.model.DistributedLock;
+import org.hibernate.Session;
 
-import com.google.gcs.sdrs.dao.model.DmRequest;
-import com.google.gcs.sdrs.dao.model.RetentionJob;
-import com.google.gcs.sdrs.dao.model.RetentionRule;
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.List;
+public interface LockDao extends Dao<DistributedLock, Integer> {
 
-public interface RuleExecutor {
+  Session getLockSession();
 
-  List<DmRequest> executeUserCommandedRule(
-      Collection<RetentionRule> userCommandedRules, String projectId);
+  void closeLockSession(Session lockSession);
 
-  List<RetentionJob> executeDatasetRule(Collection<RetentionRule> datasetRules, String projectId);
+  DistributedLock obtainLock(Session session, int timeout, String lockId);
 
-  List<RetentionJob> executeDefaultRule(
-      RetentionRule globalDefaultRule,
-      Collection<RetentionRule> defaultRules,
-      Collection<RetentionRule> datasetRules,
-      ZonedDateTime scheduledTime,
-      String projectId);
+  void releaseLock(Session session, DistributedLock distributedLock);
+
+  DistributedLock initLock(String lockId);
 }

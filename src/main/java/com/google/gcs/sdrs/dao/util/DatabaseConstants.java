@@ -31,4 +31,12 @@ public class DatabaseConstants {
   public static final String RETENTION_PERIOD_UNIT_DAY = "day";
   public static final String RETENTION_PERIOD_UNIT_MONTH = "month";
   public static final String RETENTION_PERIOD_UNIT_VERSION = "version";
+
+  public static final String DM_REQUEST_STATUS_PENDING = "pending";
+  public static final String DM_REQUEST_STATUS_SCHEDULED =  "scheduled";
+  public static final String DM_REQUEST_STATIUS_RETRY = "retry";
+  public static final String DM_REQUEST_STATUS_SUCCESS = "success";
+  public static final String DM_REQUEST_STATUS_FAIL= "fail";
+
+
 }

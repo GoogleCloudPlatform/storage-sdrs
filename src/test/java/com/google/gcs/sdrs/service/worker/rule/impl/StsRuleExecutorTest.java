@@ -19,15 +19,15 @@ package com.google.gcs.sdrs.service.worker.rule.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential;
-import com.google.api.services.storagetransfer.v1.Storagetransfer;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.util.CredentialsUtil;
+import com.google.gcs.sdrs.util.StsUtil;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.ZonedDateTime;
@@ -36,17 +36,24 @@ import java.util.HashSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({CredentialsUtil.class, StsUtil.class})
 @PowerMockIgnore("javax.management.*")
 public class StsRuleExecutorTest {
 
   private StsRuleExecutor objectUnderTest;
   private String dataStorageName = "gs://test";
   private RetentionRule testRule;
+  private CredentialsUtil mockCredentialsUtil;
 
   @Before
-  public void initialize() throws IOException {
+  public void setup() throws IOException {
     testRule = new RetentionRule();
     testRule.setId(1);
     testRule.setProjectId("sdrs-test");
@@ -56,11 +63,13 @@ public class StsRuleExecutorTest {
     testRule.setType(RetentionRuleType.DATASET);
     testRule.setVersion(2);
 
-    StsRuleExecutor.credentialsUtil = mock(CredentialsUtil.class);
-    when(objectUnderTest.credentialsUtil.getCredentials())
-        .thenReturn(new MockGoogleCredential(new MockGoogleCredential.Builder()));
+    mockCredentialsUtil = mock(CredentialsUtil.class);
+    PowerMockito.mockStatic(CredentialsUtil.class);
+    when(CredentialsUtil.getInstance()).thenReturn(mockCredentialsUtil);
+    PowerMockito.mockStatic(StsUtil.class);
+    when(StsUtil.createStsClient(any())).thenReturn(null);
+
     objectUnderTest = StsRuleExecutor.getInstance();
-    objectUnderTest.client = mock(Storagetransfer.class);
   }
 
   @Test
@@ -81,7 +90,7 @@ public class StsRuleExecutorTest {
   public void buildRetentionJobTest() {
     String jobName = "test";
 
-    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule, null);
+    RetentionJob result = objectUnderTest.buildRetentionJobEntity(jobName, testRule, null, null);
 
     assertEquals(result.getName(), jobName);
     assertEquals((int) result.getRetentionRuleId(), (int) testRule.getId());
