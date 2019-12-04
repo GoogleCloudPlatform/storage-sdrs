@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** A utility to generate bucket name prefixes within a time interval. */
@@ -75,6 +76,16 @@ public class PrefixGeneratorUtility {
       result.add(formatPrefix(currentTime, pattern, DateTimeFormatter.ofPattern("yyyy")));
     }
 
+    return result;
+  }
+
+  public static List<String> generateVersionPrefix(List<String> objectsPath, int maxVersionToKeep) {
+    List<String> result = new ArrayList<>();
+    Collections.sort(objectsPath, Collections.reverseOrder());
+
+    for (int i = 0; i < maxVersionToKeep; ++i) {
+      result.add(objectsPath.get(i));
+    }
     return result;
   }
 

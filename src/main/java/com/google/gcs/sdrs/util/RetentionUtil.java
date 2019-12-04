@@ -170,4 +170,11 @@ public class RetentionUtil {
   public static int generatePriority(int numberOfRetry, long timeInQueue) {
     return numberOfRetry + Math.min(4, (int) (timeInQueue / EVERY_SIX_HOUR));
   }
+
+  public static String generateValidPrefixForListingObjects(String datasetPath) {
+    if (datasetPath != "" && !datasetPath.endsWith(ValidationConstants.STORAGE_SEPARATOR)) {
+      return datasetPath + ValidationConstants.STORAGE_SEPARATOR;
+    }
+    return datasetPath;
+  }
 }
