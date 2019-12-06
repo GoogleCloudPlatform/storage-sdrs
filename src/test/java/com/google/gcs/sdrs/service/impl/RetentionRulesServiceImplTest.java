@@ -25,7 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.cloud.storage.Bucket;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.controller.filter.UserInfo;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateRequest;
@@ -291,6 +290,22 @@ public class RetentionRulesServiceImplTest {
         .thenReturn(null);
 
     service.getRetentionRuleByBusinessKey("any", "any", RetentionRuleType.DATASET);
+  }
+
+  @Test
+  public void GetRuleByRuleIdReturnsMappedValue() throws SQLException {
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setId(5);
+    existingRule.setRetentionValue("3:version");
+    existingRule.setProjectId("projectId");
+    existingRule.setDataStorageName("gs://bucket");
+    existingRule.setIsActive(true);
+    when(service.ruleDao.findById(5)).thenReturn(existingRule);
+
+    RetentionRule rule = service.getRetentionRuleByRuleId(5);
+    assertEquals("3:version", rule.getRetentionValue());
+    assertEquals("projectId", rule.getProjectId());
+    assertEquals("gs://bucket", rule.getDataStorageName());
   }
 
   @Test

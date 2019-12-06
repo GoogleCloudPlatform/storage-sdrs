@@ -75,7 +75,7 @@ public class GcsHelper {
             bucketName, BlobListOption.currentDirectory(), BlobListOption.prefix(prefix));
     List<String> objectsPath = new ArrayList<>();
     for (Blob blob: blobs.iterateAll()) {
-      //only record for directories
+      //only record for  directories
       if (blob.isDirectory()) {
         objectsPath.add(blob.getName());
       }
