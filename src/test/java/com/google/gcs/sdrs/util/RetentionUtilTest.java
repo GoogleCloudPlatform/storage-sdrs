@@ -149,4 +149,20 @@ public class RetentionUtilTest {
     assertTrue(expectedString.equals(actualString));
 
   }
+
+  @Test
+  public void generateValidPrefixForListingObjects() {
+    String datasetPath = "dataset/myLog";
+    String expected = "dataset/myLog/";
+    String result = RetentionUtil.generateValidPrefixForListingObjects(datasetPath);
+
+    assertEquals(expected, result);
+  }
+
+  @Test
+  public void generateValidPrefixForListingObjectsWithEmpthDatasetPath() {
+    String result = RetentionUtil.generateValidPrefixForListingObjects("");
+
+    assertEquals("", result);
+  }
 }

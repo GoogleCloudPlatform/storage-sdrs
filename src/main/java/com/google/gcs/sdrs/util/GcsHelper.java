@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 /** Wrapper for using GCS API */
 public class GcsHelper {
 
-  private com.google.cloud.storage.Storage storage;
+  private Storage storage;
   private static GcsHelper instance;
   private static final Logger logger = LoggerFactory.getLogger(GcsHelper.class);
 

@@ -298,14 +298,14 @@ public class RetentionRulesServiceImplTest {
     existingRule.setId(5);
     existingRule.setRetentionValue("3:version");
     existingRule.setProjectId("projectId");
-    existingRule.setDataStorageName("gs://bucket");
+    existingRule.setDataStorageName("gs://bucket/dataset");
     existingRule.setIsActive(true);
     when(service.ruleDao.findById(5)).thenReturn(existingRule);
 
     RetentionRule rule = service.getRetentionRuleByRuleId(5);
     assertEquals("3:version", rule.getRetentionValue());
     assertEquals("projectId", rule.getProjectId());
-    assertEquals("gs://bucket", rule.getDataStorageName());
+    assertEquals("gs://bucket/dataset", rule.getDataStorageName());
   }
 
   @Test

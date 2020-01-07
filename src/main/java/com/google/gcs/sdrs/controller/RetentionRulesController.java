@@ -290,34 +290,42 @@ public class RetentionRulesController extends BaseController {
         messages.add("retentionPeriod must be at least 0");
       }
       RetentionUnitType type = RetentionUnitType.getType(retentionUnit);
-      switch (type) {
-        case DAY:
-          if (retentionPeriod > ValidationConstants.RETENTION_MAX_VALUE_DAY) {
-            messages.add(
-                String.format(
-                    "retentionPeriod exceeds maximum value of retentionPeriodUnit %s of %d",
-                    RetentionUnitType.DAY.toString(), ValidationConstants.RETENTION_MAX_VALUE_DAY));
-          }
-          break;
-        case MONTH:
-          if (retentionPeriod > ValidationConstants.RETENTION_MAX_VALUE_MONTH) {
-            messages.add(
-                String.format(
-                    "retentionPeriod exceeds maximum value of retentionPeriodUnit %s of %d",
-                    RetentionUnitType.MONTH.toString(), ValidationConstants.RETENTION_MAX_VALUE_MONTH));
-          }
-          break;
-        case VERSION:
-          if (retentionPeriod > ValidationConstants.RETENTION_MAX_VALUE_VERSION) {
-            messages.add(
-                String.format(
-                    "retentionPeriod exceeds maximum value of retentionPeriodUnit %s of %d",
-                    RetentionUnitType.VERSION.toString(), ValidationConstants.RETENTION_MAX_VALUE_VERSION));
-          }
-          break;
-        default:
-          messages.add("retentionPeriodUnit must be provided");
-          break;
+      if (type == null) {
+        messages.add(
+            String.format(
+                "retentionPeriodUnit must be provided and is one of [%s, %s, %s]",
+                RetentionUnitType.DAY.toString(),
+                RetentionUnitType.MONTH.toString(),
+                RetentionUnitType.VERSION.toString()));
+      } else {
+        switch (type) {
+          case DAY:
+            if (retentionPeriod > ValidationConstants.RETENTION_MAX_VALUE_DAY) {
+              messages.add(
+                  String.format(
+                      "retentionPeriod exceeds maximum value of retentionPeriodUnit %s of %d",
+                      RetentionUnitType.DAY.toString(), ValidationConstants.RETENTION_MAX_VALUE_DAY));
+            }
+            break;
+          case MONTH:
+            if (retentionPeriod > ValidationConstants.RETENTION_MAX_VALUE_MONTH) {
+              messages.add(
+                  String.format(
+                      "retentionPeriod exceeds maximum value of retentionPeriodUnit %s of %d",
+                      RetentionUnitType.MONTH.toString(), ValidationConstants.RETENTION_MAX_VALUE_MONTH));
+            }
+            break;
+          case VERSION:
+            if (retentionPeriod > ValidationConstants.RETENTION_MAX_VALUE_VERSION) {
+              messages.add(
+                  String.format(
+                      "retentionPeriod exceeds maximum value of retentionPeriodUnit %s of %d",
+                      RetentionUnitType.VERSION.toString(), ValidationConstants.RETENTION_MAX_VALUE_VERSION));
+            }
+            break;
+          default:
+            break;
+        }
       }
     }
     return new ValidationResult(messages);
@@ -334,6 +342,8 @@ public class RetentionRulesController extends BaseController {
                 RetentionUnitType.DAY.toString(), RetentionUnitType.MONTH.toString(),
                 RetentionUnitType.VERSION.toString()));
       }
+    } else {
+      messages.add("retentionPeriodUnit must be provided");
     }
 
     return new ValidationResult(messages);

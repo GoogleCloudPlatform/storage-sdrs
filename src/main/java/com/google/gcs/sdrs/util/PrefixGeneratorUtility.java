@@ -81,9 +81,10 @@ public class PrefixGeneratorUtility {
 
   public static List<String> generateVersionPrefix(List<String> objectsPath, int maxVersionToKeep) {
     List<String> result = new ArrayList<>();
-    Collections.sort(objectsPath, Collections.reverseOrder());
-
-    for (int i = 0; i < maxVersionToKeep; ++i) {
+    Collections.sort(objectsPath);
+    int versionToDelete = objectsPath.size() - maxVersionToKeep;
+    versionToDelete = (versionToDelete < 0) ? 0 : versionToDelete;
+    for (int i = 0; i < versionToDelete ; ++i) {
       result.add(objectsPath.get(i));
     }
     return result;
