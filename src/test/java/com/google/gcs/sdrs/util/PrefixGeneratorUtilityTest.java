@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -272,5 +273,34 @@ public class PrefixGeneratorUtilityTest {
 
     assertEquals(1, result.size());
     assertEquals("2019/", result.get(0));
+  }
+
+  @Test
+  public void VersionsMoreThanMaxVersionToKeep() {
+    List<String> objectsPath = new ArrayList<>();
+    objectsPath.add("bucket/dataset/20191208/");
+    objectsPath.add("bucket/dataset/20191125/");
+    objectsPath.add("bucket/dataset/20200105/");
+    objectsPath.add("bucket/dataset/20191228/");
+    int maxVersionToKeep = 3;
+
+    List<String> results = PrefixGeneratorUtility.generateVersionPrefix(objectsPath, maxVersionToKeep);
+
+    assertEquals(1, results.size());
+    assertEquals("bucket/dataset/20191125/", results.get(0));
+  }
+
+  @Test
+  public void VersionsLessThanMaxVersionToKeep() {
+    List<String> objectsPath = new ArrayList<>();
+    objectsPath.add("bucket/dataset/20191208/");
+    objectsPath.add("bucket/dataset/20191125/");
+    objectsPath.add("bucket/dataset/20200105/");
+    objectsPath.add("bucket/dataset/20191228/");
+    int maxVersionToKeep = 5;
+
+    List<String> results = PrefixGeneratorUtility.generateVersionPrefix(objectsPath, maxVersionToKeep);
+
+    assertEquals(0, results.size());
   }
 }

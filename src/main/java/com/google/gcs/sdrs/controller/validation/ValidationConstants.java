@@ -19,7 +19,9 @@ package com.google.gcs.sdrs.controller.validation;
 
 public class ValidationConstants {
   // 3 Years
-  public static final Integer RETENTION_MAX_VALUE = 1095;
+  public static final Integer RETENTION_MAX_VALUE_DAY = 1095;
+  public static final Integer RETENTION_MAX_VALUE_MONTH = 36;
+  public static final Integer RETENTION_MAX_VALUE_VERSION = 30;
   public static final String STORAGE_PREFIX = "gs://";
   public static final String STORAGE_SEPARATOR = "/";
   public static final String GLOBAL_JSON_VALUE = "GLOBAL";

@@ -18,16 +18,23 @@
 
 package com.google.gcs.sdrs.util;
 
+import com.google.api.gax.paging.Page;
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Wrapper for using GCS API */
 public class GcsHelper {
 
-  private com.google.cloud.storage.Storage storage;
+  private Storage storage;
   private static GcsHelper instance;
   private static final Logger logger = LoggerFactory.getLogger(GcsHelper.class);
 
@@ -60,5 +67,19 @@ public class GcsHelper {
 
   public Bucket getBucket(String bucketName) {
     return storage.get(bucketName);
+  }
+
+  public List<String> listObjectsWithPrefixInBucket(String bucketName, String prefix) {
+    Page<Blob> blobs =
+        storage.list(
+            bucketName, BlobListOption.currentDirectory(), BlobListOption.prefix(prefix));
+    List<String> objectsPath = new ArrayList<>();
+    for (Blob blob: blobs.iterateAll()) {
+      //only record for  directories
+      if (blob.isDirectory()) {
+        objectsPath.add(blob.getName());
+      }
+    }
+    return objectsPath;
   }
 }
