@@ -197,7 +197,7 @@ public class RetentionRulesController extends BaseController {
     Collection<ValidationResult> partialValidations =
         validateCompositeKey(
             retentionRuleType, request.getProjectId(), request.getDataStorageName());
-    partialValidations.add(validateRetentionPeriod(request.getRetentionPeriodUnit(),
+    partialValidations.add(validateRetentionValue(request.getRetentionPeriodUnit(),
         request.getRetentionPeriod()));
     partialValidations.add(validateRetentionUnit(request.getRetentionPeriodUnit()));
 
@@ -273,7 +273,7 @@ public class RetentionRulesController extends BaseController {
 
   private void validateUpdate(RetentionRuleUpdateRequest request, RetentionValue retentionValue)
       throws ValidationException {
-    ValidationResult result = validateRetentionPeriod(retentionValue.getUnitTypeString(),
+    ValidationResult result = validateRetentionValue(retentionValue.getUnitTypeString(),
         request.getRetentionPeriod());
 
     if (!result.isValid) {
@@ -281,7 +281,7 @@ public class RetentionRulesController extends BaseController {
     }
   }
 
-  private ValidationResult validateRetentionPeriod(String retentionUnit, Integer retentionPeriod) {
+  private ValidationResult validateRetentionValue(String retentionUnit, Integer retentionPeriod) {
     Collection<String> messages = new HashSet<>();
     if (retentionPeriod == null) {
       messages.add("retentionPeriod must be provided");
