@@ -61,7 +61,7 @@ public class EventsControllerTest {
     mockDmQueueDao = mock(DmQueueDao.class);
 
     PowerMockito.mockStatic(GcsHelper.class);
-    when(GcsHelper.getInstance()).thenReturn(mockGcsHelper);
+    when(GcsHelper.getInstance(any())).thenReturn(mockGcsHelper);
 
     PowerMockito.mockStatic(SingletonDao.class);
     when(SingletonDao.getDmQueueDao()).thenReturn(mockDmQueueDao);
