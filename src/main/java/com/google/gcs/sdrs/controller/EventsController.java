@@ -188,7 +188,7 @@ public class EventsController extends BaseController {
                       target)));
         } else {
           String bucketName = RetentionUtil.getBucketName(target);
-          if (!GcsHelper.getInstance().doesBucketExist(bucketName, projectId)) {
+          if (!GcsHelper.getInstance(projectId).doesBucketExist(bucketName, projectId)) {
             validations.add(
                 ValidationResult.fromString(
                     String.format("The bucket %s/%s does not exist", projectId, bucketName)));
