@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +35,7 @@ import com.google.gcs.sdrs.controller.pojo.RetentionRuleCreateResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleResponse;
 import com.google.gcs.sdrs.controller.pojo.RetentionRuleUpdateRequest;
 import com.google.gcs.sdrs.controller.validation.ValidationResult;
+import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.service.impl.RetentionRulesServiceImpl;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -72,6 +74,7 @@ public class RetentionRulesControllerTest {
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     rule.setRetentionPeriod(1);
+    rule.setRetentionPeriodUnit("day");
 
     Response response = controller.create(rule);
 
@@ -93,6 +96,7 @@ public class RetentionRulesControllerTest {
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     rule.setRetentionPeriod(1);
+    rule.setRetentionPeriodUnit("version");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.OK_200.getStatusCode());
   }
@@ -102,6 +106,7 @@ public class RetentionRulesControllerTest {
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     rule.setRetentionPeriod(-1);
+    rule.setRetentionPeriodUnit("month");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("retentionPeriod"));
@@ -112,17 +117,45 @@ public class RetentionRulesControllerTest {
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
     rule.setRetentionPeriod(1000000);
+    rule.setRetentionPeriodUnit("day");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("retentionPeriod"));
   }
 
   @Test
-  public void createDatasetRuleMissingPeriodFails() {
+  public void createGlobaRuleWithInvalidPeriodBasedOnRetentionUnitFailes() {
+    RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
+    rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
+    rule.setRetentionPeriod(35);
+    rule.setRetentionPeriodUnit("version");
+    Response response = controller.create(rule);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
+    ErrorResponse body = (ErrorResponse) response.getEntity();
+    assertTrue(body.getMessage().contains("retentionPeriod exceeds maximum value"));
+    assertTrue(body.getMessage().contains("retentionPeriodUnit VERSION"));
+  }
+
+  @Test
+  public void createGlobalRuleWithInvalidRetentionPeriodUnit() {
+    RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
+    rule.setRetentionRuleType(RetentionRuleType.GLOBAL);
+    rule.setRetentionPeriod(10);
+    rule.setRetentionPeriodUnit("year");
+    Response response = controller.create(rule);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
+    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("retentionPeriodUnit"));
+  }
+
+  @Test
+  public void createDatasetRuleMissingFieldsFails() {
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("retentionPeriod"));
+    ErrorResponse body = (ErrorResponse) response.getEntity();
+    assertTrue(body.getMessage().contains("type"));
+    assertTrue(body.getMessage().contains("retentionPeriod"));
+    assertTrue(body.getMessage().contains("retentionPeriodUnit"));
   }
 
   @Test
@@ -132,6 +165,7 @@ public class RetentionRulesControllerTest {
     rule.setDatasetName("datasetName");
     rule.setDataStorageName("gs://bucket/dataset");
     rule.setRetentionPeriod(123);
+    rule.setRetentionPeriodUnit("day");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
     assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("projectId"));
@@ -142,7 +176,8 @@ public class RetentionRulesControllerTest {
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setRetentionRuleType(RetentionRuleType.DATASET);
     rule.setDatasetName("datasetName");
-    rule.setRetentionPeriod(123);
+    rule.setRetentionPeriod(12);
+    rule.setRetentionPeriodUnit("month");
     rule.setProjectId("projectId");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
@@ -156,11 +191,13 @@ public class RetentionRulesControllerTest {
     rule.setDatasetName("datasetName");
     rule.setDataStorageName("bucket/dataset");
     rule.setRetentionPeriod(123);
+    rule.setRetentionPeriodUnit("day");
     rule.setProjectId("projectId");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("dataStorageName"));
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("gs://"));
+    ErrorResponse body = (ErrorResponse) response.getEntity();
+    assertTrue(body.getMessage().contains("dataStorageName"));
+    assertTrue(body.getMessage().contains("gs://"));
   }
 
   @Test
@@ -170,20 +207,36 @@ public class RetentionRulesControllerTest {
     rule.setDatasetName("datasetName");
     rule.setDataStorageName("gs:///dataset");
     rule.setRetentionPeriod(123);
+    rule.setRetentionPeriodUnit("day");
     rule.setProjectId("projectId");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("dataStorageName"));
-    assertTrue(((ErrorResponse) response.getEntity()).getMessage().contains("bucket"));
+    ErrorResponse body = (ErrorResponse) response.getEntity();
+    assertTrue(body.getMessage().contains("dataStorageName"));
+    assertTrue(body.getMessage().contains("bucket"));
+  }
+
+  @Test
+  public void createDatasetRuleMissingRetentionPeriodUnitFails() {
+    RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
+    rule.setRetentionRuleType(RetentionRuleType.DATASET);
+    rule.setDatasetName("datasetName");
+    rule.setDataStorageName("gs://bucket/dataset");
+    rule.setRetentionPeriod(3);
+    rule.setProjectId("projectId");
+    Response response = controller.create(rule);
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
+    ErrorResponse body = (ErrorResponse) response.getEntity();
+    assertTrue(body.getMessage().contains("retentionPeriodUnit must be provided"));
   }
 
   @Test
   public void createDatasetRuleWithValidFieldsSucceeds() {
     RetentionRuleCreateRequest rule = new RetentionRuleCreateRequest();
     rule.setRetentionRuleType(RetentionRuleType.DATASET);
-    rule.setDatasetName("datasetName");
     rule.setDataStorageName("gs://bucket/dataset");
-    rule.setRetentionPeriod(123);
+    rule.setRetentionPeriod(5);
+    rule.setRetentionPeriodUnit("version");
     rule.setProjectId("projectId");
     Response response = controller.create(rule);
     assertEquals(response.getStatus(), HttpStatus.OK_200.getStatusCode());
@@ -191,16 +244,22 @@ public class RetentionRulesControllerTest {
 
   @Test
   public void updateRuleWithValidFieldsSucceeds() throws SQLException {
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setId(1);
+    existingRule.setRetentionValue("3:version");
+    existingRule.setIsActive(true);
     RetentionRuleUpdateRequest request = new RetentionRuleUpdateRequest();
-    request.setRetentionPeriod(123);
+    request.setRetentionPeriod(5);
     RetentionRuleResponse serviceResponse = new RetentionRuleResponse();
     serviceResponse.setDatasetName("dataset");
     serviceResponse.setDataStorageName("gs://bucket/dataset");
     serviceResponse.setProjectId("projectId");
-    serviceResponse.setRetentionPeriod(123);
+    serviceResponse.setRetentionPeriod(5);
+    serviceResponse.setRetentionPeriodUnit("version");
     serviceResponse.setRuleId(1);
     serviceResponse.setType(RetentionRuleType.DATASET);
 
+    when(controller.service.getRetentionRuleByRuleId(anyInt())).thenReturn(existingRule);
     when(controller.service.updateRetentionRule(anyInt(), any(RetentionRuleUpdateRequest.class)))
         .thenReturn(serviceResponse);
 
@@ -211,20 +270,76 @@ public class RetentionRulesControllerTest {
     assertEquals(body.getDatasetName(), "dataset");
     assertEquals(body.getDataStorageName(), "gs://bucket/dataset");
     assertEquals(body.getProjectId(), "projectId");
-    assertEquals((int) body.getRetentionPeriod(), 123);
+    assertEquals((int) body.getRetentionPeriod(), 5);
     assertEquals((int) body.getRuleId(), 1);
+    assertEquals(body.getRetentionPeriodUnit(), "version");
     assertEquals(body.getType(), RetentionRuleType.DATASET);
   }
 
   @Test
-  public void updateRuleWithInvalidRetentionRuleFails() {
+  public void updateRuleWithNegativeRetentionPeriodFails() throws SQLException {
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setId(1);
+    existingRule.setRetentionValue("3:version");
+    existingRule.setIsActive(true);
     RetentionRuleUpdateRequest rule = new RetentionRuleUpdateRequest();
     rule.setRetentionPeriod(-1);
+
+    when(controller.service.getRetentionRuleByRuleId(anyInt())).thenReturn(existingRule);
 
     Response response = controller.update(1, rule);
 
     assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
     ErrorResponse body = (ErrorResponse) response.getEntity();
     assertTrue(body.getMessage().contains("retentionPeriod"));
+  }
+
+  @Test
+  public void updateRuleWithInvalidRetentionPeriodFails() throws SQLException {
+    RetentionRule existingRule = new RetentionRule();
+    existingRule.setId(1);
+    existingRule.setRetentionValue("5:month");
+    existingRule.setIsActive(true);
+    RetentionRuleUpdateRequest rule = new RetentionRuleUpdateRequest();
+    rule.setRetentionPeriod(100);
+
+    when(controller.service.getRetentionRuleByRuleId(anyInt())).thenReturn(existingRule);
+
+    Response response = controller.update(1, rule);
+
+    assertEquals(response.getStatus(), HttpStatus.BAD_REQUEST_400.getStatusCode());
+    ErrorResponse body = (ErrorResponse) response.getEntity();
+    assertTrue(body.getMessage().contains("retentionPeriod exceeds maximum value"));
+    assertTrue(body.getMessage().contains("retentionPeriodUnit MONTH"));
+  }
+
+  @Test
+  public void getRuleWithValidFieldsSucceeds() {
+    String projectId = "projectId";
+    String dataStorageName = "gs://bucket/dataset";
+    RetentionRuleResponse serviceResponse = new RetentionRuleResponse();
+    serviceResponse.setDatasetName("dataset");
+    serviceResponse.setDataStorageName(dataStorageName);
+    serviceResponse.setProjectId(projectId);
+    serviceResponse.setRetentionPeriod(21);
+    serviceResponse.setRetentionPeriodUnit("day");
+    serviceResponse.setRuleId(1);
+    serviceResponse.setType(RetentionRuleType.DATASET);
+
+    when(controller.service.getRetentionRuleByBusinessKey(
+        eq(projectId), eq(dataStorageName), any(RetentionRuleType.class))).thenReturn(serviceResponse);
+
+    Response response = controller.get(
+        RetentionRuleType.DATASET.toString(), projectId, dataStorageName);
+
+    assertEquals(HttpStatus.OK_200.getStatusCode(), response.getStatus());
+    RetentionRuleResponse body = (RetentionRuleResponse) response.getEntity();
+    assertEquals(body.getDatasetName(), "dataset");
+    assertEquals(body.getDataStorageName(), dataStorageName);
+    assertEquals(body.getProjectId(), projectId);
+    assertEquals((int) body.getRetentionPeriod(), 21);
+    assertEquals((int) body.getRuleId(), 1);
+    assertEquals(body.getRetentionPeriodUnit(), "day");
+    assertEquals(body.getType(), RetentionRuleType.DATASET);
   }
 }
