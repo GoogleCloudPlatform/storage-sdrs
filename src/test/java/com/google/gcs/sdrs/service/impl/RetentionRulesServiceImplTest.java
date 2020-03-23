@@ -79,7 +79,7 @@ public class RetentionRulesServiceImplTest {
     when(StsRuleExecutor.getInstance()).thenReturn(null);
 
     PowerMockito.mockStatic(GcsHelper.class);
-    when(GcsHelper.getInstance(any())).thenReturn(mockGcsHelper);
+    when(GcsHelper.getInstance()).thenReturn(mockGcsHelper);
     when(mockGcsHelper.doesBucketExist(any(), any())).thenReturn(true);
   }
 

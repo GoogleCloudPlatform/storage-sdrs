@@ -38,24 +38,17 @@ public class GcsHelper {
   private static GcsHelper instance;
   private static final Logger logger = LoggerFactory.getLogger(GcsHelper.class);
 
-  private GcsHelper(String projectId) throws IOException {
-    StorageOptions storageOptions = StorageOptions.getDefaultInstance();
-    if (projectId != null) {
-      storageOptions = StorageOptions.newBuilder().setProjectId(projectId).build();
-      logger.info(
-          String.format(
-              "Try to create GCS client with specified project: %s", projectId));
-    }
-    storage = storageOptions.getService();
+  private GcsHelper() throws IOException {
+    storage = StorageOptions.getDefaultInstance().getService();
     if (storage == null) {
       throw new IOException("Failed to create GCS client.");
     }
   }
 
-  public static synchronized GcsHelper getInstance(String projectId) {
+  public static synchronized GcsHelper getInstance() {
     if (instance == null) {
       try {
-        instance = new GcsHelper(projectId);
+        instance = new GcsHelper();
       } catch (IOException e) {
         logger.error("Could not establish connection with GCS: ", e);
       }
@@ -69,9 +62,6 @@ public class GcsHelper {
     }
 
     Bucket bucket = storage.get(bucketName);
-    logger.debug(
-        String.format("Bucket exits? and projectId get from the bucket is %s",
-        bucket.getStorage().getOptions().getProjectId()));
     return bucket != null && bucket.getStorage().getOptions().getProjectId().equals(projectId);
   }
 

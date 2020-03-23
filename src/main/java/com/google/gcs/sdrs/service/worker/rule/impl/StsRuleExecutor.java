@@ -204,7 +204,7 @@ public class StsRuleExecutor implements RuleExecutor {
 
         if (retentionValue.getUnitType() == RetentionUnitType.VERSION) {
           String prefix = RetentionUtil.generateValidPrefixForListingObjects(datasetPath);
-          List<String> objectsPath = GcsHelper.getInstance(datasetRule.getProjectId()).listObjectsWithPrefixInBucket(
+          List<String> objectsPath = GcsHelper.getInstance().listObjectsWithPrefixInBucket(
               bucketName, prefix);
           tmpPrefixes = PrefixGeneratorUtility.generateVersionPrefix(objectsPath,
               retentionValue.getNumber());

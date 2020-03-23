@@ -75,7 +75,7 @@ public class RetentionRulesServiceImpl implements RetentionRulesService {
       throws SQLException, IOException {
     String bucketName = RetentionUtil.getBucketName(rule.getDataStorageName());
     if (rule.getRetentionRuleType() != RetentionRuleType.GLOBAL) {
-      if (!GcsHelper.getInstance(rule.getProjectId()).doesBucketExist(bucketName, rule.getProjectId())) {
+      if (!GcsHelper.getInstance().doesBucketExist(bucketName, rule.getProjectId())) {
         throw new IOException(
             String.format("Bucket %s does not exist for project %s", bucketName, rule.getProjectId()));
       }
