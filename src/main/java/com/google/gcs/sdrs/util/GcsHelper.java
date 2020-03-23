@@ -19,6 +19,7 @@
 package com.google.gcs.sdrs.util;
 
 import com.google.api.gax.paging.Page;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
@@ -39,7 +40,9 @@ public class GcsHelper {
   private static final Logger logger = LoggerFactory.getLogger(GcsHelper.class);
 
   private GcsHelper() throws IOException {
-    storage = StorageOptions.getDefaultInstance().getService();
+    GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
+    StorageOptions storageOptions = StorageOptions.newBuilder().setCredentials(credentials).build();
+    storage = storageOptions.getService();
     if (storage == null) {
       throw new IOException("Failed to create GCS client.");
     }
