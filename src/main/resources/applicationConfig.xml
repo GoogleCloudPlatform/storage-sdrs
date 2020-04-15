@@ -46,7 +46,7 @@
     </jobPoolOnDemand>
     <defaultProjectId>global-default</defaultProjectId>
     <defaultStorageName>gs://global</defaultStorageName>
-    <maxLookBackInDays>365</maxLookBackInDays>
+    <maxLookBackInDays>1095</maxLookBackInDays>
   </sts>
   <lock>
     <dm>

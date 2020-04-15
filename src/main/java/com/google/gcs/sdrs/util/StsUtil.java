@@ -63,7 +63,7 @@ public class StsUtil {
   public static final String DEFAULT_SHADOW_BUCKET_EXTENSION = "shadow";
   public static final String DEFAULT_PROJECT_ID = "global-default";
   public static final String DEFAULT_MAX_PREFIX_COUNT = "1000";
-  public static final String DEFAULT_LOOKBACK_IN_DAYS = "365";
+  public static final String DEFAULT_LOOKBACK_IN_DAYS = "1095";
   public static final String[] DEFAULT_LOG_CAT_BUCKET_PREFIX = {
     "2017/", "2018/", "2019/", "2020/", "2021"
   };
