@@ -200,7 +200,7 @@ public class StsRuleExecutor implements RuleExecutor {
 
         RetentionValue retentionValue = RetentionValue.parse(datasetRule.getRetentionValue());
         String datasetPath = RetentionUtil.getDatasetPath(datasetRule.getDataStorageName());
-        List<String> tmpPrefixes = null;
+        List<String> tmpPrefixes = new ArrayList<>();
 
         try {
           if (retentionValue.getUnitType() == RetentionUnitType.VERSION) {
@@ -268,7 +268,7 @@ public class StsRuleExecutor implements RuleExecutor {
             job = StsUtil.updateExistingJob(client, jobToUpdate, stsPooledJob.getName(), projectId);
           }
         } else {
-          logger.error(String.format("There is not prefix generated for bucket %s"), bucketName);
+          logger.error(String.format("There is not prefix generated for bucket %s", bucketName));
         }
       } catch (IOException e) {
         logger.error(

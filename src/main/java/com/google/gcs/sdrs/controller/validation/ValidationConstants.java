@@ -20,7 +20,8 @@ package com.google.gcs.sdrs.controller.validation;
 public class ValidationConstants {
   // 3 Years
   public static final Integer RETENTION_MAX_VALUE_DAY = 1095;
-  public static final Integer RETENTION_MAX_VALUE_MONTH = 36;
+  // 7 Years for month retentionPeriodUnit
+  public static final Integer RETENTION_MAX_VALUE_MONTH = 84;
   public static final Integer RETENTION_MAX_VALUE_VERSION = 30;
   public static final String STORAGE_PREFIX = "gs://";
   public static final String STORAGE_SEPARATOR = "/";
