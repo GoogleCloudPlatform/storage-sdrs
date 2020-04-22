@@ -17,22 +17,25 @@
 
 package com.google.gcs.sdrs.service.worker.rule.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.io.IOException;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
+import com.google.api.services.storagetransfer.v1.model.Schedule;
+import com.google.api.services.storagetransfer.v1.model.TimeOfDay;
+import com.google.api.services.storagetransfer.v1.model.TransferJob;
+import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gcs.sdrs.dao.model.RetentionRule;
 import com.google.gcs.sdrs.util.CredentialsUtil;
+import com.google.gcs.sdrs.util.PrefixGeneratorUtility;
 import com.google.gcs.sdrs.util.StsUtil;
-import java.io.IOException;
-import java.time.Clock;
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.HashSet;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,21 +45,33 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.notNull;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CredentialsUtil.class, StsUtil.class})
+@PrepareForTest({CredentialsUtil.class, StsUtil.class, PrefixGeneratorUtility.class})
 @PowerMockIgnore("javax.management.*")
 public class StsRuleExecutorTest {
 
   private StsRuleExecutor objectUnderTest;
-  private String dataStorageName = "gs://test";
   private RetentionRule testRule;
+  private String dataStorageName = "gs://test/dataset";
+  private String projectId = "sdrs-test";
+  private String transferJobName = "testjob";
   private CredentialsUtil mockCredentialsUtil;
 
   @Before
-  public void setup() throws IOException {
+  public void setup() {
     testRule = new RetentionRule();
     testRule.setId(1);
-    testRule.setProjectId("sdrs-test");
+    testRule.setProjectId(projectId);
     testRule.setDatasetName("test");
     testRule.setRetentionValue("30:day");
     testRule.setDataStorageName(dataStorageName);
@@ -68,8 +83,9 @@ public class StsRuleExecutorTest {
     when(CredentialsUtil.getInstance()).thenReturn(mockCredentialsUtil);
     PowerMockito.mockStatic(StsUtil.class);
     when(StsUtil.createStsClient(any())).thenReturn(null);
+    PowerMockito.mockStatic(PrefixGeneratorUtility.class);
 
-    objectUnderTest = StsRuleExecutor.getInstance();
+    objectUnderTest = spy(StsRuleExecutor.getInstance());
   }
 
   @Test
@@ -87,6 +103,76 @@ public class StsRuleExecutorTest {
   }
 
   @Test
+  public void executeDatasetRuleSuccess() throws IOException {
+    Collection<RetentionRule> datasetRules = new HashSet<>();
+    datasetRules.add(testRule);
+
+    TransferJob transferJob = createBasicTransferJob();
+
+    when(PrefixGeneratorUtility.generateTimePrefixes(
+        any(), any(), (ZonedDateTime) notNull())).thenCallRealMethod();
+    doReturn(transferJob).when(objectUnderTest).findPooledJob(any(), any(), any(), any());
+    doNothing().when(objectUnderTest).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
+    when(StsUtil.updateExistingJob(any(), any(), any(), any())).thenReturn(transferJob);
+
+    List<RetentionJob> datasetRuleJobs = objectUnderTest.executeDatasetRule(datasetRules, projectId);
+
+    verify(objectUnderTest, times(1)).findPooledJob(any(), any(),any(),any());
+    verify(objectUnderTest, times(1)).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
+    assertEquals(1, datasetRuleJobs.size());
+    assertEquals(transferJobName, datasetRuleJobs.get(0).getName());
+  }
+
+  @Test
+  public void executeDatasetRuleWithExceptionThrowByTimePrefixesGeneration() {
+    Collection<RetentionRule> datasetRules = new HashSet<>();
+    datasetRules.add(testRule);
+
+    when(PrefixGeneratorUtility.generateTimePrefixes(
+        any(), any(), (ZonedDateTime) notNull())).thenThrow(new IllegalArgumentException());
+    doNothing().when(objectUnderTest).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
+
+    List<RetentionJob> datasetRuleJobs = objectUnderTest.executeDatasetRule(datasetRules, projectId);
+
+    verify(objectUnderTest, never()).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
+    assertEquals(1, datasetRuleJobs.size());
+    //jobname is null will be used to mark error job
+    assertEquals(null, datasetRuleJobs.get(0).getName());
+    assertEquals(dataStorageName,
+        datasetRuleJobs.get(0).getRetentionRuleDataStorageName());
+  }
+
+  @Test
+  public void executeDatasetRuleWithEmptyPrefixesList() throws IOException {
+    Collection<RetentionRule> datasetRules = new HashSet<>();
+    datasetRules.add(testRule);
+
+    TransferJob transferJob = createBasicTransferJob();
+
+    when(PrefixGeneratorUtility.generateTimePrefixes(
+        any(), any(), (ZonedDateTime) notNull())).thenReturn(new ArrayList<>());
+    doReturn(transferJob).when(objectUnderTest).findPooledJob(any(), any(), any(), any());
+    doNothing().when(objectUnderTest).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
+
+
+    List<RetentionJob> datasetRuleJobs = objectUnderTest.executeDatasetRule(datasetRules, projectId);
+
+    verify(objectUnderTest, never()).findPooledJob(any(), any(),any(),any());
+    verify(objectUnderTest, never()).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
+    assertEquals(1, datasetRuleJobs.size());
+    //jobname is null will be used to mark error job
+    assertEquals(null, datasetRuleJobs.get(0).getName());
+    assertEquals(dataStorageName,
+        datasetRuleJobs.get(0).getRetentionRuleDataStorageName());
+  }
+
+  @Test
   public void buildRetentionJobTest() {
     String jobName = "test";
 
@@ -97,5 +183,19 @@ public class StsRuleExecutorTest {
     assertEquals(result.getRetentionRuleDataStorageName(), testRule.getDataStorageName());
     assertEquals(result.getRetentionRuleType(), testRule.getType());
     assertEquals((int) result.getRetentionRuleVersion(), (int) testRule.getVersion());
+  }
+
+  private TransferJob createBasicTransferJob() {
+    TransferJob transferJob = new TransferJob();
+    transferJob.setStatus(StsUtil.STS_ENABLED_STRING);
+    TransferSpec transferSpec = new TransferSpec();
+    transferJob.setName(transferJobName);
+    transferJob.setTransferSpec(transferSpec);
+    transferJob.setLastModificationTime(
+        ZonedDateTime.now(Clock.systemUTC()).minusMinutes(10).toString());
+    transferJob.setSchedule(
+        new Schedule()
+            .setStartTimeOfDay(new TimeOfDay().setHours(10).setMinutes(10).setSeconds(10).setNanos(10)));
+    return transferJob;
   }
 }
