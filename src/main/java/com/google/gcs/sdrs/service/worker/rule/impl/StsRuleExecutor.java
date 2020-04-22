@@ -223,9 +223,10 @@ public class StsRuleExecutor implements RuleExecutor {
         prefixesPerDatasetMap.put(datasetRule.getDataStorageName(), tmpPrefixes);
         prefixes.addAll(tmpPrefixes);
       }
-
-      sendInactiveDatasetNotification(
-          projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
+      if (!prefixes.isEmpty()) {
+        sendInactiveDatasetNotification(
+            projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
+      }
 
       String sourceBucket = bucketName;
       String destinationBucket = StsUtil.buildDestinationBucketName(bucketName);
@@ -854,7 +855,7 @@ public class StsRuleExecutor implements RuleExecutor {
         StsUtil.timeOfDayToString(pooledJob.getSchedule().getStartTimeOfDay()));
   }
 
-  private void sendInactiveDatasetNotification(
+  public void sendInactiveDatasetNotification(
       String projectId,
       String bucket,
       List<String> prefixList,

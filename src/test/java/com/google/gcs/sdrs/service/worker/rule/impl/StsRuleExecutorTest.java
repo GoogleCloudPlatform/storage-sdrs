@@ -112,11 +112,15 @@ public class StsRuleExecutorTest {
     when(PrefixGeneratorUtility.generateTimePrefixes(
         any(), any(), (ZonedDateTime) notNull())).thenCallRealMethod();
     doReturn(transferJob).when(objectUnderTest).findPooledJob(any(), any(), any(), any());
+    doNothing().when(objectUnderTest).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
     when(StsUtil.updateExistingJob(any(), any(), any(), any())).thenReturn(transferJob);
 
     List<RetentionJob> datasetRuleJobs = objectUnderTest.executeDatasetRule(datasetRules, projectId);
 
     verify(objectUnderTest, times(1)).findPooledJob(any(), any(),any(),any());
+    verify(objectUnderTest, times(1)).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
     assertEquals(1, datasetRuleJobs.size());
     assertEquals(transferJobName, datasetRuleJobs.get(0).getName());
   }
@@ -128,9 +132,13 @@ public class StsRuleExecutorTest {
 
     when(PrefixGeneratorUtility.generateTimePrefixes(
         any(), any(), (ZonedDateTime) notNull())).thenThrow(new IllegalArgumentException());
+    doNothing().when(objectUnderTest).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
 
     List<RetentionJob> datasetRuleJobs = objectUnderTest.executeDatasetRule(datasetRules, projectId);
 
+    verify(objectUnderTest, never()).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
     assertEquals(1, datasetRuleJobs.size());
     //jobname is null will be used to mark error job
     assertEquals(null, datasetRuleJobs.get(0).getName());
@@ -145,14 +153,18 @@ public class StsRuleExecutorTest {
 
     TransferJob transferJob = createBasicTransferJob();
 
-    doReturn(transferJob).when(objectUnderTest).findPooledJob(any(), any(), any(), any());
     when(PrefixGeneratorUtility.generateTimePrefixes(
         any(), any(), (ZonedDateTime) notNull())).thenReturn(new ArrayList<>());
+    doReturn(transferJob).when(objectUnderTest).findPooledJob(any(), any(), any(), any());
+    doNothing().when(objectUnderTest).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
 
 
     List<RetentionJob> datasetRuleJobs = objectUnderTest.executeDatasetRule(datasetRules, projectId);
 
     verify(objectUnderTest, never()).findPooledJob(any(), any(),any(),any());
+    verify(objectUnderTest, never()).sendInactiveDatasetNotification(
+        any(), any(), any(), any(), any());
     assertEquals(1, datasetRuleJobs.size());
     //jobname is null will be used to mark error job
     assertEquals(null, datasetRuleJobs.get(0).getName());
