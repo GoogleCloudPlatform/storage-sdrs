@@ -200,26 +200,33 @@ public class StsRuleExecutor implements RuleExecutor {
 
         RetentionValue retentionValue = RetentionValue.parse(datasetRule.getRetentionValue());
         String datasetPath = RetentionUtil.getDatasetPath(datasetRule.getDataStorageName());
-        List<String> tmpPrefixes = null;
+        List<String> tmpPrefixes = new ArrayList<>();
 
-        if (retentionValue.getUnitType() == RetentionUnitType.VERSION) {
-          String prefix = RetentionUtil.generateValidPrefixForListingObjects(datasetPath);
-          List<String> objectsPath = GcsHelper.getInstance().listObjectsWithPrefixInBucket(
-              bucketName, prefix);
-          tmpPrefixes = PrefixGeneratorUtility.generateVersionPrefix(objectsPath,
-              retentionValue.getNumber());
-        } else {
-          tmpPrefixes = PrefixGeneratorUtility.generateTimePrefixes(datasetPath,
-              zonedDateTimeNow.minusDays(StsUtil.STS_LOOKBACK_DAYS),
-              zonedDateTimeNow.minusDays(
-                  RetentionValue.convertValue(retentionValue)));
+        try {
+          if (retentionValue.getUnitType() == RetentionUnitType.VERSION) {
+            String prefix = RetentionUtil.generateValidPrefixForListingObjects(datasetPath);
+            List<String> objectsPath = GcsHelper.getInstance().listObjectsWithPrefixInBucket(
+                bucketName, prefix);
+            tmpPrefixes = PrefixGeneratorUtility.generateVersionPrefix(objectsPath,
+                retentionValue.getNumber());
+          } else {
+            tmpPrefixes = PrefixGeneratorUtility.generateTimePrefixes(datasetPath,
+                zonedDateTimeNow.minusDays(StsUtil.STS_LOOKBACK_DAYS),
+                zonedDateTimeNow.minusDays(
+                    RetentionValue.convertValue(retentionValue)));
+          }
+        } catch (IllegalArgumentException e) {
+          logger.error(
+              String.format(
+                  "Failed to generate prefix for dataset %s. %s", datasetPath, e.getMessage()), e);
         }
         prefixesPerDatasetMap.put(datasetRule.getDataStorageName(), tmpPrefixes);
         prefixes.addAll(tmpPrefixes);
       }
-
-      sendInactiveDatasetNotification(
-          projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
+      if (!prefixes.isEmpty()) {
+        sendInactiveDatasetNotification(
+            projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
+      }
 
       String sourceBucket = bucketName;
       String destinationBucket = StsUtil.buildDestinationBucketName(bucketName);
@@ -237,28 +244,32 @@ public class StsRuleExecutor implements RuleExecutor {
 
       TransferJob job = null;
       try {
-        TransferJob stsPooledJob =
-            findPooledJob(projectId, bucketName, scheduleTimeOfDay, RetentionRuleType.DATASET);
-        if (stsPooledJob == null) {
-          if (!StsUtil.IS_STS_JOBPOOL_ONLY) {
-            job =
-                StsUtil.createStsJob(
-                    client,
-                    projectId,
-                    sourceBucket,
-                    destinationBucket,
-                    prefixes,
-                    description,
-                    zonedDateTimeNow);
+        if (prefixes.size() != 0) {
+          TransferJob stsPooledJob =
+              findPooledJob(projectId, bucketName, scheduleTimeOfDay, RetentionRuleType.DATASET);
+          if (stsPooledJob == null) {
+            if (!StsUtil.IS_STS_JOBPOOL_ONLY) {
+              job =
+                  StsUtil.createStsJob(
+                      client,
+                      projectId,
+                      sourceBucket,
+                      destinationBucket,
+                      prefixes,
+                      description,
+                      zonedDateTimeNow);
+            }
+          } else {
+            TransferJob jobToUpdate = new TransferJob();
+            jobToUpdate
+                .setDescription(description)
+                .setTransferSpec(
+                    StsUtil.buildTransferSpec(sourceBucket, destinationBucket, prefixes, false, null))
+                .setStatus(StsUtil.STS_ENABLED_STRING);
+            job = StsUtil.updateExistingJob(client, jobToUpdate, stsPooledJob.getName(), projectId);
           }
         } else {
-          TransferJob jobToUpdate = new TransferJob();
-          jobToUpdate
-              .setDescription(description)
-              .setTransferSpec(
-                  StsUtil.buildTransferSpec(sourceBucket, destinationBucket, prefixes, false, null))
-              .setStatus(StsUtil.STS_ENABLED_STRING);
-          job = StsUtil.updateExistingJob(client, jobToUpdate, stsPooledJob.getName(), projectId);
+          logger.error(String.format("There is not prefix generated for bucket %s", bucketName));
         }
       } catch (IOException e) {
         logger.error(
@@ -844,7 +855,7 @@ public class StsRuleExecutor implements RuleExecutor {
         StsUtil.timeOfDayToString(pooledJob.getSchedule().getStartTimeOfDay()));
   }
 
-  private void sendInactiveDatasetNotification(
+  public void sendInactiveDatasetNotification(
       String projectId,
       String bucket,
       List<String> prefixList,
