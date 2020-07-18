@@ -28,6 +28,23 @@ public interface PooledStsJobDao extends Dao<PooledStsJob, Integer> {
 
   PooledStsJob findPooledStsJobByNameAndProject(String name, String projectId);
 
-  PooledStsJob getJob(String bucketName, String projectId, String scheduleTimeOfDay, String type);
+  /**
+   * Query job list based on bucketName, projectId and type first, then filter results by
+   * scheduleTimeOfDay before return.
+   * 1. If query result is null or empty, return empty list.
+   * 2. scheduleTimeOfDay == null return all query results.
+   * 3. If scheduleTimeOfDay >= lastJob of the day, return all jobs with share
+   *    the latest schedule time.
+   * 4. Find out the next schedule time after scheduleTimeOfDay params, return all
+   *    jobs that share the the next schedule time.
+   *
+   * @param bucketName
+   * @param projectId
+   * @param scheduleTimeOfDay
+   * @param type
+   * @return
+   */
+  List<PooledStsJob> getJobList(
+          String bucketName, String projectId, String scheduleTimeOfDay, String type);
 
 }

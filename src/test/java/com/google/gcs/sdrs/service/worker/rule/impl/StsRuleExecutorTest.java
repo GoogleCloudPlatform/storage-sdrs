@@ -108,17 +108,21 @@ public class StsRuleExecutorTest {
     datasetRules.add(testRule);
 
     TransferJob transferJob = createBasicTransferJob();
+    List<TransferJob> transferJobList = new ArrayList<>();
+    transferJobList.add(transferJob);
 
     when(PrefixGeneratorUtility.generateTimePrefixes(
         any(), any(), (ZonedDateTime) notNull())).thenCallRealMethod();
-    doReturn(transferJob).when(objectUnderTest).findPooledJob(any(), any(), any(), any());
+    doReturn(transferJobList).when(objectUnderTest).findPooledJobs(
+            any(), any(), any(), any(), anyInt());
     doNothing().when(objectUnderTest).sendInactiveDatasetNotification(
         any(), any(), any(), any(), any());
     when(StsUtil.updateExistingJob(any(), any(), any(), any())).thenReturn(transferJob);
 
     List<RetentionJob> datasetRuleJobs = objectUnderTest.executeDatasetRule(datasetRules, projectId);
 
-    verify(objectUnderTest, times(1)).findPooledJob(any(), any(),any(),any());
+    verify(objectUnderTest, times(1)).findPooledJobs(
+            any(), any(),any(),any(), anyInt());
     verify(objectUnderTest, times(1)).sendInactiveDatasetNotification(
         any(), any(), any(), any(), any());
     assertEquals(1, datasetRuleJobs.size());
@@ -152,17 +156,20 @@ public class StsRuleExecutorTest {
     datasetRules.add(testRule);
 
     TransferJob transferJob = createBasicTransferJob();
+    List<TransferJob> transferJobList = new ArrayList<>();
+    transferJobList.add(transferJob);
 
     when(PrefixGeneratorUtility.generateTimePrefixes(
         any(), any(), (ZonedDateTime) notNull())).thenReturn(new ArrayList<>());
-    doReturn(transferJob).when(objectUnderTest).findPooledJob(any(), any(), any(), any());
+    doReturn(transferJobList).when(objectUnderTest).findPooledJobs(
+            any(), any(), any(), any(), anyInt());
     doNothing().when(objectUnderTest).sendInactiveDatasetNotification(
         any(), any(), any(), any(), any());
 
 
     List<RetentionJob> datasetRuleJobs = objectUnderTest.executeDatasetRule(datasetRules, projectId);
 
-    verify(objectUnderTest, never()).findPooledJob(any(), any(),any(),any());
+    verify(objectUnderTest, never()).findPooledJobs(any(), any(),any(),any(), anyInt());
     verify(objectUnderTest, never()).sendInactiveDatasetNotification(
         any(), any(), any(), any(), any());
     assertEquals(1, datasetRuleJobs.size());

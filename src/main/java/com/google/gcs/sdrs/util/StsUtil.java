@@ -89,6 +89,8 @@ public class StsUtil {
   public static final boolean IS_STS_JOBPOOL_ONLY =
       Boolean.valueOf(SdrsApplication.getAppConfigProperty("sts.jobPoolOnly", "true"));
 
+  public static final String SCHEDULE_TIME_DATE_TIME_FORMATTER = "HH:mm:ss";
+
   private static final Logger logger = LoggerFactory.getLogger(StsUtil.class);
 
   /** Creates an instance of the STS Client */
