@@ -38,6 +38,7 @@ import com.google.api.services.storagetransfer.v1.model.TransferOptions;
 import com.google.api.services.storagetransfer.v1.model.TransferSpec;
 import com.google.api.services.storagetransfer.v1.model.UpdateTransferJobRequest;
 import com.google.gcs.sdrs.SdrsApplication;
+import com.google.gcs.sdrs.common.RetentionRuleType;
 import com.google.gcs.sdrs.dao.model.RetentionJob;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -450,5 +451,13 @@ public class StsUtil {
   public static String buildDestinationBucketName(String sourceBucketName) {
     return buildDestinationBucketName(
         sourceBucketName, SHADOW_BUCKET_EXTENTION, IS_SHADOW_BUCKET_EXTENTION_PREFIX);
+  }
+
+  public static boolean isJobPoolOndemandCreation(RetentionRuleType retentionRuleType) {
+    return SdrsApplication.getAppConfigProperty(
+            "sts.jobPoolOnDemand." + retentionRuleType.toString().toLowerCase())
+                    != null
+                    ? true
+                    : false;
   }
 }

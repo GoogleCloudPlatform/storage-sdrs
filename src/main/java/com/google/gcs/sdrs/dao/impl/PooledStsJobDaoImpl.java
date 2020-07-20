@@ -63,8 +63,8 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
   }
 
   @Override
-  public List<PooledStsJob> getJobList(
-      String sourceBucket, String sourceProjectId, String scheduleTimeOfDay, String type) {
+  public List<PooledStsJob> getOrderedPooledStsJobsByBucketAndType(
+      String sourceBucket, String sourceProjectId, String type) {
     Session session = openSession();
     CriteriaBuilder builder = session.getCriteriaBuilder();
     CriteriaQuery<PooledStsJob> query = builder.createQuery(PooledStsJob.class);
@@ -82,28 +82,7 @@ public class PooledStsJobDaoImpl extends GenericDao<PooledStsJob, Integer>
 
     List<PooledStsJob> result = session.createQuery(query).getResultList();
     closeSession(session);
-    List<PooledStsJob> pooledStsJobList = new ArrayList<>();
-    if (result == null || result.isEmpty()) {
-      return pooledStsJobList;
-    }
-
-    String chosenScheduleTime = null;
-    if (result.get(result.size() - 1).getSchedule().compareTo(scheduleTimeOfDay) <= 0) {
-      chosenScheduleTime = result.get(0).getSchedule();
-    } else {
-      for (int i = 0; i < result.size(); i++) {
-        if (result.get(i).getSchedule().compareTo(scheduleTimeOfDay) > 0) {
-          chosenScheduleTime = result.get(i).getSchedule();
-          break;
-        }
-      }
-    }
-    for (PooledStsJob job : result) {
-      if (job.getSchedule().equals(chosenScheduleTime)) {
-        pooledStsJobList.add(job);
-      }
-    }
-    return pooledStsJobList;
+    return result;
   }
 
   @Override
