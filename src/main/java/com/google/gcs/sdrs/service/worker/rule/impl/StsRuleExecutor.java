@@ -832,11 +832,16 @@ public class StsRuleExecutor implements RuleExecutor {
   }
 
   @VisibleForTesting
-  public static TimeOfDay findNextScheduleTimeOfDay(String timeStr, RetentionRuleType retentionRuleType) {
+  public static TimeOfDay findNextScheduleTimeOfDay(
+          @Nullable String timeStr,
+          RetentionRuleType retentionRuleType) {
     // timeOfDayList is ordered.
     List<TimeOfDay> timeOfDayList = generateScheduleTimeOfDay(retentionRuleType);
     Preconditions.checkArgument(timeOfDayList.size() > 0,
             retentionRuleType.toString() + " got 0 schedule time based on config!");
+    if (timeStr == null) {
+      return timeOfDayList.get(0);
+    }
     LocalTime localTime =
                     LocalTime.parse(timeStr, DateTimeFormatter.ofPattern(
                             SCHEDULE_TIME_DATE_TIME_FORMATTER));
@@ -847,8 +852,7 @@ public class StsRuleExecutor implements RuleExecutor {
         return timeOfDay;
       }
     }
-    int size = timeOfDayList.size();
-    return timeOfDayList.get(size - 1);
+    return timeOfDayList.get(0);
   }
 
   private List<TransferJob> createJobPool(
@@ -1083,6 +1087,7 @@ public class StsRuleExecutor implements RuleExecutor {
       String jobName,
       String projectId,
       String bucketName,
+      @Nullable
       String scheduledAt) {
     if (pooledJob == null) {
       return false;
