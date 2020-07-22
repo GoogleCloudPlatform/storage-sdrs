@@ -243,7 +243,7 @@ public class StsRuleExecutor implements RuleExecutor {
                       "Failed to find pooled jobs while executeDatasetRuleInBucket" +
                               " for project:%s bucket:%s", projectId, bucketName), ex);
     }
-    return pooledJobList;
+    return pooledJobList == null ? new ArrayList<>() : pooledJobList;
   }
 
   @VisibleForTesting
@@ -281,7 +281,9 @@ public class StsRuleExecutor implements RuleExecutor {
   private List<RetentionJob> divideAndExecutePrefixes(
           String projectId, String bucketName,
           Map<RetentionRule, List<String>> prefixesPerDatasetMap,
-          List<TransferJob> pooledJobList, ZonedDateTime zonedDateTimeNow,
+          @Nullable
+          List<TransferJob> pooledJobList,
+          ZonedDateTime zonedDateTimeNow,
           int perStsJobPrefixLimit) {
     Preconditions.checkArgument(perStsJobPrefixLimit > 0,
             "sts.maxPrefixCount should > 0, configured " + perStsJobPrefixLimit);
@@ -289,6 +291,7 @@ public class StsRuleExecutor implements RuleExecutor {
     List<RetentionRule> retentionRuleToProcess = new ArrayList<>();
     List<RetentionJob> retentionJobList = new ArrayList<>();
 
+    pooledJobList = pooledJobList == null ? new ArrayList<>() : pooledJobList;
     Iterator<TransferJob> pooledJobIter = pooledJobList.iterator();
     for (RetentionRule retentionRule : prefixesPerDatasetMap.keySet()) {
       List<String> tmpPrefixes = prefixesPerDatasetMap.get(retentionRule);
@@ -904,9 +907,9 @@ public class StsRuleExecutor implements RuleExecutor {
   }
 
   private List<PooledStsJob> saveJobPool(
-      List<TransferJob> transferJobList, String currentTime, RetentionRuleType retentionRuleType) {
+      List<TransferJob> transferJobList, RetentionRuleType retentionRuleType) {
     List<PooledStsJob> pooledStsJobList = new ArrayList<>();
-    if (transferJobList != null && !transferJobList.isEmpty()) {
+    if (transferJobList == null && transferJobList.isEmpty()) {
       return pooledStsJobList;
     }
       // the list is sorted by timeOfDay in asc order
@@ -985,6 +988,8 @@ public class StsRuleExecutor implements RuleExecutor {
     boolean isOnDemandPoolCreation = StsUtil.isJobPoolOndemandCreation(retentionRuleType);
     pooledJobList = pooledJobList == null ? new ArrayList<>() : pooledJobList;
     if (isOnDemandPoolCreation && (pooledJobList.size() < expectJobSize)) {
+      logger.info(String.format("Bucket %s needs %d job(s) but found % pooled job(s) at %s.",
+              bucketName, expectJobSize, pooledJobList.size(), scheduledAt));
       // create STS job pool
       String destinationBucket = StsUtil.buildDestinationBucketName(bucketName);
       TimeOfDay targetStartTimeOfDay = findNextScheduleTimeOfDay(scheduledAt, retentionRuleType);
@@ -1002,7 +1007,7 @@ public class StsRuleExecutor implements RuleExecutor {
                       retentionRuleType, targetStartTimeOfDay, jobCntToCreate);
       if (transferJobList != null) {
         pooledJobList.addAll(
-                saveJobPool(transferJobList, scheduledAt, retentionRuleType));
+                saveJobPool(transferJobList, retentionRuleType));
       }
     }
     // Keep behavior consistent with old logic.
@@ -1045,14 +1050,17 @@ public class StsRuleExecutor implements RuleExecutor {
    */
   @VisibleForTesting
   List<PooledStsJob> chooseTransferJobs(
-          List<PooledStsJob> jobsOrderByScheduleTime, String scheduleTimeOfDay) {
+          List<PooledStsJob> jobsOrderByScheduleTime, @Nullable String scheduleTimeOfDay) {
     List<PooledStsJob> chosenJobList = new ArrayList<>();
     if (jobsOrderByScheduleTime == null || jobsOrderByScheduleTime.isEmpty()) {
       return chosenJobList;
     }
 
     String chosenScheduleTime = null;
-    if (jobsOrderByScheduleTime.get(jobsOrderByScheduleTime.size() - 1).getSchedule().compareTo(scheduleTimeOfDay) <= 0) {
+    if (scheduleTimeOfDay == null
+            || jobsOrderByScheduleTime.get(
+                    jobsOrderByScheduleTime.size() - 1).getSchedule().compareTo(
+                            scheduleTimeOfDay) <= 0) {
       chosenScheduleTime = jobsOrderByScheduleTime.get(0).getSchedule();
     } else {
       for (int i = 0; i < jobsOrderByScheduleTime.size(); i++) {

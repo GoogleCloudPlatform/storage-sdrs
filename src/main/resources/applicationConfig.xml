@@ -43,6 +43,7 @@
     <jobPoolOnly>true</jobPoolOnly>
     <jobPoolOnDemand>
       <user>24</user>
+      <dataset>4</dataset>
     </jobPoolOnDemand>
     <defaultProjectId>global-default</defaultProjectId>
     <defaultStorageName>gs://global</defaultStorageName>
