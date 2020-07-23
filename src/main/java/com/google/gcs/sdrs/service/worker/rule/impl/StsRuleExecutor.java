@@ -992,7 +992,7 @@ public class StsRuleExecutor implements RuleExecutor {
     boolean isOnDemandPoolCreation = StsUtil.isJobPoolOndemandCreation(retentionRuleType);
     pooledJobList = pooledJobList == null ? new ArrayList<>() : pooledJobList;
     if (isOnDemandPoolCreation && (pooledJobList.size() < expectJobSize)) {
-      logger.info(String.format("Bucket %s needs %d job(s) but found % pooled job(s) at %s.",
+      logger.info(String.format("Bucket %s needs %d job(s) but found %d pooled job(s) at %s.",
               bucketName, expectJobSize, pooledJobList.size(), scheduledAt));
       // create STS job pool
       String destinationBucket = StsUtil.buildDestinationBucketName(bucketName);
