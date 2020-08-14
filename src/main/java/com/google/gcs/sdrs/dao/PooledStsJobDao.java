@@ -28,6 +28,6 @@ public interface PooledStsJobDao extends Dao<PooledStsJob, Integer> {
 
   PooledStsJob findPooledStsJobByNameAndProject(String name, String projectId);
 
-  PooledStsJob getJob(String bucketName, String projectId, String scheduleTimeOfDay, String type);
-
+  List<PooledStsJob> getOrderedPooledStsJobsByBucketAndType(
+      String bucketName, String projectId, String type);
 }
