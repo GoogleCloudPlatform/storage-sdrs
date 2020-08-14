@@ -189,7 +189,8 @@ public class StsRuleExecutor implements RuleExecutor {
     Map<String, List<RetentionRule>> bucketDatasetMap = buildBucketRuleMap(datasetRules);
     ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(Clock.systemUTC());
     for (String bucketName : bucketDatasetMap.keySet()) {
-      List<RetentionJob> retentionJobList = executeDatasetRuleInBucket(
+      List<RetentionJob> retentionJobList =
+          executeDatasetRuleInBucket(
               projectId, bucketName, bucketDatasetMap.get(bucketName), zonedDateTimeNow);
       if (retentionJobList != null && !retentionJobList.isEmpty()) {
         datasetRuleJobs.addAll(retentionJobList);
@@ -200,57 +201,73 @@ public class StsRuleExecutor implements RuleExecutor {
 
   @VisibleForTesting
   List<RetentionJob> executeDatasetRuleInBucket(
-          String projectId, String bucketName,
-          List<RetentionRule> retentionRulesList, ZonedDateTime zonedDateTimeNow) {
+      String projectId,
+      String bucketName,
+      List<RetentionRule> retentionRulesList,
+      ZonedDateTime zonedDateTimeNow) {
     // Get prefixes list.
     Map<RetentionRule, List<String>> prefixesPerDatasetMap =
-            buildPrefixesForBucket(bucketName, retentionRulesList, zonedDateTimeNow);
+        buildPrefixesForBucket(bucketName, retentionRulesList, zonedDateTimeNow);
 
-    int perStsJobPrefixLimit = Integer.parseInt(
-            SdrsApplication.getAppConfigProperty("sts.maxPrefixCount"));
-    List<TransferJob> pooledJobList = calcAndLoadPooledJobs(
+    int perStsJobPrefixLimit =
+        Integer.parseInt(SdrsApplication.getAppConfigProperty("sts.maxPrefixCount"));
+    List<TransferJob> pooledJobList =
+        calcAndLoadPooledJobs(
             projectId, bucketName, prefixesPerDatasetMap, zonedDateTimeNow, perStsJobPrefixLimit);
     // Do the sharding as one sts job could only have 1000 prefix limit. Will try to
     // fix the first jobs instead of evenly distribute the job to reduce jobs numbers now.
     return divideAndExecutePrefixes(
-            projectId, bucketName, prefixesPerDatasetMap,
-            pooledJobList, zonedDateTimeNow, perStsJobPrefixLimit);
+        projectId,
+        bucketName,
+        prefixesPerDatasetMap,
+        pooledJobList,
+        zonedDateTimeNow,
+        perStsJobPrefixLimit);
   }
 
   private List<TransferJob> calcAndLoadPooledJobs(
-          String projectId, String bucketName,
-          Map<RetentionRule, List<String>> prefixesPerDatasetMap,
-          ZonedDateTime zonedDateTimeNow, int perStsJobPrefixLimit) {
+      String projectId,
+      String bucketName,
+      Map<RetentionRule, List<String>> prefixesPerDatasetMap,
+      ZonedDateTime zonedDateTimeNow,
+      int perStsJobPrefixLimit) {
     List<TransferJob> pooledJobList = new ArrayList<>();
     List<String> totalPrefixes = new ArrayList<>();
     prefixesPerDatasetMap.forEach(
-            (key, value) -> { totalPrefixes.addAll(value); });
+        (key, value) -> {
+          totalPrefixes.addAll(value);
+        });
     if (totalPrefixes.isEmpty()) {
       return new ArrayList<>();
     }
 
-    String scheduleTimeOfDay = zonedDateTimeNow.format(
-            DateTimeFormatter.ofPattern(SCHEDULE_TIME_DATE_TIME_FORMATTER));
-    Preconditions.checkArgument(perStsJobPrefixLimit > 0,
-            "sts.maxPrefixCount should > 0, configured " + perStsJobPrefixLimit);
+    String scheduleTimeOfDay =
+        zonedDateTimeNow.format(DateTimeFormatter.ofPattern(SCHEDULE_TIME_DATE_TIME_FORMATTER));
+    Preconditions.checkArgument(
+        perStsJobPrefixLimit > 0,
+        "sts.maxPrefixCount should > 0, configured " + perStsJobPrefixLimit);
     try {
       int expectJobSize = calcStsJobsNeeded(prefixesPerDatasetMap, perStsJobPrefixLimit);
-      pooledJobList = findPooledJobs(
+      pooledJobList =
+          findPooledJobs(
               projectId, bucketName, scheduleTimeOfDay, RetentionRuleType.DATASET, expectJobSize);
     } catch (IOException ex) {
       logger.error(
-              String.format(
-                      "Failed to find pooled jobs while executeDatasetRuleInBucket" +
-                              " for project:%s bucket:%s", projectId, bucketName), ex);
+          String.format(
+              "Failed to find pooled jobs while executeDatasetRuleInBucket"
+                  + " for project:%s bucket:%s",
+              projectId, bucketName),
+          ex);
     }
     return pooledJobList == null ? new ArrayList<>() : pooledJobList;
   }
 
   @VisibleForTesting
   int calcStsJobsNeeded(
-          Map<RetentionRule, List<String>> prefixesPerDatasetMap, int perStsJobPrefixLimit) {
-    Preconditions.checkArgument(perStsJobPrefixLimit > 0,
-            "sts.maxPrefixCount should > 0, configured " + perStsJobPrefixLimit);
+      Map<RetentionRule, List<String>> prefixesPerDatasetMap, int perStsJobPrefixLimit) {
+    Preconditions.checkArgument(
+        perStsJobPrefixLimit > 0,
+        "sts.maxPrefixCount should > 0, configured " + perStsJobPrefixLimit);
     Preconditions.checkNotNull(prefixesPerDatasetMap);
     // Now keep one rule in one STS job and assume one job wouldn't have more prefixes than
     // perStsJobPrefixLimit
@@ -261,8 +278,8 @@ public class StsRuleExecutor implements RuleExecutor {
       List<String> tmpPrefixes = prefixesPerDatasetMap.get(retentionRule);
       if (tmpPrefixes.size() > perStsJobPrefixLimit) {
         logger.warn(
-                "%s got %d prefixes that is more than STS job %d limit! The STS job might fail!",
-                retentionRule.getDataStorageName(), tmpPrefixes.size(), perStsJobPrefixLimit);
+            "%s got %d prefixes that is more than STS job %d limit! The STS job might fail!",
+            retentionRule.getDataStorageName(), tmpPrefixes.size(), perStsJobPrefixLimit);
       }
       if (prefixesToProcess.size() + tmpPrefixes.size() > perStsJobPrefixLimit) {
         ++jobNumNeeded;
@@ -279,14 +296,15 @@ public class StsRuleExecutor implements RuleExecutor {
   }
 
   private List<RetentionJob> divideAndExecutePrefixes(
-          String projectId, String bucketName,
-          Map<RetentionRule, List<String>> prefixesPerDatasetMap,
-          @Nullable
-          List<TransferJob> pooledJobList,
-          ZonedDateTime zonedDateTimeNow,
-          int perStsJobPrefixLimit) {
-    Preconditions.checkArgument(perStsJobPrefixLimit > 0,
-            "sts.maxPrefixCount should > 0, configured " + perStsJobPrefixLimit);
+      String projectId,
+      String bucketName,
+      Map<RetentionRule, List<String>> prefixesPerDatasetMap,
+      @Nullable List<TransferJob> pooledJobList,
+      ZonedDateTime zonedDateTimeNow,
+      int perStsJobPrefixLimit) {
+    Preconditions.checkArgument(
+        perStsJobPrefixLimit > 0,
+        "sts.maxPrefixCount should > 0, configured " + perStsJobPrefixLimit);
     List<String> prefixesToProcess = new ArrayList<>();
     List<RetentionRule> retentionRuleToProcess = new ArrayList<>();
     List<RetentionJob> retentionJobList = new ArrayList<>();
@@ -297,13 +315,18 @@ public class StsRuleExecutor implements RuleExecutor {
       List<String> tmpPrefixes = prefixesPerDatasetMap.get(retentionRule);
       if (prefixesToProcess.size() + tmpPrefixes.size() > perStsJobPrefixLimit) {
         TransferJob pooledJob = pooledJobIter.hasNext() ? pooledJobIter.next() : null;
-        TransferJob job = processPrefixes(
-                projectId, bucketName, retentionRuleToProcess,
-                prefixesToProcess, zonedDateTimeNow, pooledJob,
+        TransferJob job =
+            processPrefixes(
+                projectId,
+                bucketName,
+                retentionRuleToProcess,
+                prefixesToProcess,
+                zonedDateTimeNow,
+                pooledJob,
                 StsUtil.IS_STS_JOBPOOL_ONLY);
         retentionJobList.addAll(
-                buildRetentionEntityFromTransferJob(
-                        retentionRuleToProcess, prefixesPerDatasetMap, job));
+            buildRetentionEntityFromTransferJob(
+                retentionRuleToProcess, prefixesPerDatasetMap, job));
         retentionRuleToProcess.clear();
         prefixesToProcess.clear();
       }
@@ -312,33 +335,37 @@ public class StsRuleExecutor implements RuleExecutor {
     }
     if (retentionRuleToProcess.size() > 0) {
       TransferJob pooledJob = pooledJobIter.hasNext() ? pooledJobIter.next() : null;
-      TransferJob job = processPrefixes(
-              projectId, bucketName, retentionRuleToProcess,
-              prefixesToProcess, zonedDateTimeNow, pooledJob,
+      TransferJob job =
+          processPrefixes(
+              projectId,
+              bucketName,
+              retentionRuleToProcess,
+              prefixesToProcess,
+              zonedDateTimeNow,
+              pooledJob,
               StsUtil.IS_STS_JOBPOOL_ONLY);
       retentionJobList.addAll(
-              buildRetentionEntityFromTransferJob(
-                      retentionRuleToProcess, prefixesPerDatasetMap, job));
+          buildRetentionEntityFromTransferJob(retentionRuleToProcess, prefixesPerDatasetMap, job));
     }
     return retentionJobList;
   }
 
   private List<RetentionJob> buildRetentionEntityFromTransferJob(
-          List<RetentionRule> retentionRulesList,
-          Map<RetentionRule, List<String>> retentionRulePrefixMap,
-          @Nullable
-          TransferJob transferJob) {
-    String jobName = transferJob == null ? null: transferJob.getName();
-    Timestamp createdAt = transferJob == null ?
-            null: new Timestamp(
-                    Instant.parse(transferJob.getLastModificationTime()).toEpochMilli());
+      List<RetentionRule> retentionRulesList,
+      Map<RetentionRule, List<String>> retentionRulePrefixMap,
+      @Nullable TransferJob transferJob) {
+    String jobName = transferJob == null ? null : transferJob.getName();
+    Timestamp createdAt =
+        transferJob == null
+            ? null
+            : new Timestamp(Instant.parse(transferJob.getLastModificationTime()).toEpochMilli());
     List<RetentionJob> retentionJobList = new ArrayList<>();
     for (RetentionRule retentionRule : retentionRulesList) {
-      RetentionJob retentionJob = buildRetentionJobEntity(
+      RetentionJob retentionJob =
+          buildRetentionJobEntity(
               jobName,
               retentionRule,
-              StsUtil.convertPrefixToString(
-                      retentionRulePrefixMap.get(retentionRule)),
+              StsUtil.convertPrefixToString(retentionRulePrefixMap.get(retentionRule)),
               createdAt);
       retentionJobList.add(retentionJob);
     }
@@ -347,84 +374,81 @@ public class StsRuleExecutor implements RuleExecutor {
 
   @VisibleForTesting
   TransferJob processPrefixes(
-          String projectId, String bucketName,
-          List<RetentionRule> retentionRulesList,
-          List<String> prefixes, ZonedDateTime zonedDateTimeNow,
-          @Nullable
-          TransferJob stsPooledJob, boolean isPooledJobOnly) {
+      String projectId,
+      String bucketName,
+      List<RetentionRule> retentionRulesList,
+      List<String> prefixes,
+      ZonedDateTime zonedDateTimeNow,
+      @Nullable TransferJob stsPooledJob,
+      boolean isPooledJobOnly) {
     if (prefixes.isEmpty()) {
       logger.warn(String.format("There is not prefix generated for bucket %s", bucketName));
       return null;
     }
     String correlationId = getCorrelationId();
     sendInactiveDatasetNotification(
-            projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
+        projectId, bucketName, prefixes, zonedDateTimeNow.toInstant(), correlationId);
 
-    String scheduleTimeOfDay = zonedDateTimeNow.format(
-            DateTimeFormatter.ofPattern(SCHEDULE_TIME_DATE_TIME_FORMATTER));
+    String scheduleTimeOfDay =
+        zonedDateTimeNow.format(DateTimeFormatter.ofPattern(SCHEDULE_TIME_DATE_TIME_FORMATTER));
     String description =
-            buildDescription(
-                    RetentionRuleType.DATASET.toString(),
-                    retentionRulesList,
-                    scheduleTimeOfDay);
+        buildDescription(
+            RetentionRuleType.DATASET.toString(), retentionRulesList, scheduleTimeOfDay);
 
     String destinationBucket = StsUtil.buildDestinationBucketName(bucketName);
     logger.info(
-            String.format(
-                    "Scheduling dataset STS job with projectId: %s, "
-                            + "description: %s, source: %s, destination: %s",
-                    projectId, description, bucketName, destinationBucket));
-
+        String.format(
+            "Scheduling dataset STS job with projectId: %s, "
+                + "description: %s, source: %s, destination: %s",
+            projectId, description, bucketName, destinationBucket));
 
     TransferJob job = null;
     try {
       if (stsPooledJob == null) {
         if (!isPooledJobOnly) {
           job =
-                  StsUtil.createStsJob(
-                          client,
-                          projectId,
-                          bucketName,
-                          destinationBucket,
-                          prefixes,
-                          description,
-                          zonedDateTimeNow);
+              StsUtil.createStsJob(
+                  client,
+                  projectId,
+                  bucketName,
+                  destinationBucket,
+                  prefixes,
+                  description,
+                  zonedDateTimeNow);
         }
       } else {
         TransferJob jobToUpdate = new TransferJob();
         jobToUpdate
-                .setDescription(description)
-                .setTransferSpec(
-                        StsUtil.buildTransferSpec(bucketName, destinationBucket, prefixes, false, null))
-                .setStatus(StsUtil.STS_ENABLED_STRING);
+            .setDescription(description)
+            .setTransferSpec(
+                StsUtil.buildTransferSpec(bucketName, destinationBucket, prefixes, false, null))
+            .setStatus(StsUtil.STS_ENABLED_STRING);
         job = StsUtil.updateExistingJob(client, jobToUpdate, stsPooledJob.getName(), projectId);
       }
     } catch (IOException e) {
       logger.error(
-              String.format(
-                      "Failed to schedule dataset STS job for %s/%s. %s",
-                      projectId, bucketName, e.getMessage()),
-              e);
+          String.format(
+              "Failed to schedule dataset STS job for %s/%s. %s",
+              projectId, bucketName, e.getMessage()),
+          e);
     }
     return job;
   }
 
   @VisibleForTesting
   Map<RetentionRule, List<String>> buildPrefixesForBucket(
-          String bucketName,
-          List<RetentionRule> retentionRulesList,
-          ZonedDateTime zonedDateTimeNow) {
+      String bucketName, List<RetentionRule> retentionRulesList, ZonedDateTime zonedDateTimeNow) {
     Map<RetentionRule, List<String>> prefixesPerDatasetMap = new HashMap<>();
     for (RetentionRule datasetRetentionRule : retentionRulesList) {
-      List<String> tmpPrefixes = buildPrefixesForDataset(
-              bucketName, datasetRetentionRule, zonedDateTimeNow);
+      List<String> tmpPrefixes =
+          buildPrefixesForDataset(bucketName, datasetRetentionRule, zonedDateTimeNow);
       prefixesPerDatasetMap.put(datasetRetentionRule, tmpPrefixes);
     }
     return prefixesPerDatasetMap;
   }
 
   private List<String> buildPrefixesForDataset(
-          String bucketName, RetentionRule datasetRule, ZonedDateTime zonedDateTimeNow) {
+      String bucketName, RetentionRule datasetRule, ZonedDateTime zonedDateTimeNow) {
     List<String> prefixes = new ArrayList<>();
     if (datasetRule.getType() != RetentionRuleType.DATASET) {
       logger.warn("Rule type is not dataset.");
@@ -436,20 +460,22 @@ public class StsRuleExecutor implements RuleExecutor {
     try {
       if (retentionValue.getUnitType() == RetentionUnitType.VERSION) {
         String prefix = RetentionUtil.generateValidPrefixForListingObjects(datasetPath);
-        List<String> objectsPath = GcsHelper.getInstance().listObjectsWithPrefixInBucket(
-                bucketName, prefix);
-        prefixes = PrefixGeneratorUtility.generateVersionPrefix(objectsPath,
-                retentionValue.getNumber());
+        List<String> objectsPath =
+            GcsHelper.getInstance().listObjectsWithPrefixInBucket(bucketName, prefix);
+        prefixes =
+            PrefixGeneratorUtility.generateVersionPrefix(objectsPath, retentionValue.getNumber());
       } else {
-        prefixes = PrefixGeneratorUtility.generateTimePrefixes(datasetPath,
+        prefixes =
+            PrefixGeneratorUtility.generateTimePrefixes(
+                datasetPath,
                 zonedDateTimeNow.minusDays(StsUtil.STS_LOOKBACK_DAYS),
-                zonedDateTimeNow.minusDays(
-                        RetentionValue.convertValue(retentionValue)));
+                zonedDateTimeNow.minusDays(RetentionValue.convertValue(retentionValue)));
       }
     } catch (IllegalArgumentException e) {
       logger.error(
-              String.format(
-                      "Failed to generate prefix for dataset %s. %s", datasetPath, e.getMessage()), e);
+          String.format(
+              "Failed to generate prefix for dataset %s. %s", datasetPath, e.getMessage()),
+          e);
     }
     return prefixes;
   }
@@ -833,18 +859,17 @@ public class StsRuleExecutor implements RuleExecutor {
 
   @VisibleForTesting
   public static TimeOfDay findNextScheduleTimeOfDay(
-          @Nullable String timeStr,
-          RetentionRuleType retentionRuleType) {
+      @Nullable String timeStr, RetentionRuleType retentionRuleType) {
     // timeOfDayList is ordered.
     List<TimeOfDay> timeOfDayList = generateScheduleTimeOfDay(retentionRuleType);
-    Preconditions.checkArgument(timeOfDayList.size() > 0,
-            retentionRuleType.toString() + " got 0 schedule time based on config!");
+    Preconditions.checkArgument(
+        timeOfDayList.size() > 0,
+        retentionRuleType.toString() + " got 0 schedule time based on config!");
     if (timeStr == null) {
       return timeOfDayList.get(0);
     }
     LocalTime localTime =
-                    LocalTime.parse(timeStr, DateTimeFormatter.ofPattern(
-                            SCHEDULE_TIME_DATE_TIME_FORMATTER));
+        LocalTime.parse(timeStr, DateTimeFormatter.ofPattern(SCHEDULE_TIME_DATE_TIME_FORMATTER));
     // Return next schedule time of day.
     for (TimeOfDay timeOfDay : timeOfDayList) {
       LocalTime convertedLocalTime = StsUtil.convertToLocalTime(timeOfDay);
@@ -865,45 +890,44 @@ public class StsRuleExecutor implements RuleExecutor {
     List<TransferJob> transferJobList = new ArrayList<>();
     for (int i = 0; i < jobCountToCreate; i++) {
       String description =
-              String.format(
-                      "Pooled STS Job %d  %s %s",
-                      i, retentionRuleType.toString(),
-                      StsUtil.timeOfDayToString(timeOfDay));
+          String.format(
+              "Pooled STS Job %d  %s %s",
+              i, retentionRuleType.toString(), StsUtil.timeOfDayToString(timeOfDay));
 
       TransferSpec transferSpec =
-              new TransferSpec()
-                      .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
-                      .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
-                      .setTransferOptions(
-                              new TransferOptions()
-                                      .setDeleteObjectsFromSourceAfterTransfer(true)
-                                      .setOverwriteObjectsAlreadyExistingInSink(true));
+          new TransferSpec()
+              .setGcsDataSource(new GcsData().setBucketName(sourceBucket))
+              .setGcsDataSink(new GcsData().setBucketName(destinationBucket))
+              .setTransferOptions(
+                  new TransferOptions()
+                      .setDeleteObjectsFromSourceAfterTransfer(true)
+                      .setOverwriteObjectsAlreadyExistingInSink(true));
 
       Schedule schedule =
-              new Schedule()
-                      .setScheduleStartDate(StsUtil.convertToDate(LocalDate.now().minusDays(1)))
-                      .setStartTimeOfDay(timeOfDay);
+          new Schedule()
+              .setScheduleStartDate(StsUtil.convertToDate(LocalDate.now().minusDays(1)))
+              .setStartTimeOfDay(timeOfDay);
 
       TransferJob transferJob =
-              new TransferJob()
-                      .setProjectId(projectId)
-                      .setDescription(description)
-                      .setTransferSpec(transferSpec)
-                      .setSchedule(schedule)
-                      .setStatus(StsUtil.STS_DISABLED_STRING);
+          new TransferJob()
+              .setProjectId(projectId)
+              .setDescription(description)
+              .setTransferSpec(transferSpec)
+              .setSchedule(schedule)
+              .setStatus(StsUtil.STS_DISABLED_STRING);
 
       try {
         logger.info(
-                String.format(
-                        "Creating %s STS job for job pool: %s ",
-                        retentionRuleType.toString(), transferJob.toPrettyString()));
+            String.format(
+                "Creating %s STS job for job pool: %s ",
+                retentionRuleType.toString(), transferJob.toPrettyString()));
         transferJobList.add(client.transferJobs().create(transferJob).execute());
       } catch (IOException e) {
         logger.error(
-                String.format(
-                        "Failed to create %s STS job for %s/%s",
-                        retentionRuleType.toString(), projectId, sourceBucket),
-                e);
+            String.format(
+                "Failed to create %s STS job for %s/%s",
+                retentionRuleType.toString(), projectId, sourceBucket),
+            e);
         return null;
       }
     }
@@ -916,7 +940,7 @@ public class StsRuleExecutor implements RuleExecutor {
     if (transferJobList == null && transferJobList.isEmpty()) {
       return pooledStsJobList;
     }
-      // the list is sorted by timeOfDay in asc order
+    // the list is sorted by timeOfDay in asc order
     for (int i = 0; i < transferJobList.size(); i++) {
       TransferJob transferJob = transferJobList.get(i);
       TimeOfDay timeOfDay = transferJob.getSchedule().getStartTimeOfDay();
@@ -926,11 +950,10 @@ public class StsRuleExecutor implements RuleExecutor {
       pooledStsJob.setType(retentionRuleType.toDatabaseRepresentation());
       pooledStsJob.setSchedule(StsUtil.timeOfDayToString(timeOfDay));
       pooledStsJob.setSourceBucket(
-              transferJob.getTransferSpec().getGcsDataSource().getBucketName());
+          transferJob.getTransferSpec().getGcsDataSource().getBucketName());
       pooledStsJob.setSourceProject(transferJob.getProjectId());
       pooledStsJob.setStatus(transferJob.getStatus());
-      pooledStsJob.setTargetBucket(
-              transferJob.getTransferSpec().getGcsDataSink().getBucketName());
+      pooledStsJob.setTargetBucket(transferJob.getTransferSpec().getGcsDataSink().getBucketName());
       pooledStsJob.setTargetProject(transferJob.getProjectId());
 
       pooledStsJobList.add(pooledStsJob);
@@ -940,7 +963,6 @@ public class StsRuleExecutor implements RuleExecutor {
   }
 
   /**
-   *
    * @param projectId
    * @param bucketName
    * @param scheduledAt
@@ -949,14 +971,13 @@ public class StsRuleExecutor implements RuleExecutor {
    * @throws IOException
    */
   public TransferJob findPooledJob(
-          String projectId,
-          String bucketName,
-          @Nullable String scheduledAt,
-          RetentionRuleType retentionRuleType)
-          throws IOException {
+      String projectId,
+      String bucketName,
+      @Nullable String scheduledAt,
+      RetentionRuleType retentionRuleType)
+      throws IOException {
     List<TransferJob> jobsList =
-            findPooledJobs(
-                    projectId, bucketName, scheduledAt, retentionRuleType, 1);
+        findPooledJobs(projectId, bucketName, scheduledAt, retentionRuleType, 1);
     if (jobsList == null || jobsList.isEmpty()) {
       return null;
     }
@@ -964,7 +985,6 @@ public class StsRuleExecutor implements RuleExecutor {
   }
 
   /**
-   *
    * @param projectId
    * @param bucketName
    * @param scheduledAt
@@ -985,14 +1005,17 @@ public class StsRuleExecutor implements RuleExecutor {
       return new ArrayList<>();
     }
 
-    List<PooledStsJob> pooledJobsOrderByTime = stsJobDao.getOrderedPooledStsJobsByBucketAndType(
+    List<PooledStsJob> pooledJobsOrderByTime =
+        stsJobDao.getOrderedPooledStsJobsByBucketAndType(
             bucketName, projectId, retentionRuleType.toDatabaseRepresentation());
     List<PooledStsJob> pooledJobList = chooseTransferJobs(pooledJobsOrderByTime, scheduledAt);
 
     boolean isOnDemandPoolCreation = StsUtil.isJobPoolOndemandCreation(retentionRuleType);
     pooledJobList = pooledJobList == null ? new ArrayList<>() : pooledJobList;
     if (isOnDemandPoolCreation && (pooledJobList.size() < expectJobSize)) {
-      logger.info(String.format("Bucket %s needs %d job(s) but found %d pooled job(s) at %s.",
+      logger.info(
+          String.format(
+              "Bucket %s needs %d job(s) but found %d pooled job(s) at %s.",
               bucketName, expectJobSize, pooledJobList.size(), scheduledAt));
       // create STS job pool
       String destinationBucket = StsUtil.buildDestinationBucketName(bucketName);
@@ -1000,18 +1023,22 @@ public class StsRuleExecutor implements RuleExecutor {
       if (!pooledJobList.isEmpty()) {
         // Tackle the cases when we change the schedule interval.
         targetStartTimeOfDay =
-                StsUtil.convertToTimeOfDay(
-                        LocalTime.parse(pooledJobList.get(0).getSchedule(),
-                        DateTimeFormatter.ofPattern(SCHEDULE_TIME_DATE_TIME_FORMATTER)));
+            StsUtil.convertToTimeOfDay(
+                LocalTime.parse(
+                    pooledJobList.get(0).getSchedule(),
+                    DateTimeFormatter.ofPattern(SCHEDULE_TIME_DATE_TIME_FORMATTER)));
       }
       int jobCntToCreate = expectJobSize - pooledJobList.size();
       List<TransferJob> transferJobList =
-              createJobPool(
-                      projectId, bucketName, destinationBucket,
-                      retentionRuleType, targetStartTimeOfDay, jobCntToCreate);
+          createJobPool(
+              projectId,
+              bucketName,
+              destinationBucket,
+              retentionRuleType,
+              targetStartTimeOfDay,
+              jobCntToCreate);
       if (transferJobList != null) {
-        pooledJobList.addAll(
-                saveJobPool(transferJobList, retentionRuleType));
+        pooledJobList.addAll(saveJobPool(transferJobList, retentionRuleType));
       }
     }
     // Keep behavior consistent with old logic.
@@ -1023,18 +1050,18 @@ public class StsRuleExecutor implements RuleExecutor {
     for (PooledStsJob job : pooledJobList) {
       String jobName = job.getName();
       logger.info(
-              String.format(
-                      "STS job found from the pool to run at %s for %s/%s",
-                      job.getSchedule(), projectId, bucketName));
+          String.format(
+              "STS job found from the pool to run at %s for %s/%s",
+              job.getSchedule(), projectId, bucketName));
       if (scheduledAt != null) {
         scheduledAt = job.getSchedule();
       }
       TransferJob transferJob = StsUtil.getExistingJob(client, projectId, jobName);
       if (!isValidPooledJob(transferJob, jobName, projectId, bucketName, scheduledAt)) {
         logger.error(
-                String.format(
-                        "Pooled job %s scheduled at %s for %s/%s is not valid",
-                        jobName, scheduledAt, projectId, bucketName));
+            String.format(
+                "Pooled job %s scheduled at %s for %s/%s is not valid",
+                jobName, scheduledAt, projectId, bucketName));
         continue;
       }
       validJobList.add(transferJob);
@@ -1043,18 +1070,18 @@ public class StsRuleExecutor implements RuleExecutor {
   }
 
   /**
-   * 1. If jobsOrderByScheduleTime result is null or empty, return empty list.
-   * 2. scheduleTimeOfDay == null, return all query results.
-   * 3. If scheduleTimeOfDay >= lastJob of the day, return first job of next day.
-   * 4. Find out the next schedule time after scheduleTimeOfDay params, return all
-   *    jobs that share the the next schedule time.
+   * 1. If jobsOrderByScheduleTime result is null or empty, return empty list. 2. scheduleTimeOfDay
+   * == null, return all query results. 3. If scheduleTimeOfDay >= lastJob of the day, return first
+   * job of next day. 4. Find out the next schedule time after scheduleTimeOfDay params, return all
+   * jobs that share the the next schedule time.
+   *
    * @param jobsOrderByScheduleTime
    * @param scheduleTimeOfDay
    * @return
    */
   @VisibleForTesting
   List<PooledStsJob> chooseTransferJobs(
-          List<PooledStsJob> jobsOrderByScheduleTime, @Nullable String scheduleTimeOfDay) {
+      List<PooledStsJob> jobsOrderByScheduleTime, @Nullable String scheduleTimeOfDay) {
     List<PooledStsJob> chosenJobList = new ArrayList<>();
     if (jobsOrderByScheduleTime == null || jobsOrderByScheduleTime.isEmpty()) {
       return chosenJobList;
@@ -1062,9 +1089,11 @@ public class StsRuleExecutor implements RuleExecutor {
 
     String chosenScheduleTime = null;
     if (scheduleTimeOfDay == null
-            || jobsOrderByScheduleTime.get(
-                    jobsOrderByScheduleTime.size() - 1).getSchedule().compareTo(
-                            scheduleTimeOfDay) <= 0) {
+        || jobsOrderByScheduleTime
+                .get(jobsOrderByScheduleTime.size() - 1)
+                .getSchedule()
+                .compareTo(scheduleTimeOfDay)
+            <= 0) {
       chosenScheduleTime = jobsOrderByScheduleTime.get(0).getSchedule();
     } else {
       for (int i = 0; i < jobsOrderByScheduleTime.size(); i++) {
@@ -1087,8 +1116,7 @@ public class StsRuleExecutor implements RuleExecutor {
       String jobName,
       String projectId,
       String bucketName,
-      @Nullable
-      String scheduledAt) {
+      @Nullable String scheduledAt) {
     if (pooledJob == null) {
       return false;
     }

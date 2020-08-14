@@ -455,9 +455,9 @@ public class StsUtil {
 
   public static boolean isJobPoolOndemandCreation(RetentionRuleType retentionRuleType) {
     return SdrsApplication.getAppConfigProperty(
-            "sts.jobPoolOnDemand." + retentionRuleType.toString().toLowerCase())
-                    != null
-                    ? true
-                    : false;
+                "sts.jobPoolOnDemand." + retentionRuleType.toString().toLowerCase())
+            != null
+        ? true
+        : false;
   }
 }
