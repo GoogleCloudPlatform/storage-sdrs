@@ -222,7 +222,7 @@
         <avro.version>1.8.2</avro.version>
         <joda.time>2.10.1</joda.time>
         <slf4j.version>1.7.25</slf4j.version>
-        <log4j.version>2.11.1</log4j.version>
+        <log4j.version>2.15.0</log4j.version>
         <jul.slf4j.bridge>1.7.25</jul.slf4j.bridge>
         <gson.version>2.8.5</gson.version>
         <mockito.version>1.7.4</mockito.version>
