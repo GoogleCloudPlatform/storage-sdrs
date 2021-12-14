@@ -237,6 +237,6 @@
         <commons.configuration2>2.0</commons.configuration2>
         <commons.beanutils>1.9.3</commons.beanutils>
         <google.auth.library.oauth2.http>0.11.0</google.auth.library.oauth2.http>
-        <c3p0>0.9.5.2</c3p0>
+        <c3p0>0.9.5.4</c3p0>
     </properties>
 </project>
