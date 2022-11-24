@@ -227,7 +227,7 @@
         <gson.version>2.8.5</gson.version>
         <mockito.version>1.7.4</mockito.version>
         <junit>4.9</junit>
-        <hibernate.version>5.3.7.Final</hibernate.version>
+        <hibernate.version>5.3.20.Final</hibernate.version>
         <java-jwt.version>3.4.1</java-jwt.version>
         <google.cloud>1.59.0</google.cloud>
         <maven.compiler.source>1.8</maven.compiler.source>
