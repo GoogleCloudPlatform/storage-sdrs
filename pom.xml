@@ -219,7 +219,7 @@
     </build>
     <properties>
         <jersey.version>2.26</jersey.version>
-        <avro.version>1.8.2</avro.version>
+        <avro.version>1.11.3</avro.version>
         <joda.time>2.10.1</joda.time>
         <slf4j.version>1.7.25</slf4j.version>
         <log4j.version>2.16.0</log4j.version>
