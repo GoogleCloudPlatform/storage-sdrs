@@ -59,15 +59,6 @@ Use the gcloud compute instances create-with-container command:
      --container-image [DOCKER_IMAGE]
 ```
 
-For example, the following command creates a new VM instance named nginx-vm which will launch and run Docker image gcr.io/cloud-marketplace/google/nginx1:1.12.
-
-```
- gcloud compute instances create-with-container nginx-vm \
-     --container-image gcr.io/cloud-marketplace/google/nginx1:1.12
-     
- gcloud compute instances create-with-container dev-sdrs123 --container-image gcr.io/sdrs-project-id/dev-sdrs
-     
-```
 
 [See](https://cloud.google.com/compute/docs/containers/deploying-containers) for more details on deploying containers into GCP.  
 
