@@ -234,7 +234,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mysql.connector.java>6.0.5</mysql.connector.java>
-        <commons.configuration2>2.0</commons.configuration2>
+        <commons.configuration2>2.10.1</commons.configuration2>
         <commons.beanutils>1.9.3</commons.beanutils>
         <google.auth.library.oauth2.http>0.11.0</google.auth.library.oauth2.http>
         <c3p0>0.9.5.2</c3p0>
