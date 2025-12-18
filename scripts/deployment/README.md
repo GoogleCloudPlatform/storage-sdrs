@@ -1,4 +1,3 @@
-
   
 # Supplementary Data Retention Service(SDRS) Deployment    
  ## Overview   

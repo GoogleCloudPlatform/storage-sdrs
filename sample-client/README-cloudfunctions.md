@@ -17,8 +17,8 @@ After a deployment is complete, every GCS bucket that should be monitored will n
 Notifications for the OBJECT_FINALIZE and OBJECT_DELETE events will need to be added to their
 respective topics:
 ```
-gsutil notification create -t [DEPLOYMENT_NAME]-gcs-create-topic -e OBJECT_FINALIZE -f json gs://[BUCKET_NAME]
-gsutil notification create -t [DEPLOYMENT_NAME]-gcs-delete-topic -e OBJECT_DELETE -f json gs://[BUCKET_NAME]
+gcloud storage buckets notifications create gs://[BUCKET_NAME] --topic=[DEPLOYMENT_NAME]-gcs-create-topic --event-types=OBJECT_FINALIZE --payload-format=json
+gcloud storage buckets notifications create gs://[BUCKET_NAME] --topic=[DEPLOYMENT_NAME]-gcs-delete-topic --event-types=OBJECT_DELETE --payload-format=json
 ```
 
 Cloud Scheduler will also need to be configured to publish messages to the
