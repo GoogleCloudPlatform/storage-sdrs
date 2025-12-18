@@ -121,7 +121,7 @@ ENABLE_JMX=false # Set to true to enable JVM monitoring
 6. Upload the modified env.txt file to a pre-created GCS bucket.
 
 ```shell
-    gsutil cp ../scripts/env.txt gs://<YOUR_ENV_VAR_BUCKET>/<YOUR_ENV_VAR_FOLDER>
+    gcloud storage cp ../scripts/env.txt gs://<YOUR_ENV_VAR_BUCKET>/<YOUR_ENV_VAR_FOLDER>
 ```
 
 7. Modify startup.sh accordingly. NOTE: Use startup_with_monitoring.sh instead of startup.sh if you want to enable JVM monitoring on containers
@@ -135,7 +135,7 @@ ENABLE_JMX=false # Set to true to enable JVM monitoring
 8. Upload the modified startup.sh file to a pre-created GCS bucket.
 
 ```shell
-    gsutil cp ../scripts/startup.sh gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>
+    gcloud storage cp ../scripts/startup.sh gs://<YOUR_STARTUP_SCRIPT_BUCKET>/<YOUR_STARTUP_SCRIPT_FOLDER>
 ```
 
 9. Create your deployment as described below, replacing <YOUR_DEPLOYMENT_NAME>

@@ -19,13 +19,13 @@ ENDPOINT_SERVICE_URL=sdrs-api.endpoints.your-project-id.cloud.goog
 gcloud auth configure-docker
 
 # env.txt contains the environment specific variables.
-gsutil cp $ENV_VARS_GCS_PATH .
+gcloud storage cp $ENV_VARS_GCS_PATH .
 
 # Create directory to store GCP credentials file
 mkdir /root/cred
 
 # Copy GCP Service Account credentials file to secured directory
-gsutil cp $CRED_FILE_GCS_PATH /root/cred
+gcloud storage cp $CRED_FILE_GCS_PATH /root/cred
 
 sleep 5
 
